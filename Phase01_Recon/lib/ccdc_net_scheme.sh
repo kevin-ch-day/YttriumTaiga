@@ -30,10 +30,11 @@ _ccdc_net__autodiscover_csv() {
   fi
   local lib_dir
   lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null)" || return 0
-  local candidate="${lib_dir}/ccdc_team_public_ip_map.csv"
-  if [[ -f "$candidate" ]]; then
-    CCDC_TEAM_MAP_CSV="$candidate"
-  fi
+  local candidate=""
+  candidate="${lib_dir}/ccdc_team_map.csv"
+  if [[ -f "$candidate" ]]; then CCDC_TEAM_MAP_CSV="$candidate"; return 0; fi
+  candidate="${lib_dir}/ccdc_team_public_ip_map.csv"
+  if [[ -f "$candidate" ]]; then CCDC_TEAM_MAP_CSV="$candidate"; return 0; fi
 }
 
 _ccdc_net__warn() {
@@ -59,6 +60,28 @@ ccdc_net__set_map_csv() {
   local csv="${1:-}"
   [[ -n "$csv" && -f "$csv" ]] || return 1
   CCDC_TEAM_MAP_CSV="$csv"
+  return 0
+}
+
+ccdc_net__mapping_source() {
+  _ccdc_net__autodiscover_csv
+  if [[ -n "${CCDC_TEAM_MAP_CSV:-}" && -f "${CCDC_TEAM_MAP_CSV}" ]]; then
+    echo "csv:${CCDC_TEAM_MAP_CSV}"
+    return 0
+  fi
+  echo "formula:team+${CCDC_TEAM_OCTET_BASE}"
+  return 0
+}
+
+ccdc_net__warn_if_team_out_of_range() {
+  # Warn only; do not fail by default.
+  local team="${1:-}"
+  local min="${CCDC_TEAM_MIN:-1}"
+  local max="${CCDC_TEAM_MAX:-20}"
+  ccdc_net__validate_team "$team" || return 1
+  if (( team < min || team > max )); then
+    _ccdc_net__warn "Team ${team} outside expected range ${min}-${max} (continuing)"
+  fi
   return 0
 }
 
@@ -126,12 +149,13 @@ ccdc_net__team_octet_from_csv() {
   command -v awk >/dev/null 2>&1 || return 1
 
   awk -v t="$team" -F',' '
-    BEGIN { IGNORECASE=1; team_col=0; oct_col=0; }
+    BEGIN { IGNORECASE=1; team_col=0; oct_col=0; pub_col=0; }
     NR==1 {
       for (i=1;i<=NF;i++) {
         h=$i; gsub(/^[ \t"]+|[ \t"]+$/, "", h);
         if (h ~ /^team$/ || h ~ /team[_ ]?number/ ) team_col=i;
-        if (h ~ /public[_ ]?octet/ || h ~ /^octet$/ || h ~ /public[_ ]?subnet/ ) oct_col=i;
+        if (h ~ /team[_ ]?octet/ || h ~ /public[_ ]?octet/ || h ~ /^octet$/ ) oct_col=i;
+        if (h ~ /public[_ ]?subnet/ || h ~ /public[_ ]?subnet[_ ]?cidr/ || h ~ /public[_ ]?subnet[_ ]?cidr/ ) pub_col=i;
       }
       next
     }
@@ -146,10 +170,72 @@ ccdc_net__team_octet_from_csv() {
         if (o ~ /^[0-9]+$/) { print o; exit 0 }
       }
 
+      if (pub_col>0) {
+        p=$pub_col; gsub(/^[ \t"]+|[ \t"]+$/, "", p);
+        if (p ~ /^172\.25\.[0-9]+\.0\/24$/) { split(p,a,"."); print a[3]; exit 0 }
+        if (p ~ /^[0-9]+\.[0-9]+\.[0-9]+\./) { split(p,a,"."); print a[3]; exit 0 }
+      }
+
       for (i=1;i<=NF;i++) {
         s=$i; gsub(/^[ \t"]+|[ \t"]+$/, "", s);
         if (s ~ /^172\.25\.[0-9]+\.0\/24$/) { split(s,a,"."); print a[3]; exit 0 }
       }
+    }
+    END { exit 1 }
+  ' "$csv"
+}
+
+ccdc_net__core_router_ip_from_csv() {
+  local team="$1"
+  _ccdc_net__autodiscover_csv
+  local csv="${CCDC_TEAM_MAP_CSV}"
+  [[ -n "$csv" && -f "$csv" ]] || return 1
+  command -v awk >/dev/null 2>&1 || return 1
+
+  awk -v t="$team" -F',' '
+    BEGIN { IGNORECASE=1; team_col=0; ip_col=0; }
+    NR==1 {
+      for (i=1;i<=NF;i++) {
+        h=$i; gsub(/^[ \t"]+|[ \t"]+$/, "", h);
+        if (h ~ /^team$/ || h ~ /team[_ ]?number/ ) team_col=i;
+        if (h ~ /core[_ ]?router[_ ]?ip/ ) ip_col=i;
+      }
+      next
+    }
+    {
+      if (team_col==0 || ip_col==0) next;
+      v=$team_col; gsub(/^[ \t"]+|[ \t"]+$/, "", v);
+      if (v != t) next;
+      ip=$ip_col; gsub(/^[ \t"]+|[ \t"]+$/, "", ip);
+      if (ip ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) { print ip; exit 0 }
+    }
+    END { exit 1 }
+  ' "$csv"
+}
+
+ccdc_net__team_router_ip_from_csv() {
+  local team="$1"
+  _ccdc_net__autodiscover_csv
+  local csv="${CCDC_TEAM_MAP_CSV}"
+  [[ -n "$csv" && -f "$csv" ]] || return 1
+  command -v awk >/dev/null 2>&1 || return 1
+
+  awk -v t="$team" -F',' '
+    BEGIN { IGNORECASE=1; team_col=0; ip_col=0; }
+    NR==1 {
+      for (i=1;i<=NF;i++) {
+        h=$i; gsub(/^[ \t"]+|[ \t"]+$/, "", h);
+        if (h ~ /^team$/ || h ~ /team[_ ]?number/ ) team_col=i;
+        if (h ~ /team[_ ]?router[_ ]?ip/ ) ip_col=i;
+      }
+      next
+    }
+    {
+      if (team_col==0 || ip_col==0) next;
+      v=$team_col; gsub(/^[ \t"]+|[ \t"]+$/, "", v);
+      if (v != t) next;
+      ip=$ip_col; gsub(/^[ \t"]+|[ \t"]+$/, "", ip);
+      if (ip ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) { print ip; exit 0 }
     }
     END { exit 1 }
   ' "$csv"
@@ -223,6 +309,10 @@ ccdc_net__public_host_candidates() {
 
 ccdc_net__core_transit_router_ip() {
   local team="$1"
+  local ip
+  if ip="$(ccdc_net__core_router_ip_from_csv "$team" 2>/dev/null)"; then
+    [[ -n "$ip" ]] && { echo "$ip"; return 0; }
+  fi
   local oct
   oct="$(ccdc_net__team_octet "$team")" || return 1
   echo "172.31.${oct}.1"
@@ -230,6 +320,10 @@ ccdc_net__core_transit_router_ip() {
 
 ccdc_net__core_transit_team_ip() {
   local team="$1"
+  local ip
+  if ip="$(ccdc_net__team_router_ip_from_csv "$team" 2>/dev/null)"; then
+    [[ -n "$ip" ]] && { echo "$ip"; return 0; }
+  fi
   local oct
   oct="$(ccdc_net__team_octet "$team")" || return 1
   echo "172.31.${oct}.2"
@@ -272,8 +366,6 @@ ccdc_net__print_team_summary() {
   _ccdc_net__log "Core router IP:     $core_ip"
   _ccdc_net__log "Team transit IP:    $team_ip"
 
-  if [[ -n "${CCDC_TEAM_MAP_CSV:-}" ]]; then
-    _ccdc_net__log "Mapping CSV:        $CCDC_TEAM_MAP_CSV"
-  fi
+  _ccdc_net__log "Mapping source:     $(ccdc_net__mapping_source)"
   return 0
 }

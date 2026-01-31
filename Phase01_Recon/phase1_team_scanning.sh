@@ -203,6 +203,9 @@ main() {
     return 1
   }
 
+  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+
   # Persist for other Phase 1 scripts
   ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
 

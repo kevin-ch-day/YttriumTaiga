@@ -262,6 +262,9 @@ main() {
     return 1
   }
 
+  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+
   ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
 
   ccdc__require_cmds curl awk sed tr head sort uniq grep wc || exit 3

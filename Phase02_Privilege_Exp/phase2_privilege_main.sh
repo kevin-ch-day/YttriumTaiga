@@ -116,6 +116,8 @@ phase2_main__menu() {
     local last_team
     last_team="$(phase2_load_last_team 2>/dev/null || true)"
     [[ -n "$last_team" ]] && phase2_menu__print_kv "Last team" "$last_team"
+    [[ -n "$last_team" ]] && ccdc_net__warn_if_team_out_of_range "$last_team" || true
+    [[ -n "$last_team" ]] && phase2_menu__print_kv "Mapping" "$(ccdc_net__mapping_source)"
 
     phase2_menu__divider
     local idx

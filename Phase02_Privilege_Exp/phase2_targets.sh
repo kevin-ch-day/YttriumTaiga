@@ -87,6 +87,9 @@ main() {
     exit 1
   fi
 
+  ccdc_net__warn_if_team_out_of_range "$team" || true
+  phase2_log_kv "Mapping" "$(ccdc_net__mapping_source)"
+
   # Save for later scripts
   phase2_save_last_team "$team" || true
 

@@ -45,20 +45,28 @@ If results are still empty:
 - verify network connectivity from your Kali host
 
 ## Team mapping override
-Default mapping is `team + 20` (e.g., Team 1 -> 172.25.21.0/24).
+Default mapping is `team + 20` (Teams 1-20 only). Example: Team 1 -> 172.25.21.0/24.
 Override this by:
-- Setting `CCDC_TEAM_MAP_CSV=/path/to/map.csv`, or
-- Dropping a CSV at `Phase01_Recon/lib/ccdc_team_public_ip_map.csv`
+- Setting `CCDC_TEAM_MAP_CSV=/path/to/ccdc_team_map.csv`, or
+- Dropping a CSV at `Phase01_Recon/lib/ccdc_team_map.csv`
 
 Expected CSV headers (case-insensitive):
 - `team` or `team_number`
-- `public_octet` or `octet` or `public_subnet`
+- `team_octet` or `public_octet` or `octet`
+- `public_subnet_cidr` (preferred) or `public_subnet`
+- Optional: `core_transit_cidr`, `core_router_ip`, `team_router_ip`
 
 ## Tool prerequisites (typical)
 Most Phase 01 scripts expect these tools to exist:
 - core: `bash`, `awk`, `sed`, `grep`, `sort`, `head`, `tr`
 - network: `curl`, `ip`, `ping`, `ss`
 - optional: `dig` or `nslookup` or `host` (DNS check)
+
+## Scope guardrails (admin guidance)
+- Target only the team public /24: `172.25.(20+team).0/24`
+- Treat transit /29 as infrastructure only: `172.31.(20+team).0/29`
+  - `.1` core router side (do not touch)
+  - `.2` team router side (do not touch)
 
 ## Notes
 - These scripts are read-only and low-noise by design.

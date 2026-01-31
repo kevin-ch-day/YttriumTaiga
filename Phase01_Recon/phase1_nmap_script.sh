@@ -140,6 +140,9 @@ main() {
   TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || { usage; return 1; }
   ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
 
+  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+
   init_paths
 
   ccdc__section "Team Network Summary"

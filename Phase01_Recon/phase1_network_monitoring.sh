@@ -299,6 +299,9 @@ main() {
   TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
   [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
 
+  [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+  [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
+
   init_outputs
 
   if ccdc_menu__is_interactive; then
