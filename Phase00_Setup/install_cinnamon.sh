@@ -19,7 +19,7 @@ DO_UPGRADE="${DO_UPGRADE:-1}"              # 1=yes 0=no  (upgrade can be slow/im
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "ERROR: run with sudo:"
-  echo "  sudo $0"
+  echo "  sudo ./$(basename "$0")"
   exit 1
 fi
 

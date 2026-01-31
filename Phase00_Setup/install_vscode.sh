@@ -18,7 +18,7 @@ LOG_MODE="${LOG_MODE:-append}"   # append|overwrite
 
 if [[ "${EUID}" -ne 0 ]]; then
   echo "ERROR: run with sudo:"
-  echo "  sudo $0"
+  echo "  sudo ./$(basename "$0")"
   exit 1
 fi
 
