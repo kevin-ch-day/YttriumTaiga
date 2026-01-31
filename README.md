@@ -99,4 +99,4 @@ CSV override supported:
 - Phase 01 scripts prompt for Team Selection before showing action menus.
 - Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
-- Repo rules live in `Config/ccdc_rules.conf` (blocked teams, future constraints).
+- Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).

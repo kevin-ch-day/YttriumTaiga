@@ -49,11 +49,11 @@ ccdc__load_rules() {
   local rules_file="${CCDC_RULES_FILE:-}"
   if [[ -z "$rules_file" ]]; then
     if [[ -n "${CCDC_BASE_DIR:-}" ]]; then
-      rules_file="${CCDC_BASE_DIR}/../Config/ccdc_rules.conf"
+      rules_file="${CCDC_BASE_DIR}/../config/ccdc_rules.conf"
     else
       local lib_dir
       lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
-      rules_file="${lib_dir}/../../Config/ccdc_rules.conf"
+      rules_file="${lib_dir}/../../config/ccdc_rules.conf"
     fi
   fi
 
