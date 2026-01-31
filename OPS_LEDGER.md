@@ -44,9 +44,8 @@ Rule: Team19 is `targetable=no` and must never be targeted (use `NA` or blank in
 Purpose: one row per action attempt, with outcomes per team.
 
 Non-team columns:
-- `date_cst` (YYYY-MM-DD)
-- `time_start_cst` (HH:MM)
-- `time_end_cst` (HH:MM)
+- `time_start_ct` (e.g., `1/21/2026 1:45 PM`)
+- `time_end_ct` (e.g., `1/21/2026 2:10 PM`)
 - `action_id` (ACT-001 style)
 - `action` (human description)
 - `operator` (who ran it)
@@ -67,4 +66,4 @@ Team columns:
 - One row = one action attempt.
 - Do not write `Fail` unless it was actually attempted.
 - Team19 must always be `NA` or blank.
-- Keep time fields in CST for consistency.
+- Keep time fields in Central Time for consistency (see `config/ccdc_rules.conf`).

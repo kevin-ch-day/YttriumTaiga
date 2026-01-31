@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# lib/ccdc_theme.sh
+# config/theme/ccdc_theme.sh
 set -euo pipefail
 
 # ============================================================
-# Phase 3 Theme (uses ccdc_colors.sh if sourced)
+# Shared Theme (uses ccdc_colors.sh if sourced)
 # Version : 0.1.0
 #
 # Usage:
-#   source ./lib/ccdc_colors.sh
-#   source ./lib/ccdc_theme.sh
+#   source ./config/theme/ccdc_colors.sh
+#   source ./config/theme/ccdc_theme.sh
 #   ccdc_theme__header "Title" "Subtitle"
 #
 # Control:
@@ -40,7 +40,11 @@ ccdc_theme__header() {
   local title="${1:-Phase 3}"
   local subtitle="${2:-Continuity}"
   local ts
-  ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
+  if declare -F ccdc__now >/dev/null 2>&1; then
+    ts="$(ccdc__now 2>/dev/null || date)"
+  else
+    ts="$(TZ="${CCDC_TIMEZONE:-America/Chicago}" date "+${CCDC_TIME_FORMAT:-%Y-%m-%d %H:%M:%S}" 2>/dev/null || date)"
+  fi
 
   local bar="################################################################################"
   case "${CCDC_THEME}" in

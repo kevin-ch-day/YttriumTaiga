@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# lib/ccdc_colors.sh
+# config/theme/ccdc_colors.sh
 set -euo pipefail
 
 # ============================================================
-# Phase 3 Colors (Kali-friendly, minimal)
+# Shared Colors (Kali-friendly, minimal)
 # Version : 0.1.0
 #
 # Usage:
-#   source ./lib/ccdc_colors.sh
+#   source ./config/theme/ccdc_colors.sh
 #   ccdc_color__wrap "32" "OK"
 #
 # Control:

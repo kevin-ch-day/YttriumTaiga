@@ -26,7 +26,34 @@ set -euo pipefail
 : "${CCDC_LOG_FILE:=}"
 : "${CCDC_PHASE_NAME:=}"   # optional label for logs
 
-ccdc__now() { date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date; }
+CCDC_TIMEZONE="${CCDC_TIMEZONE:-America/Chicago}"
+CCDC_TIME_FORMAT="${CCDC_TIME_FORMAT:-%Y-%m-%d %H:%M:%S}"
+CCDC_TIME_RULES_LOADED="${CCDC_TIME_RULES_LOADED:-0}"
+
+ccdc__load_time_rules() {
+  [[ "${CCDC_TIME_RULES_LOADED}" == "1" ]] && return 0
+  local rules_file="${CCDC_RULES_FILE:-}"
+  if [[ -z "$rules_file" ]]; then
+    if [[ -n "${CCDC_BASE_DIR:-}" ]]; then
+      rules_file="${CCDC_BASE_DIR}/../config/ccdc_rules.conf"
+    else
+      local lib_dir
+      lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+      rules_file="${lib_dir}/../../config/ccdc_rules.conf"
+    fi
+  fi
+  if [[ -f "$rules_file" ]]; then
+    # shellcheck disable=SC1090
+    source "$rules_file" || true
+  fi
+  CCDC_TIME_RULES_LOADED=1
+  return 0
+}
+
+ccdc__now() {
+  ccdc__load_time_rules || true
+  TZ="${CCDC_TIMEZONE}" date "+${CCDC_TIME_FORMAT}" 2>/dev/null || date
+}
 
 ccdc__phase_base_dir() {
   # base dir one level above lib/

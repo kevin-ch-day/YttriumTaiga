@@ -23,7 +23,7 @@ set -euo pipefail
 # ---- Require sudo/root ----
 if [[ "${EUID}" -ne 0 ]]; then
   echo "ERROR: Run with sudo:"
-  echo "  sudo ./setup_kali_redteam.sh"
+  echo "  sudo ./setup_kali_os.sh"
   exit 1
 fi
 

@@ -15,6 +15,24 @@ set -euo pipefail
 # Auto-enable color only if stdout is a TTY.
 : "${CCDC_MENU_COLOR:=auto}"  # auto|0|1
 
+# Optional shared theme/colors (config/theme)
+_ccdc_menu__load_theme() {
+  [[ "${CCDC_THEME_LOADED:-0}" == "1" ]] && return 0
+  local lib_dir theme_dir
+  lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+  theme_dir="${lib_dir}/../../config/theme"
+  if [[ ! -f "${theme_dir}/ccdc_colors.sh" || ! -f "${theme_dir}/ccdc_theme.sh" ]]; then
+    echo "ERROR: Missing required theme files in ${theme_dir} (ccdc_colors.sh / ccdc_theme.sh)" >&2
+    return 1
+  fi
+  # shellcheck disable=SC1090
+  source "${theme_dir}/ccdc_colors.sh"
+  # shellcheck disable=SC1090
+  source "${theme_dir}/ccdc_theme.sh"
+  CCDC_THEME_LOADED=1
+  return 0
+}
+
 # --- warn hook (integrates with ccdc_common.sh if present) ---
 _ccdc_menu__warn() {
   local msg="$*"
@@ -57,6 +75,9 @@ ccdc_menu__header() {
   # Usage: ccdc_menu__header "Title" ["Subtitle"]
   local title="${1:-}"
   local subtitle="${2:-}"
+  _ccdc_menu__load_theme || exit 3
+  ccdc_theme__header "$title" "$subtitle"
+  return 0
   local ts
   ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
 

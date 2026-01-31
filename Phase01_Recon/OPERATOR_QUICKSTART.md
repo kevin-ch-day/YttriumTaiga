@@ -5,16 +5,17 @@ Phase 01 is read-only recon. It inventories exposed services, fingerprints web a
 and sets up operator notes for tracking credentials and targets.
 
 ## Recommended run order
-1) Initialize operator docs:
-   - `./phase1_cred_ledger_init.sh <TEAM>` (or run without args and select Team in the menu)
-2) Run service inventory (HTTP/HTTPS only):
-   - `./phase1_service_inventory.sh <TEAM>` (or select Team in the menu)
-3) Run web fingerprinting (low-noise):
-   - `./phase1_web_fingerprint.sh <TEAM>` (or select Team in the menu)
-4) (Optional) Run network monitoring for local health snapshot:
-   - `./phase1_network_monitoring.sh <TEAM>` (Team is optional; menu allows continue without team)
-5) (Optional) Generate Nmap worksheet (does not scan):
-   - `./phase1_nmap_script.sh <TEAM>` (or select Team in the menu)
+1) **Operator: Primary Recon**
+   - `./phase1_operator_recon.sh <TEAM>` (or run without args and select Team in the menu)
+2) **Operator: Local Health Snapshot (optional)**
+   - `./phase1_operator_monitor.sh <TEAM>` (Team is optional; menu allows continue without team)
+
+## Side scripts ("Tools")
+If you need a single task without the full operator workflow:
+- `./phase1_cred_ledger_init.sh <TEAM>` (docs/ledgers)
+- `./phase1_service_inventory.sh <TEAM>` (HTTP/HTTPS inventory)
+- `./phase1_web_fingerprint.sh <TEAM>` (light fingerprinting)
+- `./phase1_nmap_script.sh <TEAM>` (worksheet only; no scans)
 
 ## Menu behavior (what operators should expect)
 Every Phase 01 script now starts with a Team Selection menu:

@@ -31,7 +31,36 @@ set -euo pipefail
 : "${PHASE2_OUT_DIR:=}"
 : "${PHASE2_LOG_FILE:=}"
 
-phase2_now() { date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date; }
+PHASE2_TIMEZONE="${PHASE2_TIMEZONE:-America/Chicago}"
+PHASE2_TIME_FORMAT="${PHASE2_TIME_FORMAT:-%Y-%m-%d %H:%M:%S}"
+PHASE2_TIME_RULES_LOADED="${PHASE2_TIME_RULES_LOADED:-0}"
+
+phase2_load_time_rules() {
+  [[ "${PHASE2_TIME_RULES_LOADED}" == "1" ]] && return 0
+  local rules_file="${PHASE2_RULES_FILE:-}"
+  if [[ -z "$rules_file" ]]; then
+    local lib_dir
+    lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+    rules_file="${lib_dir}/../../config/ccdc_rules.conf"
+  fi
+  if [[ -f "$rules_file" ]]; then
+    # shellcheck disable=SC1090
+    source "$rules_file" || true
+    if [[ -n "${CCDC_TIMEZONE:-}" ]]; then
+      PHASE2_TIMEZONE="${CCDC_TIMEZONE}"
+    fi
+    if [[ -n "${CCDC_TIME_FORMAT:-}" ]]; then
+      PHASE2_TIME_FORMAT="${CCDC_TIME_FORMAT}"
+    fi
+  fi
+  PHASE2_TIME_RULES_LOADED=1
+  return 0
+}
+
+phase2_now() {
+  phase2_load_time_rules || true
+  TZ="${PHASE2_TIMEZONE}" date "+${PHASE2_TIME_FORMAT}" 2>/dev/null || date
+}
 
 phase2__apply_meta_defaults() {
   # Identity defaults (only if not provided by meta)

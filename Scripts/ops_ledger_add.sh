@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ============================================================
 # Ops Ledger Add (interactive helper)
-# Writes one row to data/ops_matrix.csv
+# Writes one row to data/ops_ledger.csv
 # Version : 0.1.0
 # ============================================================
 
@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TEAMS_CSV="${ROOT_DIR}/data/ops_teams.csv"
 OPS_CSV="${ROOT_DIR}/data/ops_ledger.csv"
+RULES_FILE="${ROOT_DIR}/config/ccdc_rules.conf"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 need_cmd() { command -v "$1" >/dev/null 2>&1; }
@@ -20,20 +21,25 @@ need_cmd() { command -v "$1" >/dev/null 2>&1; }
 need_cmd awk || die "awk required"
 need_cmd date || die "date required"
 
-now_date="$(date '+%Y-%m-%d' 2>/dev/null || date)"
-now_time="$(date '+%H:%M' 2>/dev/null || date)"
+# Load repo-wide rules (time format / timezone)
+if [[ -f "${RULES_FILE}" ]]; then
+  # shellcheck disable=SC1090
+  source "${RULES_FILE}" || true
+fi
 
-read -r -p "Date (CST) [${now_date}]: " date_cst
-date_cst="${date_cst:-$now_date}"
+CCDC_TIMEZONE="${CCDC_TIMEZONE:-America/Chicago}"
+CCDC_TIME_FORMAT="${CCDC_TIME_FORMAT:-%m/%d/%Y %l:%M %p}"
 
-read -r -p "Start time (CST, HH:MM) [${now_time}]: " time_start
-time_start="${time_start:-$now_time}"
+now_stamp="$(TZ="${CCDC_TIMEZONE}" date "+${CCDC_TIME_FORMAT}" 2>/dev/null || date)"
 
-read -r -p "End time (CST, HH:MM) [${now_time}]: " time_end
-time_end="${time_end:-$now_time}"
+read -r -p "Start time (CT, ${CCDC_TIME_FORMAT}) [${now_stamp}]: " time_start
+time_start="${time_start:-$now_stamp}"
+
+read -r -p "End time (CT, ${CCDC_TIME_FORMAT}) [${now_stamp}]: " time_end
+time_end="${time_end:-$now_stamp}"
 
 # Compute next ACT-###
-next_id="$(awk -F',' 'NR>1 {print $4}' "$OPS_CSV" 2>/dev/null \
+next_id="$(awk -F',' 'NR>1 {print $3}' "$OPS_CSV" 2>/dev/null \
   | awk '/^ACT-[0-9]+$/ {gsub("ACT-","",$0); print $0}' \
   | sort -n | tail -n 1)"
 if [[ -n "$next_id" ]]; then
@@ -86,7 +92,7 @@ for t in $(normalize_list "$fail_list"); do
 done
 
 # Build row
-row="${date_cst},${time_start},${time_end},${action_id},\"${action}\",${operator},\"${notes}\""
+row="${time_start},${time_end},${action_id},\"${action}\",${operator},\"${notes}\""
 for i in $(seq 1 20); do
   row+=",${outcomes[Team${i}]}"
 done

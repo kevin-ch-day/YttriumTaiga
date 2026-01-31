@@ -130,7 +130,7 @@ phase2_main__menu() {
           "Remote/PrivEsc: SSH proof + triage (phase2_remote_privesc.sh)" \
           "Quick: Local PrivEsc triage now (this host)" \
           "Open cred ledger (view)" \
-          "Ops ledger: add action row (ops_matrix.csv)" \
+          "Ops ledger: add action row (ops_ledger.csv)" \
           "Exit"
       )"
 
