@@ -2,17 +2,17 @@
 set -euo pipefail
 
 # ============================================================
-# Filename: setup_kali_redteam.sh
+# Filename: setup_kali_os.sh
 # Purpose : Phase 0 - Red Team Environment Setup for Kali
 # Version : 0.3.0
 # Updated : 2026-01-30
 #
 # Run:
-#   sudo ./setup_kali_redteam.sh
+#   sudo ./setup_kali_os.sh
 #
 # Output (next to this script):
-#   ./logs/setup_kali_redteam.log
-#   ./output/setup_kali_redteam.summary.txt
+#   ./logs/setup_kali_os.log
+#   ./output/setup_kali_os.summary.txt
 #
 # Design:
 # - No CLI args (by design)
@@ -32,8 +32,8 @@ LOG_DIR="${SCRIPT_DIR}/logs"
 OUT_DIR="${SCRIPT_DIR}/output"
 mkdir -p "$LOG_DIR" "$OUT_DIR"
 
-LOG_FILE="${LOG_DIR}/setup_kali_redteam.log"
-OUT_FILE="${OUT_DIR}/setup_kali_redteam.summary.txt"
+LOG_FILE="${LOG_DIR}/setup_kali_os.log"
+OUT_FILE="${OUT_DIR}/setup_kali_os.summary.txt"
 
 : > "$LOG_FILE"
 : > "$OUT_FILE"

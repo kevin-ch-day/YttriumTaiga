@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # ============================================================
-# Filename: kali_install_cinnamon.sh
+# Filename: install_cinnamon.sh
 # Purpose : Install Cinnamon desktop environment on Kali Linux
-# Run     : sudo ./kali_install_cinnamon.sh
+# Run     : sudo ./install_cinnamon.sh
 # Notes   : Installs Cinnamon + LightDM, enables display manager
-# Log     : ./logs/kali_install_cinnamon.log (no timestamp)
+# Log     : ./logs/install_cinnamon.log (no timestamp)
 #
 # Goals:
 # - Avoid "sudo-locked" logs/output: logs/ is shared (1777) + log file (0666)
@@ -42,7 +42,7 @@ ensure_shared_file() {
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="${SCRIPT_DIR}/logs"
-LOG_FILE="${LOG_DIR}/kali_install_cinnamon.log"
+LOG_FILE="${LOG_DIR}/install_cinnamon.log"
 
 ensure_shared_dir "${LOG_DIR}"
 ensure_shared_file "${LOG_FILE}"
@@ -170,4 +170,3 @@ log "Next steps:"
 log "1) Reboot: sudo reboot"
 log "2) On login screen, choose session: Cinnamon"
 log "Done."
-

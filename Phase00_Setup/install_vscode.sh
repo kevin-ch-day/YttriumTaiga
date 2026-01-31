@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # ============================================================
-# Filename: kali_install_vscode.sh
+# Filename: install_vscode.sh
 # Purpose : Install Visual Studio Code (Microsoft repo) on Kali Linux
-# Run     : sudo ./kali_install_vscode.sh
-# Log     : ./logs/kali_install_vscode.log (no timestamp)
+# Run     : sudo ./install_vscode.sh
+# Log     : ./logs/install_vscode.log (no timestamp)
 #
 # Notes:
 # - Uses a modern keyring + "signed-by" (avoids deprecated apt-key).
@@ -38,7 +38,7 @@ ensure_shared_file() {
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="${SCRIPT_DIR}/logs"
-LOG_FILE="${LOG_DIR}/kali_install_vscode.log"
+LOG_FILE="${LOG_DIR}/install_vscode.log"
 
 ensure_shared_dir "${LOG_DIR}"
 ensure_shared_file "${LOG_FILE}"
@@ -122,4 +122,3 @@ else
 fi
 
 log "Done."
-

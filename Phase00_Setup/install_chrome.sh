@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # ============================================================
-# Filename: kali_install_chrome.sh
+# Filename: install_chrome.sh
 # Purpose : Install Google Chrome (stable) on Kali Linux
-# Run     : sudo ./kali_install_chrome.sh
-# Log     : ./logs/kali_install_chrome.log  (no timestamp)
+# Run     : sudo ./install_chrome.sh
+# Log     : ./logs/install_chrome.log  (no timestamp)
 #
 # Goals:
 # - Works on Kali rolling snapshots (optional deps may not exist)
@@ -50,7 +50,7 @@ ensure_shared_file() {
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="${SCRIPT_DIR}/logs"
-LOG_FILE="${LOG_DIR}/kali_install_chrome.log"
+LOG_FILE="${LOG_DIR}/install_chrome.log"
 
 ensure_shared_dir "${LOG_DIR}"
 ensure_shared_file "${LOG_FILE}"
@@ -143,4 +143,3 @@ else
 fi
 
 log "Done."
-
