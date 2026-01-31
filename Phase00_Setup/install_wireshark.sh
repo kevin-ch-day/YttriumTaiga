@@ -1,11 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 ################################################################################
 #            Script to Install Wireshark on Kali Linux                        #
 ################################################################################
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+SCRIPT_NAME="$(basename "$0")"
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "ERROR: Run with sudo:"
+  echo "  sudo ./${SCRIPT_NAME}"
+  exit 1
+fi
 
 # Function to display messages with enhanced formatting
 echo_step() {
@@ -21,7 +27,7 @@ echo -e "\e[1;100m##############################################################
 
 # Step 1: Update package lists
 echo_step "Step 1: Updating Package Lists..."
-apt update
+apt update -y
 
 # Step 2: Install Wireshark
 echo_step "Step 2: Installing Wireshark..."
@@ -29,7 +35,9 @@ apt install -y wireshark
 
 # Step 3: Configure Wireshark for Non-Root Usage
 echo_step "Step 3: Configuring Wireshark for Non-Root Usage..."
-dpkg-reconfigure wireshark-common
+export DEBIAN_FRONTEND=noninteractive
+echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections
+dpkg-reconfigure -f noninteractive wireshark-common
 TARGET_USER="${SUDO_USER:-$USER}"
 usermod -aG wireshark "$TARGET_USER"
 
