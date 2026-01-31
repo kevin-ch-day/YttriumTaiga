@@ -140,9 +140,9 @@ run_all() {
   # Runs all phase 1 steps and records a status summary.
   local ok_cred="FAIL" ok_inv="FAIL" ok_fp="FAIL"
 
-  if run_child "Initialize ledgers/docs" "${SCRIPT_DIR}/phase1_cred_ledger_init.sh"; then ok_cred="OK"; fi
-  if run_child "Service Inventory (HTTP/HTTPS)" "${SCRIPT_DIR}/phase1_service_inventory.sh"; then ok_inv="OK"; fi
-  if run_child "Web Fingerprint" "${SCRIPT_DIR}/phase1_web_fingerprint.sh"; then ok_fp="OK"; fi
+  if run_child "Initialize ledgers/docs" "${SCRIPT_DIR}/tools/phase1_cred_ledger_init.sh"; then ok_cred="OK"; fi
+  if run_child "Service Inventory (HTTP/HTTPS)" "${SCRIPT_DIR}/tools/phase1_service_inventory.sh"; then ok_inv="OK"; fi
+  if run_child "Web Fingerprint" "${SCRIPT_DIR}/tools/phase1_web_fingerprint.sh"; then ok_fp="OK"; fi
 
   write_report || true
 
@@ -212,9 +212,9 @@ menu_loop() {
       "Exit")"
 
     case "$choice" in
-      1) run_child "Initialize ledgers/docs" "${SCRIPT_DIR}/phase1_cred_ledger_init.sh"; ccdc_menu__pause ;;
-      2) run_child "Service Inventory (HTTP/HTTPS)" "${SCRIPT_DIR}/phase1_service_inventory.sh"; ccdc_menu__pause ;;
-      3) run_child "Web Fingerprint" "${SCRIPT_DIR}/phase1_web_fingerprint.sh"; ccdc_menu__pause ;;
+      1) run_child "Initialize ledgers/docs" "${SCRIPT_DIR}/tools/phase1_cred_ledger_init.sh"; ccdc_menu__pause ;;
+      2) run_child "Service Inventory (HTTP/HTTPS)" "${SCRIPT_DIR}/tools/phase1_service_inventory.sh"; ccdc_menu__pause ;;
+      3) run_child "Web Fingerprint" "${SCRIPT_DIR}/tools/phase1_web_fingerprint.sh"; ccdc_menu__pause ;;
       4) run_all; ccdc_menu__pause ;;
       5) write_report; ccdc_menu__pause ;;
       6) view_outputs_menu ;;
@@ -233,9 +233,9 @@ main() {
   fi
 
   # Ensure Phase 1 scripts exist
-  require_child "${SCRIPT_DIR}/phase1_cred_ledger_init.sh" || exit 3
-  require_child "${SCRIPT_DIR}/phase1_service_inventory.sh" || exit 3
-  require_child "${SCRIPT_DIR}/phase1_web_fingerprint.sh" || exit 3
+  require_child "${SCRIPT_DIR}/tools/phase1_cred_ledger_init.sh" || exit 3
+  require_child "${SCRIPT_DIR}/tools/phase1_service_inventory.sh" || exit 3
+  require_child "${SCRIPT_DIR}/tools/phase1_web_fingerprint.sh" || exit 3
 
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0

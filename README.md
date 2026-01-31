@@ -99,6 +99,6 @@ CSV override supported:
 - Phase 0-2 are implemented; Phase 3-5 are scaffolds for future build-out.
 - Phase 01 scripts prompt for Team Selection before showing action menus.
 - Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
-- Phase 01 operators: `phase1_operator_recon.sh` (primary) and `phase1_operator_monitor.sh` (health).
+- Phase 01 operators: `phase1_operator.sh` (launcher), `phase1_operator_recon.sh` (primary), `phase1_operator_monitor.sh` (health).
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
 - Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).

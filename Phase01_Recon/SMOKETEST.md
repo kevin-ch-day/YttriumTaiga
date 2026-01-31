@@ -3,7 +3,7 @@
 Run this once before competition to confirm Phase 01 works end-to-end.
 
 1) Scripts executable
-   - `chmod +x Phase01_Recon/*.sh Phase01_Recon/lib/*.sh`
+   - `chmod +x Phase01_Recon/*.sh Phase01_Recon/lib/*.sh Phase01_Recon/tools/*.sh`
 
 2) Logs/output writable
    - `mkdir -p Phase01_Recon/logs Phase01_Recon/output`
@@ -15,8 +15,8 @@ Run this once before competition to confirm Phase 01 works end-to-end.
   - If using CSV: `bash -c 'CCDC_TEAM_MAP_CSV=Phase01_Recon/lib/ccdc_team_map.csv; source Phase01_Recon/lib/ccdc_net_scheme.sh; ccdc_net__public_subnet 7'`
   - Expect: `172.25.27.0/24` for Team 7 with standard mapping.
 
-4) Run operator recon once
-   - `./Phase01_Recon/phase1_operator_recon.sh` (no args)
+4) Run operator launcher once
+   - `./Phase01_Recon/phase1_operator.sh` (no args)
    - Choose a Team in the Team Selection menu.
    - Exit after the action menu renders; confirm log file exists in `Phase01_Recon/logs/`.
 

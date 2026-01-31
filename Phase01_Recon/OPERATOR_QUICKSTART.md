@@ -5,17 +5,24 @@ Phase 01 is read-only recon. It inventories exposed services, fingerprints web a
 and sets up operator notes for tracking credentials and targets.
 
 ## Recommended run order
-1) **Operator: Primary Recon**
+1) **Operator: Launcher (recommended)**
+   - `./phase1_operator.sh <TEAM>` (choose Recon or Monitor)
+2) **Operator: Primary Recon**
    - `./phase1_operator_recon.sh <TEAM>` (or run without args and select Team in the menu)
-2) **Operator: Local Health Snapshot (optional)**
+3) **Operator: Local Health Snapshot (optional)**
    - `./phase1_operator_monitor.sh <TEAM>` (Team is optional; menu allows continue without team)
 
 ## Side scripts ("Tools")
 If you need a single task without the full operator workflow:
-- `./phase1_cred_ledger_init.sh <TEAM>` (docs/ledgers)
-- `./phase1_service_inventory.sh <TEAM>` (HTTP/HTTPS inventory)
-- `./phase1_web_fingerprint.sh <TEAM>` (light fingerprinting)
-- `./phase1_nmap_script.sh <TEAM>` (worksheet only; no scans)
+Tools live in `Phase01_Recon/tools/`:
+- `./tools/phase1_cred_ledger_init.sh <TEAM>` (docs/ledgers)
+- `./tools/phase1_service_inventory.sh <TEAM>` (HTTP/HTTPS inventory)
+- `./tools/phase1_web_fingerprint.sh <TEAM>` (light fingerprinting)
+- `./tools/phase1_nmap_script.sh <TEAM>` (worksheet only; no scans)
+
+## Phase 01 structure (clean root)
+Only the Operator scripts live at the phase root. All task-specific scripts are in `tools/`.
+This keeps the root minimal and prevents accidental use of the wrong tool.
 
 ## Menu behavior (what operators should expect)
 Every Phase 01 script now starts with a Team Selection menu:
@@ -42,6 +49,12 @@ Key files:
 - `services_hits.txt` contains IPs with meaningful headers/titles.
 - `web_fingerprint.csv` includes titles/headers for likely apps (webmail, OpenCart, Splunk, etc.).
 - `targets_candidates.txt` has a short list of interesting hosts for quick follow-up.
+
+## Fast test mode (optional)
+If you need a quick scan for testing:
+- `CCDC_PHASE1_MAX_HOSTS=64`
+- `CCDC_PHASE1_MAX_SECONDS=120`
+- `CCDC_PHASE1_FP_MAX_HOSTS=32`
 
 ## Network model (authoritative)
 Teams 1-20 only. The network is fixed for the day:
