@@ -145,6 +145,15 @@ ccdc_net__validate_team() {
   local team="${1:-}"
   [[ -n "$team" ]] || return 1
   [[ "$team" =~ ^[0-9]{1,3}$ ]] || return 1
+  if declare -F phase2_is_blocked_team >/dev/null 2>&1; then
+    if phase2_is_blocked_team "$team"; then
+      _ccdc_net__warn "Team ${team} is reserved for baseline connectivity; do not target."
+      return 1
+    fi
+  elif (( team == 19 )); then
+    _ccdc_net__warn "Team 19 is reserved for baseline connectivity; do not target."
+    return 1
+  fi
   (( team >= 0 && team <= 255 )) || return 1
   return 0
 }

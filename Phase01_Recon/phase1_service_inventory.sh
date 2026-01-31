@@ -66,6 +66,7 @@ usage() {
 }
 
 init_outputs() {
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || true
   TXT_OUT="${CCDC_OUT_DIR}/services.txt"
   CSV_OUT="${CCDC_OUT_DIR}/services.csv"
   HITS_OUT="${CCDC_OUT_DIR}/services_hits.txt"

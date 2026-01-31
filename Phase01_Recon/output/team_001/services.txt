@@ -1,0 +1,26 @@
+[*] Phase 1 Service Inventory (read-only)
+[*] Target Net: 172.25.21.0/24
+[*] Output: services.txt, services.csv, services_hits.txt
+[*] Targets: targets_all.txt, targets_candidates.txt
+[*] Settings: timeout=2s connect_timeout=1s follow=0
+[*] Limits: max_hosts=64 max_seconds=120
+--------------------------------------------------------------------------------
+172.25.21.11    http  80   status=200 server=Apache/2.4.58 (Ubuntu) xpb=- ctype=text/html; charset=utf-8 auth=- loc=- cn=- title=Your Store
+
+============================== SUMMARY ==============================
+[*] Top Server headers (count):
+      1 Apache/2.4.58 (Ubuntu)
+
+[*] Top Titles (count):
+      1 Your Store
+
+[*] Likely web apps (status 200/301/302 with PHP-ish hints):
+====================================================================
+
+--------------------------------------------------------------------------------
+[*] Done.
+[*] Wrote: /home/kali/Documents/YttriumTaiga/Phase01_Recon/output/team_001/services.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/Phase01_Recon/output/team_001/services.csv
+[*] Wrote: /home/kali/Documents/YttriumTaiga/Phase01_Recon/output/team_001/services_hits.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/Phase01_Recon/output/team_001/targets_all.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/Phase01_Recon/output/team_001/targets_candidates.txt

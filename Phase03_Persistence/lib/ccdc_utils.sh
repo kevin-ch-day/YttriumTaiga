@@ -57,10 +57,52 @@ ccdc__is_number() {
   [[ "$s" =~ ^[0-9]+$ ]]
 }
 
+CCDC_BLOCKED_TEAMS="${CCDC_BLOCKED_TEAMS:-19}"
+CCDC_RULES_LOADED="${CCDC_RULES_LOADED:-0}"
+
+ccdc__load_rules() {
+  # Load repo-wide rules (blocked teams, etc.). Safe to call multiple times.
+  [[ "${CCDC_RULES_LOADED}" == "1" ]] && return 0
+
+  local rules_file="${CCDC_RULES_FILE:-}"
+  if [[ -z "$rules_file" ]]; then
+    if [[ -n "${CCDC_BASE_DIR:-}" ]]; then
+      rules_file="${CCDC_BASE_DIR}/../Config/ccdc_rules.conf"
+    else
+      local lib_dir
+      lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+      rules_file="${lib_dir}/../../Config/ccdc_rules.conf"
+    fi
+  fi
+
+  if [[ -f "$rules_file" ]]; then
+    # shellcheck disable=SC1090
+    source "$rules_file" || true
+  fi
+  CCDC_RULES_LOADED=1
+  return 0
+}
+
+ccdc__is_blocked_team() {
+  local team="${1:-}"
+  ccdc__load_rules || true
+  local t
+  for t in ${CCDC_BLOCKED_TEAMS}; do
+    if [[ "$t" == "$team" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 ccdc__validate_team() {
   local team="${1:-}"
   [[ -n "$team" ]] || return 1
   [[ "$team" =~ ^[0-9]{1,3}$ ]] || return 1
+  if ccdc__is_blocked_team "$team"; then
+    _ccdc_utils__warn "Team ${team} is reserved for baseline connectivity; do not target."
+    return 1
+  fi
   (( team >= 0 && team <= 255 )) || return 1
   return 0
 }

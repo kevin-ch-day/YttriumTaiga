@@ -61,9 +61,13 @@ PATHS=(
   "/index.php"
 )
 
+# Optional cap on number of targets used (0 = no limit)
+FP_MAX_HOSTS="${CCDC_PHASE1_FP_MAX_HOSTS:-0}"
+
 usage() { ccdc__usage_team "$(basename "$0")"; }
 
 init_outputs() {
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || true
   TXT_OUT="${CCDC_OUT_DIR}/web_fingerprint.txt"
   CSV_OUT="${CCDC_OUT_DIR}/web_fingerprint.csv"
   TARGETS_USED="${CCDC_OUT_DIR}/web_fingerprint_targets_used.txt"
@@ -112,6 +116,15 @@ build_targets_used() {
 
   ccdc__warn "No candidates/hits found; using full public /24 (this is slower)"
   ccdc_net__public_hosts_range "$TEAM" > "$TARGETS_USED" 2>/dev/null || return 1
+  return 0
+}
+
+apply_target_limit() {
+  if [[ "$FP_MAX_HOSTS" =~ ^[0-9]+$ ]] && (( FP_MAX_HOSTS > 0 )); then
+    ccdc__log "[*] Limiting targets to first ${FP_MAX_HOSTS} hosts"
+    head -n "$FP_MAX_HOSTS" "$TARGETS_USED" > "${TARGETS_USED}.tmp" 2>/dev/null || true
+    mv "${TARGETS_USED}.tmp" "$TARGETS_USED" 2>/dev/null || true
+  fi
   return 0
 }
 
@@ -190,6 +203,7 @@ run_fingerprint() {
 
   init_outputs
   build_targets_used
+  apply_target_limit
 
   ccdc__log "[*] Targets used: $TARGETS_USED ($(wc -l < "$TARGETS_USED" 2>/dev/null || echo "NO") hosts)"
 
