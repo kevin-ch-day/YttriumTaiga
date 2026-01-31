@@ -19,6 +19,8 @@ It enforces:
 
 Export helper (CSV -> XLSX):
 - `Scripts/ops_ledger_export.sh`
+Shared export module:
+- `Scripts/export_utils.py` (CSV/XLSX/JSONL helpers)
 
 ## data/ops_teams.csv (stable reference)
 
