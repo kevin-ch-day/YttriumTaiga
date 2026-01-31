@@ -58,6 +58,10 @@ If you need a quick scan for testing:
 - `CCDC_PHASE1_MAX_SECONDS=120`
 - `CCDC_PHASE1_FP_MAX_HOSTS=32`
 
+## Smart targeting (ranked)
+After inventory, a ranked target list is generated:
+- `data/intel/Phase01_Recon/team_###/targets_ranked.csv`
+
 ## Network model (authoritative)
 Teams 1-20 only. The network is fixed for the day:
 - Public/DMZ: `172.25.(20+team).0/24` (primary recon surface)

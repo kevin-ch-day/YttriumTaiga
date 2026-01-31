@@ -13,6 +13,7 @@ Rules:
 - Log times in Central Time using the format in `config/ccdc_rules.conf` (e.g., `1/21/2026 1:45 PM`).
 
 ## Shared intel (cross-phase)
-Phase outputs can be copied into `data/intel/` for cross-phase use:
-- Sync Phase01 outputs: `Scripts/intel_sync_phase01.sh <TEAM>`
-- Intel will land in: `data/intel/team_###/phase01/`
+Phase outputs are written into `data/intel/` for cross-phase use:
+- Phase01: `data/intel/Phase01_Recon/team_###/`
+- Phase02: `data/intel/Phase02_Privilege_Exp/team_###/`
+- Phase03: `data/intel/Phase03_Persistence/team_###/`

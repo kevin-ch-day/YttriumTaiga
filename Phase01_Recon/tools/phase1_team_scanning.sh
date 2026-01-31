@@ -78,16 +78,18 @@ write_report() {
 
   local subnet
   subnet="$(ccdc__target_net "$TEAM")"
-  local services_csv services_hits targets_cand web_fp_csv
+  local services_csv services_hits targets_cand web_fp_csv ranked_csv
   services_csv="${CCDC_OUT_DIR}/services.csv"
   services_hits="${CCDC_OUT_DIR}/services_hits.txt"
   targets_cand="${CCDC_OUT_DIR}/targets_candidates.txt"
   web_fp_csv="${CCDC_OUT_DIR}/web_fingerprint.csv"
-  local count_services count_hits count_cand count_fp
+  ranked_csv="${CCDC_OUT_DIR}/targets_ranked.csv"
+  local count_services count_hits count_cand count_fp count_ranked
   count_services="N/A"
   count_hits="N/A"
   count_cand="N/A"
   count_fp="N/A"
+  count_ranked="N/A"
   if [[ -f "$services_csv" ]]; then
     count_services="$(awk -F',' 'NR>1 {c++} END {print c+0}' "$services_csv" 2>/dev/null)"
   fi
@@ -99,6 +101,9 @@ write_report() {
   fi
   if [[ -f "$web_fp_csv" ]]; then
     count_fp="$(awk -F',' 'NR>1 {c++} END {print c+0}' "$web_fp_csv" 2>/dev/null)"
+  fi
+  if [[ -f "$ranked_csv" ]]; then
+    count_ranked="$(awk -F',' 'NR>1 {c++} END {print c+0}' "$ranked_csv" 2>/dev/null)"
   fi
 
   {
@@ -123,6 +128,7 @@ write_report() {
     echo "  - Service hits:            ${count_hits}"
     echo "  - Candidate targets:       ${count_cand}"
     echo "  - Web fingerprint entries: ${count_fp}"
+    echo "  - Ranked targets:          ${count_ranked}"
     echo ""
     echo "Quick Workflow:"
     echo "  1) Run Service Inventory -> identify likely OpenCart/Webmail/Splunk"

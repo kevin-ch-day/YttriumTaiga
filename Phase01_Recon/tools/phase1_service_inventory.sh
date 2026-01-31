@@ -73,14 +73,17 @@ init_outputs() {
   HITS_OUT="${CCDC_OUT_DIR}/services_hits.txt"
   TARGETS_ALL="${CCDC_OUT_DIR}/targets_all.txt"
   TARGETS_CAND="${CCDC_OUT_DIR}/targets_candidates.txt"
+  RANKED_OUT="${CCDC_OUT_DIR}/targets_ranked.csv"
 
   : > "$TXT_OUT"
   : > "$CSV_OUT"
   : > "$HITS_OUT"
   : > "$TARGETS_ALL"
   : > "$TARGETS_CAND"
+  : > "$RANKED_OUT"
 
   echo "ip,scheme,port,status,server,x_powered_by,content_type,www_authenticate,location,tls_cn,title" > "$CSV_OUT"
+  echo "rank,score,ip,reason" > "$RANKED_OUT"
 }
 
 write_header() {
@@ -179,6 +182,20 @@ write_summary() {
   } >> "$TXT_OUT"
 }
 
+rank_targets() {
+  awk -F',' '
+    NR>1 {
+      ip=$1; scheme=$2; status=$4; server=tolower($5); xpb=tolower($6); title=tolower($11);
+      score=0; reason="";
+      if (status=="200") {score+=2; reason=reason "200 ";}
+      if (status=="301"||status=="302") {score+=1; reason=reason "redir ";}
+      if (server ~ /apache|nginx|iis/) {score+=2; reason=reason "server ";}
+      if (xpb ~ /php|asp|jsp/) {score+=2; reason=reason "xpb ";}
+      if (title ~ /login|admin|mail|webmail|splunk|opencart|dashboard/) {score+=3; reason=reason "title ";}
+      if (score>0) print score "," ip "," reason;
+    }
+  ' "$CSV_OUT" | sort -t',' -k1,1nr -k2,2 | awk -F',' 'BEGIN{rank=0}{rank++; printf("%d,%s,%s,%s\n",rank,$1,$2,$3)}' >> "$RANKED_OUT"
+}
 build_targets() {
   # Build two target lists using net scheme lib
   ccdc_net__public_hosts_range "$TEAM" > "$TARGETS_ALL" 2>/dev/null || true
@@ -221,6 +238,7 @@ run_scan() {
   done < "$TARGETS_ALL"
 
   write_summary
+  rank_targets
 
   {
     echo "--------------------------------------------------------------------------------"
@@ -230,6 +248,7 @@ run_scan() {
     echo "[*] Wrote: $HITS_OUT"
     echo "[*] Wrote: $TARGETS_ALL"
     echo "[*] Wrote: $TARGETS_CAND"
+    echo "[*] Wrote: $RANKED_OUT"
   } >> "$TXT_OUT"
 
   ccdc__log "[*] Scan complete."

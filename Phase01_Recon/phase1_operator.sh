@@ -38,6 +38,43 @@ pick_mode() {
   echo "$choice"
 }
 
+pick_preset() {
+  ccdc_menu__header "Phase 01 Operator" "Select run preset"
+  ccdc_menu__print_kv "FAST" "Short test run (few hosts, lower timeouts)"
+  ccdc_menu__print_kv "NORMAL" "Balanced default"
+  ccdc_menu__print_kv "FULL" "Full scan (no caps)"
+  echo ""
+  ccdc_menu__choose "Preset" 1 \
+    "FAST" \
+    "NORMAL" \
+    "FULL" \
+    "Exit"
+}
+
+apply_preset() {
+  local preset="$1"
+  case "$preset" in
+    FAST)
+      export CCDC_PHASE1_MAX_HOSTS="64"
+      export CCDC_PHASE1_MAX_SECONDS="120"
+      export CCDC_PHASE1_PROGRESS_EVERY="16"
+      export CCDC_PHASE1_FP_MAX_HOSTS="32"
+      ;;
+    NORMAL)
+      export CCDC_PHASE1_MAX_HOSTS="128"
+      export CCDC_PHASE1_MAX_SECONDS="300"
+      export CCDC_PHASE1_PROGRESS_EVERY="25"
+      export CCDC_PHASE1_FP_MAX_HOSTS="64"
+      ;;
+    FULL)
+      export CCDC_PHASE1_MAX_HOSTS="254"
+      export CCDC_PHASE1_MAX_SECONDS="0"
+      export CCDC_PHASE1_PROGRESS_EVERY="25"
+      export CCDC_PHASE1_FP_MAX_HOSTS="0"
+      ;;
+  esac
+}
+
 select_team_single() {
   local last
   last="$(ccdc__load_last_team)"
@@ -80,6 +117,15 @@ main() {
 
   local sel
   sel="$(select_team_single)" || exit 0
+
+  local preset_choice
+  preset_choice="$(pick_preset)" || exit 0
+  case "$preset_choice" in
+    1) apply_preset "FAST" ;;
+    2) apply_preset "NORMAL" ;;
+    3) apply_preset "FULL" ;;
+    0|4) exit 0 ;;
+  esac
 
   if [[ "$sel" == "ALL" ]]; then
     local t

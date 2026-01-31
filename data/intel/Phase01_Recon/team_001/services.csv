@@ -1,0 +1,2 @@
+ip,scheme,port,status,server,x_powered_by,content_type,www_authenticate,location,tls_cn,title
+172.25.21.11,http,80,200,Apache/2.4.58 (Ubuntu),,text/html; charset=utf-8,,,,Your Store

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ============================================================
 # Filename: intel_sync_phase01.sh
-# Purpose : Copy Phase01 outputs into a shared intel directory
+# Purpose : (Legacy) Copy Phase01 outputs into a shared intel directory
 # Run     : ./Scripts/intel_sync_phase01.sh <TEAM_NUMBER>
 # ============================================================
 
@@ -24,7 +24,7 @@ if [[ ! -d "$SRC_DIR" ]]; then
   exit 2
 fi
 
-DEST_DIR="${INTEL_DIR}/team_$(printf "%03d" "$TEAM")/phase01"
+DEST_DIR="${INTEL_DIR}/Phase01_Recon/team_$(printf "%03d" "$TEAM")"
 mkdir -p "$DEST_DIR"
 
 copy_if_exists() {

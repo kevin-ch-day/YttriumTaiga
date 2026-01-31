@@ -219,6 +219,10 @@ run_fingerprint() {
   ccdc__log "[*] Wrote: $TXT_OUT"
   ccdc__log "[*] Wrote: $CSV_OUT"
   ccdc__log "[*] Wrote: $TARGETS_USED"
+  # Optional: keep a slim "hits only" file for quick review
+  if [[ -f "$CSV_OUT" ]]; then
+    awk -F',' 'NR==1 {print $0; next} $5!="" || $6!="" || $12!="" {print $0}' "$CSV_OUT" > "${CCDC_OUT_DIR}/web_fingerprint_hits.csv" 2>/dev/null || true
+  fi
 }
 
 view_outputs_menu() {
