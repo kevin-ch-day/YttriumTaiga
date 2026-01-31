@@ -36,3 +36,6 @@ Actions that write/update these files require approval:
 
 ## Stop conditions
 If you cannot explain the action to the captain in one sentence, stop.
+
+## Menu note
+If you only see a prompt without the menu, scroll up; menus print before prompts.

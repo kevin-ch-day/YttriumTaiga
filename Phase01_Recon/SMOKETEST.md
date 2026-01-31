@@ -16,8 +16,9 @@ Run this once before competition to confirm Phase 01 works end-to-end.
   - Expect: `172.25.27.0/24` for Team 7 with standard mapping.
 
 4) Run coordinator menu once
-   - `./Phase01_Recon/phase1_team_scanning.sh <TEAM>`
-   - Exit after menu renders; confirm log file exists in `Phase01_Recon/logs/`.
+   - `./Phase01_Recon/phase1_team_scanning.sh` (no args)
+   - Choose a Team in the Team Selection menu.
+   - Exit after the action menu renders; confirm log file exists in `Phase01_Recon/logs/`.
 
 5) Confirm outputs exist
    - `Phase01_Recon/output/cred_ledger.md`

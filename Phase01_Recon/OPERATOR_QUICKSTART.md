@@ -6,15 +6,23 @@ and sets up operator notes for tracking credentials and targets.
 
 ## Recommended run order
 1) Initialize operator docs:
-   - `./phase1_cred_ledger_init.sh <TEAM>`
+   - `./phase1_cred_ledger_init.sh <TEAM>` (or run without args and select Team in the menu)
 2) Run service inventory (HTTP/HTTPS only):
-   - `./phase1_service_inventory.sh <TEAM>`
+   - `./phase1_service_inventory.sh <TEAM>` (or select Team in the menu)
 3) Run web fingerprinting (low-noise):
-   - `./phase1_web_fingerprint.sh <TEAM>`
+   - `./phase1_web_fingerprint.sh <TEAM>` (or select Team in the menu)
 4) (Optional) Run network monitoring for local health snapshot:
-   - `./phase1_network_monitoring.sh <TEAM>`
+   - `./phase1_network_monitoring.sh <TEAM>` (Team is optional; menu allows continue without team)
 5) (Optional) Generate Nmap worksheet (does not scan):
-   - `./phase1_nmap_script.sh <TEAM>`
+   - `./phase1_nmap_script.sh <TEAM>` (or select Team in the menu)
+
+## Menu behavior (what operators should expect)
+Every Phase 01 script now starts with a Team Selection menu:
+- Use current team (if one was saved previously)
+- Enter a new team number
+- Exit
+
+After Team Selection, the script’s action menu appears (run, view outputs, exit).
 
 ## Outputs and where to find them
 All outputs are written under:

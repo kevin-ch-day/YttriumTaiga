@@ -10,6 +10,7 @@
 3) Run continuity script (menu should render)
    - `CAPTAIN_APPROVED=1 ./Phase03_Persistence/phase3_continuity.sh`
    - Exit after menu renders; confirm log file exists in `Phase03_Persistence/logs/`.
+   - If you only see a prompt, scroll up for the menu.
 
 4) Confirm outputs exist
    - `Phase03_Persistence/output/footholds.jsonl`
