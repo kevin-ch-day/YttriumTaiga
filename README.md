@@ -56,6 +56,7 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
 - Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
+- Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`
 
 ## Phase quick start (at a glance)
 
