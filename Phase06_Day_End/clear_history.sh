@@ -6,6 +6,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+need_cmd() { command -v "$1" >/dev/null 2>&1; }
+
 CONFIRM="${CONFIRM:-0}"
 if [[ "$CONFIRM" != "1" ]]; then
     echo "[!] WARNING: This will shred history and system log files."
@@ -55,11 +57,15 @@ echo "[*] Deleting history and log files securely..."
 for FILE in "${HISTORY_FILES[@]}"; do
     if [[ -f $FILE ]]; then
         echo "[*] Processing $FILE..."
-        shred -u -z $FILE 2>/dev/null
-        if [[ $NO -eq 0 ]]; then
-            echo "[+] Successfully deleted $FILE."
+        if need_cmd shred; then
+            shred -u -z "$FILE" 2>/dev/null
+            if [[ $? -eq 0 ]]; then
+                echo "[+] Successfully deleted $FILE."
+            else
+                echo "[!] Failed to delete $FILE. Check permissions or file status."
+            fi
         else
-            echo "[!] Failed to delete $FILE. Check permissions or file status."
+            echo "[!] shred not found; skipping secure delete for $FILE."
         fi
     else
         echo "[-] File $FILE not found. Skipping..."
@@ -69,7 +75,7 @@ done
 # Restart logging services
 echo
 echo "[*] Restarting logging services..."
-if systemctl restart rsyslog; then
+if need_cmd systemctl && systemctl restart rsyslog; then
     echo "[+] Logging services restarted successfully."
 else
     echo "[!] Failed to restart logging services. Manual intervention may be required."
@@ -78,8 +84,12 @@ fi
 # Additional step to remove shell history cache if applicable
 echo "[*] Checking for additional history caches..."
 if [[ -f /tmp/.bash_history ]]; then
-    shred -u -z /tmp/.bash_history
-    echo "[+] Removed temporary history cache at /tmp/.bash_history."
+    if need_cmd shred; then
+        shred -u -z /tmp/.bash_history
+        echo "[+] Removed temporary history cache at /tmp/.bash_history."
+    else
+        echo "[!] shred not found; skipping /tmp/.bash_history."
+    fi
 else
     echo "[-] No temporary history cache found in /tmp."
 fi

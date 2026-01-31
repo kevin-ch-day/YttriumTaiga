@@ -9,6 +9,14 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Ensure the script is run with root privileges
+if [[ $EUID -ne 0 ]]; then
+  echo "[!] This script must be run as root. Please try again with 'sudo'."
+  exit 1
+fi
+
+need_cmd() { command -v "$1" >/dev/null 2>&1; }
+
 # Safety confirmation (avoid accidental cleanup)
 CONFIRM="${CONFIRM:-0}"
 if [[ "$CONFIRM" != "1" ]]; then
@@ -64,7 +72,11 @@ df -h | grep -E '^Filesystem|/dev/' || echo -e "\e[1;91mFailed to fetch disk usa
 
 # Step 7: Remove orphaned packages
 echo_step "Step 7: Removing Orphaned Packages..."
-deborphan | xargs -r apt remove -y || echo -e "\e[1;93mNo orphaned packages found.\e[0m"
+if need_cmd deborphan; then
+  deborphan | xargs -r apt remove -y || echo -e "\e[1;93mNo orphaned packages found.\e[0m"
+else
+  echo -e "\e[1;93mdeborphan not installed; skipping orphan removal.\e[0m"
+fi
 
 # Final message
 echo -e "\e[1;100m################################################################################\e[0m"
