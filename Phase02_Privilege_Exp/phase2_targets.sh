@@ -30,6 +30,8 @@ source "${LIB_DIR}/phase2_lib_utils.sh"
 source "${LIB_DIR}/phase2_lib_menu.sh"
 # shellcheck disable=SC1091
 source "${LIB_DIR}/phase2_lib_net_scheme.sh"
+# shellcheck disable=SC1091
+source "${LIB_DIR}/phase2_lib_intel.sh"
 
 phase2_targets__notes_dir() {
   local out_dir
@@ -68,6 +70,9 @@ phase2_targets__write_report() {
     echo "Notes:"
     echo "- Phase 2 goal: turn access into control (creds, remote exec, privesc)."
     echo "- Use this list for focused checks (SSH/HTTP/admin portals) rather than broad scans."
+    echo ""
+    echo "Phase 1 Intel (if available):"
+    phase2_intel__summary_plain "$team" 2>/dev/null || true
   } > "$report_path"
 }
 
@@ -107,9 +112,11 @@ main() {
   phase2_targets__write_report "$team" "$report_path"
   phase2_log "[*] Wrote targets note: $report_path"
 
-  # Offer to view it
-  if phase2_menu__confirm "Open targets note nowNO" "Y"; then
-    phase2_open_viewer "$report_path" || true
+  # Offer to view it (skip in batch/non-interactive)
+  if [[ "${PHASE2_BATCH:-0}" != "1" ]] && phase2_menu__is_interactive; then
+    if phase2_menu__confirm "Open targets note nowNO" "Y"; then
+      phase2_open_viewer "$report_path" || true
+    fi
   fi
 
   return 0

@@ -20,8 +20,8 @@ Phase 03 is recoverable persistence + continuity + documentation. It is reversib
 ## Outputs (file-based, phase-local)
 All outputs live under `Phase03_Persistence/output/`:
 - `footholds.jsonl` (session/foothold ledger)
-- `reentry.md` (re-entry + recovery plan)
-- `rules_safety.md` (rules, stop conditions, approvals)
+- `reentry.txt` (re-entry + recovery plan)
+- `rules_safety.txt` (rules, stop conditions, approvals)
 
 Optional:
 - Summary view is available from the menu (counts + top targets).

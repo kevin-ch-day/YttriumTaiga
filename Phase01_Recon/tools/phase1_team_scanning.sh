@@ -133,7 +133,7 @@ write_report() {
     echo "Quick Workflow:"
     echo "  1) Run Service Inventory -> identify likely OpenCart/Webmail/Splunk"
     echo "  2) Run Web Fingerprint -> confirm app hints + likely admin/login paths"
-    echo "  3) Update targets_watchlist.md + cred_ledger.md as creds appear"
+    echo "  3) Update targets_watchlist.csv + cred_ledger.csv as creds appear"
     echo ""
     echo "Notes:"
     echo "  - This coordinator is Phase 1 only (read-only recon)."
@@ -170,8 +170,8 @@ view_outputs_menu() {
     ccdc_menu__header "Phase 1 -- View Outputs" "Choose a file to view"
     choice="$(ccdc_menu__choose "Select output" 1 \
       "phase1_team_report.txt" \
-      "cred_ledger.md" \
-      "targets_watchlist.md" \
+      "cred_ledger.csv" \
+      "targets_watchlist.csv" \
       "services_hits.txt" \
       "services.txt" \
       "services.csv" \

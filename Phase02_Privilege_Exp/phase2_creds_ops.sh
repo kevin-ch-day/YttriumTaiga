@@ -36,7 +36,7 @@ phase2_creds_ops__prompt_add() {
 
   type="$(phase2_menu__ask "Type (password|hash|key|token|api_key|other)" "password")"
   user="$(phase2_menu__ask "Username (or blank)" "")"
-  secret="$(phase2_menu__ask "Secret (will be stored in CSV; masked in MD)" "")"
+  secret="$(phase2_menu__ask "Secret (stored in CSV)" "")"
   target="$(phase2_menu__ask "Target (ip:port or hostname/service)" "")"
   source="$(phase2_menu__ask "Source (file:/path | cmd:... | manual | dump:...)" "manual")"
   notes="$(phase2_menu__ask "Notes" "")"
@@ -100,30 +100,18 @@ phase2_creds_ops__filter_target() {
 }
 
 phase2_creds_ops__open_ledger() {
-  local csv md
+  local csv
   csv="$(phase2_creds__csv_path 2>/dev/null || true)"
-  md="$(phase2_creds__md_path 2>/dev/null || true)"
 
-  phase2_section "Open Ledger Files"
-  if [[ -n "$md" && -f "$md" ]]; then
-    phase2_log "[*] MD:  $md"
-  fi
+  phase2_section "Open Ledger File"
   if [[ -n "$csv" && -f "$csv" ]]; then
     phase2_log "[*] CSV: $csv"
   fi
 
-  local which
-  which="$(phase2_menu__choose "Open which fileNO" 1 "Markdown (no secrets)" "CSV (contains secrets)" "Cancel")"
-  case "$which" in
-    1) [[ -n "$md" ]] && phase2_open_viewer "$md" || phase2_warn "MD not found";;
-    2)
-      phase2_warn "CSV contains secrets."
-      if phase2_menu__confirm "Open CSV anywayNO" "N"; then
-        [[ -n "$csv" ]] && phase2_open_viewer "$csv" || phase2_warn "CSV not found"
-      fi
-      ;;
-    *) return 0 ;;
-  esac
+  phase2_warn "CSV contains secrets."
+  if phase2_menu__confirm "Open CSV nowNO" "N"; then
+    [[ -n "$csv" ]] && phase2_open_viewer "$csv" || phase2_warn "CSV not found"
+  fi
   return 0
 }
 
@@ -141,7 +129,7 @@ main_menu() {
         "List ledger (FULL / secrets)" \
         "Update status by ID" \
         "Filter by target token" \
-        "Open ledger file (MD/CSV)" \
+        "Open ledger file (CSV only)" \
         "Back / Exit"
     )"
 

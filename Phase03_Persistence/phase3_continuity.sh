@@ -9,8 +9,8 @@ set -euo pipefail
 # Outputs (Phase 3 dirs):
 #   ./logs/phase3_continuity.log
 #   ./output/footholds.jsonl
-#   ./output/reentry.md
-#   ./output/rules_safety.md
+#   ./output/reentry.txt
+#   ./output/rules_safety.txt
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,8 +32,8 @@ PHASE2_DIR=""
 
 init_outputs() {
   FOOTHOLDS="${CCDC_OUT_DIR}/footholds.jsonl"
-  REENTRY="${CCDC_OUT_DIR}/reentry.md"
-  RULES="${CCDC_OUT_DIR}/rules_safety.md"
+  REENTRY="${CCDC_OUT_DIR}/reentry.txt"
+  RULES="${CCDC_OUT_DIR}/rules_safety.txt"
   APPROVALS="${SCRIPT_DIR}/approved_actions.md"
   PHASE1_DIR="${SCRIPT_DIR}/../Phase01_Recon"
   PHASE2_DIR="${SCRIPT_DIR}/../Phase02_Privilege_Exp"
@@ -235,8 +235,8 @@ view_files_menu() {
     ccdc_menu__header "Phase 3 - View Outputs" "Choose a file to view"
     choice="$(ccdc_menu__choose "Select output" 1 \
       "footholds.jsonl" \
-      "reentry.md" \
-      "rules_safety.md" \
+      "reentry.txt" \
+      "rules_safety.txt" \
       "Back")"
     case "$choice" in
       1) file="$FOOTHOLDS" ;;

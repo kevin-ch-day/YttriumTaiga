@@ -44,6 +44,8 @@ source "${LIB_DIR}/phase2_lib_creds.sh"
 source "${LIB_DIR}/phase2_lib_remote.sh"
 # shellcheck disable=SC1091
 source "${LIB_DIR}/phase2_lib_privesc.sh"
+# shellcheck disable=SC1091
+source "${LIB_DIR}/phase2_lib_intel.sh"
 
 # -----------------------------
 # Sub-script paths (Phase 2 local)
@@ -106,7 +108,56 @@ phase2_main__self_check() {
   phase2_log "[*] Cred ledger init..."
   phase2_creds_init || true
 
+  phase2_log "[*] Phase 1 intel check..."
+  local t
+  t="$(phase2_load_last_team 2>/dev/null || true)"
+  if [[ -n "$t" ]]; then
+    phase2_intel__summary "$t" || true
+  else
+    phase2_warn "No saved team for intel summary (run phase2_operator.sh to set team)."
+  fi
+
   phase2_log "[*] OK"
+}
+
+phase2_main__intel_summary() {
+  local t
+  t="$(phase2_load_last_team 2>/dev/null || true)"
+  if [[ -z "$t" ]]; then
+    phase2_warn "No saved team. Set a team via phase2_operator.sh."
+    return 1
+  fi
+  if ! phase2_validate_team "$t"; then
+    phase2_warn "Saved team is invalid or blocked."
+    return 1
+  fi
+  phase2_section "Phase 1 Intel Summary"
+  phase2_intel__summary "$t" || return 1
+  return 0
+}
+
+phase2_main__intel_import() {
+  local t
+  t="$(phase2_load_last_team 2>/dev/null || true)"
+  if [[ -z "$t" ]]; then
+    phase2_warn "No saved team. Set a team via phase2_operator.sh."
+    return 1
+  fi
+  if ! phase2_validate_team "$t"; then
+    phase2_warn "Saved team is invalid or blocked."
+    return 1
+  fi
+
+  local out_dir notes_dir out_csv
+  out_dir="$(phase2__resolve_out_dir 2>/dev/null || true)"
+  notes_dir="${out_dir}/${OUT_SUBDIR_NOTES:-notes}"
+  mkdir -p "$notes_dir" 2>/dev/null || true
+  out_csv="${notes_dir}/phase2_targets_from_phase1.csv"
+
+  phase2_section "Import Phase 1 Intel"
+  phase2_intel__import_targets "$t" "$out_csv" || return 1
+  phase2_log "[*] Wrote: $out_csv"
+  return 0
 }
 
 phase2_main__menu() {
@@ -115,9 +166,16 @@ phase2_main__menu() {
 
     local last_team
     last_team="$(phase2_load_last_team 2>/dev/null || true)"
-    [[ -n "$last_team" ]] && phase2_menu__print_kv "Last team" "$last_team"
+    if [[ -n "$last_team" ]]; then
+      if ! phase2_validate_team "$last_team"; then
+        phase2_warn "Saved team is invalid or blocked; choose a team via phase2_operator.sh."
+        last_team=""
+      fi
+    fi
+    [[ -n "$last_team" ]] && phase2_menu__print_kv "Team" "$last_team"
     [[ -n "$last_team" ]] && ccdc_net__warn_if_team_out_of_range "$last_team" || true
     [[ -n "$last_team" ]] && phase2_menu__print_kv "Mapping" "$(ccdc_net__mapping_source)"
+    phase2_menu__print_kv "Output dir" "$(phase2__resolve_out_dir 2>/dev/null || echo unknown)"
 
       phase2_menu__divider
       local idx
@@ -129,13 +187,15 @@ phase2_main__menu() {
           "Creds: add/list/update ledger (phase2_creds_ops.sh)" \
           "Remote/PrivEsc: SSH proof + triage (phase2_remote_privesc.sh)" \
           "Quick: Local PrivEsc triage now (this host)" \
+          "Intel: Phase 1 summary (this team)" \
+          "Intel: Import Phase 1 targets -> Phase 2 notes" \
           "Open cred ledger (view)" \
           "Ops ledger: add action row (ops_ledger.csv)" \
           "Exit"
       )"
 
     case "$idx" in
-      0|9)
+      0|11)
         phase2_log "[*] Exiting Phase 2 main."
         return 0
         ;;
@@ -187,6 +247,14 @@ phase2_main__menu() {
         phase2_menu__pause
         ;;
       7)
+        phase2_main__intel_summary || true
+        phase2_menu__pause
+        ;;
+      8)
+        phase2_main__intel_import || true
+        phase2_menu__pause
+        ;;
+      9)
         # Open cred ledger using runtime viewer
         local csv
         csv="$(phase2_creds__csv_path 2>/dev/null || true)"
@@ -197,7 +265,7 @@ phase2_main__menu() {
         fi
         phase2_menu__pause
         ;;
-      8)
+      10)
         if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
           "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" || true
         else

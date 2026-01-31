@@ -63,12 +63,6 @@ phase2_creds__csv_path() {
   echo "${loot_dir}/cred_ledger.csv"
 }
 
-phase2_creds__md_path() {
-  local loot_dir
-  loot_dir="$(phase2_creds__resolve_loot_dir)" || return 1
-  echo "${loot_dir}/cred_ledger.md"
-}
-
 # -----------------------------
 # Helpers
 # -----------------------------
@@ -115,30 +109,15 @@ phase2_creds__new_id() {
 # Init
 # -----------------------------
 phase2_creds_init() {
-  local loot_dir csv md
+  local loot_dir csv
   loot_dir="$(phase2_creds__resolve_loot_dir)" || return 1
   csv="$(phase2_creds__csv_path)" || return 1
-  md="$(phase2_creds__md_path)" || return 1
 
   mkdir -p "$loot_dir" 2>/dev/null || return 1
 
   if [[ ! -f "$csv" ]]; then
     printf "id,ts_utc,type,username,secret,target,source,status,notes\n" > "$csv" || return 1
     _phase2_creds__log "[*] Created cred ledger CSV: $csv"
-  fi
-
-  if [[ ! -f "$md" ]]; then
-    {
-      echo "# Phase 2 Credential Ledger"
-      echo ""
-      echo "- Phase: ${PHASE_NAME:-Phase 2}"
-      echo "- Version: ${PHASE_VERSION:-0.1.0}"
-      echo "- Updated (UTC): $(phase2_creds__now_utc)"
-      echo ""
-      echo "| ID | Time (UTC) | Type | Username | Target | Status | Notes |"
-      echo "|---|---|---|---|---|---|---|"
-    } > "$md" || return 1
-    _phase2_creds__log "[*] Created cred ledger MD:  $md"
   fi
 
   return 0
@@ -166,11 +145,10 @@ phase2_creds_add() {
 
   phase2_creds_init || return 1
 
-  local id ts csv md
+  local id ts csv
   id="$(phase2_creds__new_id)"
   ts="$(phase2_creds__now_utc)"
   csv="$(phase2_creds__csv_path)" || return 1
-  md="$(phase2_creds__md_path)" || return 1
 
   # CSV row
   {
@@ -185,11 +163,6 @@ phase2_creds_add() {
       "$(phase2_creds__csv_escape "$status")" \
       "$(phase2_creds__csv_escape "$notes")"
   } >> "$csv" || return 1
-
-  # MD row (do NOT print secret)
-  {
-    echo "| \`$id\` | $ts | $type | $username | $target | $status | $(echo "$notes" | tr '\r\n' ' ' | sed 's/|/\\|/g') |"
-  } >> "$md" 2>/dev/null || true
 
   _phase2_creds__log_kv_safe "Cred added" "$id" "$type" "$username" "$target" "$status"
 

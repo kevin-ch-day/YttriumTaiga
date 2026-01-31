@@ -191,9 +191,9 @@ main() {
     ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
 
     # Output paths (fixed names)
-    OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.md"
-    OUT_MAP="${CCDC_OUT_DIR}/service_map.md"
-    OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.md"
+    OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.csv"
+    OUT_MAP="${CCDC_OUT_DIR}/service_map.csv"
+    OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.csv"
 
     ccdc__section "Phase 1 Doc Init"
     ccdc__log_kv "Team" "$TEAM"

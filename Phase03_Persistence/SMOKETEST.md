@@ -15,8 +15,8 @@
 
 4) Confirm outputs exist
    - `Phase03_Persistence/output/footholds.jsonl`
-   - `Phase03_Persistence/output/reentry.md`
-   - `Phase03_Persistence/output/rules_safety.md`
+   - `Phase03_Persistence/output/reentry.txt`
+   - `Phase03_Persistence/output/rules_safety.txt`
    - `Phase03_Persistence/approved_actions.md` (if prompted)
 
 If any step fails, check the script log in `Phase03_Persistence/logs/` first.

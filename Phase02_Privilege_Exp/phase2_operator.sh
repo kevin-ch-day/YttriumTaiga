@@ -44,6 +44,24 @@ set_intel_out_dir() {
   export PHASE2_OUT_DIR
 }
 
+pick_team_from_list() {
+  phase2_menu__header "Phase 2 Operator" "Pick a team (Team 19 blocked)"
+  phase2_menu__divider
+  local t
+  for t in $(seq 1 20); do
+    if phase2_is_blocked_team "$t"; then
+      echo "  - Team${t} [BLOCKED]"
+    else
+      echo "  - Team${t}"
+    fi
+  done
+  echo ""
+  local chosen
+  chosen="$(phase2_menu__ask "Enter team number")"
+  phase2_validate_team "$chosen" || return 1
+  echo "$chosen"
+}
+
 pick_scope() {
   phase2_menu__header "Phase 2 Operator" "Single Entry Point"
   phase2_menu__divider
@@ -52,15 +70,43 @@ pick_scope() {
   phase2_menu__choose "Select target scope" 1 \
     "Current team (if saved)" \
     "Enter a team number" \
+    "Pick from list (1-20, Team19 blocked)" \
     "All teams (1-20, Team19 blocked)" \
     "Exit"
 }
 
 run_for_team() {
   local team="$1"
+  phase2_validate_team "$team" || { phase2_warn "Invalid or blocked team: $team"; return 1; }
   phase2_save_last_team "$team" || true
   set_intel_out_dir "$team"
   "$MAIN"
+}
+
+run_all_teams() {
+  local action
+  action="$(phase2_menu__choose "All teams: choose action" 1 \
+    "Targets summary only (phase2_targets.sh)" \
+    "Cancel")"
+  case "$action" in
+    0|2) return 0 ;;
+    1)
+      if [[ ! -x "${PHASE_DIR}/phase2_targets.sh" ]]; then
+        phase2_warn "phase2_targets.sh not found or not executable."
+        return 1
+      fi
+      local t
+      for t in $(seq 1 20); do
+        if phase2_is_blocked_team "$t"; then
+          continue
+        fi
+        set_intel_out_dir "$t"
+        phase2_save_last_team "$t" || true
+        PHASE2_BATCH=1 "${PHASE_DIR}/phase2_targets.sh" "$t" || true
+      done
+      return 0
+      ;;
+  esac
 }
 
 main() {
@@ -82,15 +128,13 @@ main() {
       ;;
     3)
       local t
-      for t in $(seq 1 20); do
-        if phase2_is_blocked_team "$t"; then
-          continue
-        fi
-        phase2_save_last_team "$t" || true
-        "$MAIN"
-      done
+      t="$(pick_team_from_list)" || exit 1
+      run_for_team "$t"
       ;;
-    0|4)
+    4)
+      run_all_teams || true
+      ;;
+    0|5)
       exit 0
       ;;
   esac
