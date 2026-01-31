@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
-from typing import Iterable, List, Dict, Any, Sequence
+from typing import Iterable, Dict, Any, Sequence, List
 
 
 def write_csv(path: str | Path, headers: Sequence[str], rows: Iterable[Sequence[Any]]) -> None:
@@ -29,6 +29,13 @@ def write_jsonl(path: str | Path, records: Iterable[Dict[str, Any]]) -> None:
     with p.open("w", encoding="utf-8") as f:
         for rec in records:
             f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+
+
+def write_json(path: str | Path, payload: Any) -> None:
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with p.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def write_text(path: str | Path, lines: Iterable[str]) -> None:
@@ -78,3 +85,55 @@ def csv_to_xlsx(csv_path: str | Path, xlsx_path: str | Path, *, sheet_name: str 
 
     xlsx_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(xlsx_path)
+
+
+def read_jsonl(path: str | Path) -> List[Dict[str, Any]]:
+    p = Path(path)
+    records: List[Dict[str, Any]] = []
+    with p.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            records.append(json.loads(line))
+    return records
+
+
+def jsonl_to_csv(
+    jsonl_path: str | Path,
+    csv_path: str | Path,
+    *,
+    headers: Sequence[str] | None = None,
+) -> None:
+    records = read_jsonl(jsonl_path)
+    if headers is None:
+        keys = set()
+        for rec in records:
+            keys.update(rec.keys())
+        headers = sorted(keys)
+    rows = [[rec.get(h, "") for h in headers] for rec in records]
+    write_csv(csv_path, headers, rows)
+
+
+def json_to_csv(
+    json_path: str | Path,
+    csv_path: str | Path,
+    *,
+    headers: Sequence[str] | None = None,
+    records_key: str | None = None,
+) -> None:
+    p = Path(json_path)
+    with p.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if records_key:
+        payload = payload.get(records_key, [])
+    if not isinstance(payload, list):
+        raise ValueError("JSON payload must be a list of objects")
+    records = [r for r in payload if isinstance(r, dict)]
+    if headers is None:
+        keys = set()
+        for rec in records:
+            keys.update(rec.keys())
+        headers = sorted(keys)
+    rows = [[rec.get(h, "") for h in headers] for rec in records]
+    write_csv(csv_path, headers, rows)
