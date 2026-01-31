@@ -25,6 +25,17 @@ _ccdc_menu__warn() {
   fi
 }
 
+# Route menu output to stderr so prompts and options stay together.
+_ccdc_menu__out() {
+  printf "%s\n" "$*" >&2
+}
+
+# Same as printf but to stderr (for formatted lines).
+_ccdc_menu__outf() {
+  # shellcheck disable=SC2059
+  printf "$@" >&2
+}
+
 # ---------- TTY / color control ----------
 ccdc_menu__is_interactive() {
   [[ -t 0 && -t 1 ]]
@@ -60,23 +71,23 @@ ccdc_menu__header() {
   local ts
   ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
 
-  echo ""
-  echo "################################################################################"
-  printf "# %-76s #\n" "$title"
+  _ccdc_menu__out ""
+  _ccdc_menu__out "################################################################################"
+  _ccdc_menu__outf "# %-76s #\n" "$title"
   if [[ -n "$subtitle" ]]; then
-    printf "# %-76s #\n" "$subtitle"
+    _ccdc_menu__outf "# %-76s #\n" "$subtitle"
   fi
-  printf "# %-76s #\n" "Time: $ts"
-  echo "################################################################################"
-  echo ""
+  _ccdc_menu__outf "# %-76s #\n" "Time: $ts"
+  _ccdc_menu__out "################################################################################"
+  _ccdc_menu__out ""
 }
 
-ccdc_menu__divider() { echo "------------------------------------------------------------"; }
+ccdc_menu__divider() { _ccdc_menu__out "------------------------------------------------------------"; }
 
 ccdc_menu__print_kv() {
   local k="${1:-}"
   local v="${2:-}"
-  printf "%-18s %s\n" "${k}:" "$v"
+  _ccdc_menu__outf "%-18s %s\n" "${k}:" "$v"
 }
 
 # ---------- Input helpers ----------
@@ -156,25 +167,25 @@ ccdc_menu__choose() {
     return 0
   fi
 
-  echo ""
-  echo "$title"
-  echo "Options:"
+  _ccdc_menu__out ""
+  _ccdc_menu__out "$title"
+  _ccdc_menu__out "Options:"
   ccdc_menu__divider
 
   local i n
   for i in "${!options[@]}"; do
     n=$((i+1))
     if [[ "$n" -eq "$default" ]]; then
-      printf "  %d) %s %s\n" "$n" "${options[$i]}" "$(_ccdc_menu__c "36" "(default)")"
+      _ccdc_menu__outf "  %d) %s %s\n" "$n" "${options[$i]}" "$(_ccdc_menu__c "36" "(default)")"
     else
-      printf "  %d) %s\n" "$n" "${options[$i]}"
+      _ccdc_menu__outf "  %d) %s\n" "$n" "${options[$i]}"
     fi
   done
-  echo "  0) Cancel / Back"
+  _ccdc_menu__out "  0) Cancel / Back"
   if [[ "$default" -gt 0 ]]; then
-    echo "Tip: Press Enter to choose the default option."
+    _ccdc_menu__out "Tip: Press Enter to choose the default option."
   fi
-  echo "Type the number and press Enter."
+  _ccdc_menu__out "Type the number and press Enter."
 
   local choice=""
   while true; do
@@ -246,15 +257,18 @@ ccdc_menu__pick_team() {
   # allow_empty: "1" to allow unset team (returns empty string).
   local current="${1:-}"
   local allow_empty="${2:-0}"
+  local _clean
+  _clean() { printf "%s" "$1" | tr -d '[:space:]'; }
 
   while true; do
+    current="$(_clean "$current")"
     ccdc_menu__header "Team Selection" "Choose the team number to target"
     if [[ -n "$current" ]]; then
       ccdc_menu__print_kv "Current team" "$current"
     else
       ccdc_menu__print_kv "Current team" "(none)"
     fi
-    echo ""
+    _ccdc_menu__out ""
 
     if [[ -n "$current" ]]; then
       local choice
@@ -275,6 +289,7 @@ ccdc_menu__pick_team() {
         2)
           local ans
           ans="$(ccdc_menu__ask "Enter team number" "$current")"
+          ans="$(_clean "$ans")"
           if declare -F ccdc__validate_team >/dev/null 2>&1; then
             ccdc__validate_team "$ans" || { _ccdc_menu__warn "Invalid team number: $ans"; continue; }
           else
@@ -309,6 +324,7 @@ ccdc_menu__pick_team() {
         1)
           local ans2
           ans2="$(ccdc_menu__ask "Enter team number")"
+          ans2="$(_clean "$ans2")"
           if declare -F ccdc__validate_team >/dev/null 2>&1; then
             ccdc__validate_team "$ans2" || { _ccdc_menu__warn "Invalid team number: $ans2"; continue; }
           else
