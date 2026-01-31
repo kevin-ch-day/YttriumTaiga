@@ -34,6 +34,15 @@ Key files:
 - `web_fingerprint.csv` includes titles/headers for likely apps (webmail, OpenCart, Splunk, etc.).
 - `targets_candidates.txt` has a short list of interesting hosts for quick follow-up.
 
+## Network model (authoritative)
+Teams 1-20 only. The network is fixed for the day:
+- Public/DMZ: `172.25.(20+team).0/24` (primary recon surface)
+- Transit: `172.31.(20+team).0/29` (router plumbing only)
+- Internal LAN: `172.20.x.x` (behind NAT)
+
+Example:
+- Team 7 -> Public: `172.25.27.0/24`, Transit: `172.31.27.0/29`
+
 ## If the candidate list is empty
 `phase1_web_fingerprint.sh` will fall back automatically:
 1) `targets_candidates.txt`

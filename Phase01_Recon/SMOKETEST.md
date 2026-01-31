@@ -10,8 +10,10 @@ Run this once before competition to confirm Phase 01 works end-to-end.
    - `touch Phase01_Recon/logs/.smoketest Phase01_Recon/output/.smoketest`
 
 3) Team mapping sanity
-   - `bash -c 'source Phase01_Recon/lib/ccdc_net_scheme.sh; ccdc_net__public_subnet 1'`
-   - Expect: `172.25.21.0/24` unless CSV override is configured.
+  - `bash -c 'source Phase01_Recon/lib/ccdc_net_scheme.sh; ccdc_net__public_subnet 1'`
+  - Expect: `172.25.21.0/24` unless CSV override is configured.
+  - If using CSV: `bash -c 'CCDC_TEAM_MAP_CSV=Phase01_Recon/lib/ccdc_team_map.csv; source Phase01_Recon/lib/ccdc_net_scheme.sh; ccdc_net__public_subnet 7'`
+  - Expect: `172.25.27.0/24` for Team 7 with standard mapping.
 
 4) Run coordinator menu once
    - `./Phase01_Recon/phase1_team_scanning.sh <TEAM>`
