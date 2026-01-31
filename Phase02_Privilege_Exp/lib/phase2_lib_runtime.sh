@@ -24,6 +24,7 @@ set -euo pipefail
 
 : "${PHASE2_FATAL:=0}"
 : "${PHASE2_QUIET:=0}"
+: "${PHASE2_UMASK:=002}"
 
 : "${PHASE2_BASE_DIR:=}"
 : "${PHASE2_LOG_DIR:=}"
@@ -65,6 +66,16 @@ phase2_ensure_phase_dirs() {
   return 0
 }
 
+phase2_fix_ownership() {
+  # Ensure artifacts are owned by the invoking user when run via sudo.
+  local target_dir="${1:-}"
+  [[ -n "$target_dir" ]] || return 1
+  [[ "${EUID:-$(id -u 2>/dev/null || echo 0)}" -eq 0 ]] || return 0
+  [[ -n "${SUDO_USER:-}" ]] || return 0
+  chown -R "${SUDO_USER}:${SUDO_USER}" "$target_dir" 2>/dev/null || true
+  return 0
+}
+
 phase2_init_env() {
   # Initializes PHASE2_BASE_DIR/LOG_DIR/OUT_DIR only.
   phase2__apply_meta_defaults
@@ -74,6 +85,8 @@ phase2_init_env() {
   PHASE2_OUT_DIR="${PHASE2_BASE_DIR}/${PHASE_OUT_DIR}"
 
   phase2_ensure_phase_dirs "$PHASE2_BASE_DIR" || return 1
+  umask "${PHASE2_UMASK}" 2>/dev/null || true
+  phase2_fix_ownership "$PHASE2_BASE_DIR"
   return 0
 }
 
