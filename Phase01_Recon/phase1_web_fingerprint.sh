@@ -264,16 +264,17 @@ main() {
 
   ccdc__require_cmds curl awk sed tr head sort uniq grep wc || exit 3
 
-  # set default output paths so menu viewing works even before run
-  TXT_OUT="${CCDC_OUT_DIR}/web_fingerprint.txt"
-  CSV_OUT="${CCDC_OUT_DIR}/web_fingerprint.csv"
-  TARGETS_USED="${CCDC_OUT_DIR}/web_fingerprint_targets_used.txt"
-
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    # set default output paths so menu viewing works even before run
+    TXT_OUT="${CCDC_OUT_DIR}/web_fingerprint.txt"
+    CSV_OUT="${CCDC_OUT_DIR}/web_fingerprint.csv"
+    TARGETS_USED="${CCDC_OUT_DIR}/web_fingerprint_targets_used.txt"
     menu_loop
   else
     if [[ -z "${TEAM:-}" ]]; then
@@ -283,6 +284,12 @@ main() {
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    # set default output paths so menu viewing works even before run
+    TXT_OUT="${CCDC_OUT_DIR}/web_fingerprint.txt"
+    CSV_OUT="${CCDC_OUT_DIR}/web_fingerprint.csv"
+    TARGETS_USED="${CCDC_OUT_DIR}/web_fingerprint_targets_used.txt"
     run_fingerprint
   fi
   return 0

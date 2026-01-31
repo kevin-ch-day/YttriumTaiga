@@ -142,13 +142,13 @@ main() {
     TEAM="$TEAM_PARSED"
   fi
 
-  init_paths
-
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    init_paths
     ccdc__section "Team Network Summary"
     ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
@@ -160,6 +160,8 @@ main() {
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    init_paths
     ccdc__section "Team Network Summary"
     ccdc_net__print_team_summary "$TEAM" || true
     write_command_worksheet

@@ -1,8 +1,4 @@
-**/logs/
-**/output/
 **/workspace/
-**/*.log
-**/*.summary.txt
 **/*.tmp
 **/*.bak
 
