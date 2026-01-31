@@ -192,9 +192,17 @@ ccdc_net__public_hosts_range() {
   local oct
   oct="$(ccdc_net__team_octet "$team")" || return 1
   local i
-  for i in $(seq 1 254); do
-    echo "172.25.${oct}.${i}"
-  done
+  if command -v seq >/dev/null 2>&1; then
+    for i in $(seq 1 254); do
+      echo "172.25.${oct}.${i}"
+    done
+  else
+    i=1
+    while (( i <= 254 )); do
+      echo "172.25.${oct}.${i}"
+      i=$((i+1))
+    done
+  fi
 }
 
 ccdc_net__public_host_candidates() {

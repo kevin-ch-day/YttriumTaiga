@@ -64,13 +64,13 @@ dns_test() {
   # returns 0 if DNS resolves example.com using available tool
   if command -v dig >/dev/null 2>&1; then
     dig +time=2 +tries=1 example.com A >/dev/null 2>&1
-    return $NO
+    return $?
   elif command -v nslookup >/dev/null 2>&1; then
     nslookup example.com >/dev/null 2>&1
-    return $NO
+    return $?
   elif command -v host >/dev/null 2>&1; then
     host example.com >/dev/null 2>&1
-    return $NO
+    return $?
   fi
   return 2
 }

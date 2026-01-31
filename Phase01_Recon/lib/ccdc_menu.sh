@@ -270,7 +270,15 @@ ccdc_menu__choose_multi() {
       0|q|quit) echo ""; return 0 ;;
       all)
         # return 1..N
-        seq 1 "${#options[@]}" | tr '\n' ' ' | sed 's/ *$//'
+        if command -v seq >/dev/null 2>&1; then
+          seq 1 "${#options[@]}" | tr '\n' ' ' | sed 's/ *$//'
+          return 0
+        fi
+        local j out=""
+        for (( j=1; j<=${#options[@]}; j++ )); do
+          out+="${j} "
+        done
+        echo "$out" | sed 's/ *$//'
         return 0
         ;;
     esac

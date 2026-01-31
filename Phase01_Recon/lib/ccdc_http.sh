@@ -210,6 +210,7 @@ ccdc_http__title_if_html() {
 
 ccdc_http__normalize_url() {
   local s="${1:-}"
+  [[ -n "$s" ]] || { echo ""; return 0; }
   if [[ "$s" =~ ^https?:// ]]; then
     echo "$s"
   else
