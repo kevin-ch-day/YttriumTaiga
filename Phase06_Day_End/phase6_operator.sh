@@ -20,9 +20,9 @@ echo "0) Exit"
 read -r -p "Choose [1-3]: " choice || choice=""
 
 case "$choice" in
-  1) exec "${PHASE_DIR}/system_cleanup.sh" ;;
-  2) exec "${PHASE_DIR}/clear_terminal_history.sh" ;;
-  3) exec "${PHASE_DIR}/clear_history.sh" ;;
+  1) exec "${PHASE_DIR}/tools/system_cleanup.sh" ;;
+  2) exec "${PHASE_DIR}/tools/clear_terminal_history.sh" ;;
+  3) exec "${PHASE_DIR}/tools/clear_history.sh" ;;
   0|q|Q|"") exit 0 ;;
   *) echo "Invalid selection."; exit 1 ;;
 esac

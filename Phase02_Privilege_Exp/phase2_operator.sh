@@ -9,7 +9,7 @@ set -euo pipefail
 
 PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB_DIR="${PHASE_DIR}/lib"
-MAIN="${PHASE_DIR}/phase2_privilege_main.sh"
+MAIN="${PHASE_DIR}/tools/phase2_privilege_main.sh"
 
 # shellcheck disable=SC1091
 source "${LIB_DIR}/phase2_lib_runtime.sh" || { echo "ERROR: Missing phase2_lib_runtime.sh"; exit 3; }
@@ -91,7 +91,7 @@ run_all_teams() {
   case "$action" in
     0|2) return 0 ;;
     1)
-      if [[ ! -x "${PHASE_DIR}/phase2_targets.sh" ]]; then
+      if [[ ! -x "${PHASE_DIR}/tools/phase2_targets.sh" ]]; then
         phase2_warn "phase2_targets.sh not found or not executable."
         return 1
       fi
@@ -102,7 +102,7 @@ run_all_teams() {
         fi
         set_intel_out_dir "$t"
         phase2_save_last_team "$t" || true
-        PHASE2_BATCH=1 "${PHASE_DIR}/phase2_targets.sh" "$t" || true
+        PHASE2_BATCH=1 "${PHASE_DIR}/tools/phase2_targets.sh" "$t" || true
       done
       return 0
       ;;

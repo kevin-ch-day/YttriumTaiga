@@ -20,7 +20,8 @@ set -euo pipefail
 #   ./phase2_privilege_main.sh
 # ============================================================
 
-PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PHASE_DIR="$(cd "${TOOL_DIR}/.." && pwd)"
 LIB_DIR="${PHASE_DIR}/lib"
 
 # -----------------------------
@@ -50,9 +51,9 @@ source "${LIB_DIR}/phase2_lib_intel.sh"
 # -----------------------------
 # Sub-script paths (Phase 2 local)
 # -----------------------------
-SCRIPT_TARGETS="${PHASE_DIR}/phase2_targets.sh"
-SCRIPT_CREDS="${PHASE_DIR}/phase2_creds_ops.sh"
-SCRIPT_REMOTE="${PHASE_DIR}/phase2_remote_privesc.sh"
+SCRIPT_TARGETS="${TOOL_DIR}/phase2_targets.sh"
+SCRIPT_CREDS="${TOOL_DIR}/phase2_creds_ops.sh"
+SCRIPT_REMOTE="${TOOL_DIR}/phase2_remote_privesc.sh"
 
 phase2_main__have_script() { [[ -f "$1" ]]; }
 

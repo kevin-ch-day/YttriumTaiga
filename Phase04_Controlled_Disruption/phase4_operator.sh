@@ -8,5 +8,5 @@ set -euo pipefail
 # ============================================================
 
 echo "Phase 4 operator is not implemented yet."
-echo "Use phase4_cleanup.sh for cleanup tasks."
+echo "Use tools/phase4_cleanup.sh for cleanup tasks."
 exit 0

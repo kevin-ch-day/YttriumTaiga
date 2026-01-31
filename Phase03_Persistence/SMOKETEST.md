@@ -1,7 +1,7 @@
 # Phase 03 - 5-Minute Smoke Test
 
 1) Scripts executable
-   - `chmod +x Phase03_Persistence/phase3_continuity.sh`
+   - `chmod +x Phase03_Persistence/tools/phase3_continuity.sh`
 
 2) Logs/output writable
    - `mkdir -p Phase03_Persistence/logs Phase03_Persistence/output`

@@ -17,7 +17,8 @@ set -euo pipefail
 #   ./phase2_targets.sh 21         # explicit team
 # ============================================================
 
-PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PHASE_DIR="$(cd "${TOOL_DIR}/.." && pwd)"
 LIB_DIR="${PHASE_DIR}/lib"
 
 # shellcheck disable=SC1091

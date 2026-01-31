@@ -34,7 +34,7 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 
 - Phase 01 quickstart: `Phase01_Recon/OPERATOR_QUICKSTART.md`
 - Phase 01 smoke test: `Phase01_Recon/SMOKETEST.md`
-- Phase 03 continuity script: `Phase03_Persistence/phase3_continuity.sh`
+- Phase 03 continuity script: `Phase03_Persistence/tools/phase3_continuity.sh`
 - Phase 03 quickstart: `Phase03_Persistence/OPERATOR_QUICKSTART.md`
 - Phase 03 smoke test: `Phase03_Persistence/SMOKETEST.md`
 - Phase 06 quickstart: `Phase06_Day_End/OPERATOR_QUICKSTART.md`
@@ -99,7 +99,7 @@ CSV override supported:
 - Phase 0-2 are implemented; Phase 3-5 are scaffolds for future build-out.
 - Phase 01 scripts prompt for Team Selection before showing action menus.
 - Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
-- Phase 01 operators: `phase1_operator.sh` (launcher), `phase1_operator_recon.sh` (primary), `phase1_operator_monitor.sh` (health).
+- Phase 01 operators: `phase1_operator.sh` (single entry). Advanced tools in `Phase01_Recon/tools/`.
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
 - Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).
 - Single entry point per phase:

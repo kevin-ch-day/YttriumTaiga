@@ -39,7 +39,7 @@ captain initials and create an entry.
 1) Operator entry point (recommended):
    - `./phase3_operator.sh`
 2) Initialize docs and safety rules:
-   - `./phase3_continuity.sh`
+   - `./tools/phase3_continuity.sh`
 2) Add foothold/session entries
 3) Generate a re-entry checklist per foothold
 

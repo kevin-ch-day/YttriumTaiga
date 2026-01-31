@@ -8,7 +8,7 @@ set -euo pipefail
 # ============================================================
 
 PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MAIN="${PHASE_DIR}/phase3_continuity.sh"
+MAIN="${PHASE_DIR}/tools/phase3_continuity.sh"
 
 # shellcheck disable=SC1091
 source "${PHASE_DIR}/lib/ccdc_runtime.sh" || { echo "ERROR: Missing lib/ccdc_runtime.sh"; exit 3; }

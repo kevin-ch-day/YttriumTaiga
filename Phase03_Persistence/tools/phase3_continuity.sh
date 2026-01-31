@@ -13,15 +13,16 @@ set -euo pipefail
 #   ./output/rules_safety.txt
 # ============================================================
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PHASE_DIR="$(cd "${TOOL_DIR}/.." && pwd)"
 
 # ---- Import libs ----
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/ccdc_runtime.sh" || { echo "ERROR: Missing lib/ccdc_runtime.sh"; exit 3; }
+source "${PHASE_DIR}/lib/ccdc_runtime.sh" || { echo "ERROR: Missing lib/ccdc_runtime.sh"; exit 3; }
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_utils.sh"; exit 3; }
+source "${PHASE_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_utils.sh"; exit 3; }
 # shellcheck disable=SC1091
-source "${SCRIPT_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
+source "${PHASE_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
 
 FOOTHOLDS=""
 REENTRY=""
@@ -34,9 +35,9 @@ init_outputs() {
   FOOTHOLDS="${CCDC_OUT_DIR}/footholds.jsonl"
   REENTRY="${CCDC_OUT_DIR}/reentry.txt"
   RULES="${CCDC_OUT_DIR}/rules_safety.txt"
-  APPROVALS="${SCRIPT_DIR}/approved_actions.md"
-  PHASE1_DIR="${SCRIPT_DIR}/../Phase01_Recon"
-  PHASE2_DIR="${SCRIPT_DIR}/../Phase02_Privilege_Exp"
+  APPROVALS="${PHASE_DIR}/approved_actions.md"
+  PHASE1_DIR="${PHASE_DIR}/../Phase01_Recon"
+  PHASE2_DIR="${PHASE_DIR}/../Phase02_Privilege_Exp"
 
   # Ensure output dir is writable
   local testfile="${CCDC_OUT_DIR}/.phase3_write_test"

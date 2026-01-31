@@ -10,9 +10,9 @@ and sets up operator notes for tracking credentials and targets.
    - Choose **Team** or **All Teams** (Team19 blocked)
    - The operator will run **all Phase 1 abilities** by default
 2) **Operator: Primary Recon (advanced/legacy)**
-   - `./phase1_operator_recon.sh <TEAM>`
+   - `./tools/phase1_operator_recon.sh <TEAM>`
 3) **Operator: Local Health Snapshot (optional)**
-   - `./phase1_operator_monitor.sh <TEAM>` (Team is optional; menu allows continue without team)
+   - `./tools/phase1_operator_monitor.sh <TEAM>` (Team is optional; menu allows continue without team)
 
 ## Side scripts ("Tools")
 If you need a single task without the full operator workflow:
@@ -23,8 +23,8 @@ Tools live in `Phase01_Recon/tools/`:
 - `./tools/phase1_nmap_script.sh <TEAM>` (worksheet only; no scans)
 
 ## Phase 01 structure (clean root)
-Only the Operator scripts live at the phase root. All task-specific scripts are in `tools/`.
-This keeps the root minimal and prevents accidental use of the wrong tool.
+Only `phase1_operator.sh` lives at the phase root. All task-specific scripts are in `tools/`.
+This keeps the root minimal and prevents accidental use of the wrong script.
 
 ## Menu behavior (what operators should expect)
 Every Phase 01 script now starts with a Team Selection menu:

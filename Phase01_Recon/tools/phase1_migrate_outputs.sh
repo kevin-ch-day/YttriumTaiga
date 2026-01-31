@@ -8,7 +8,8 @@ set -euo pipefail
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUT_DIR="${SCRIPT_DIR}/output"
+PHASE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+OUT_DIR="${PHASE_DIR}/output"
 TEAM_FILE="${OUT_DIR}/team.txt"
 FORCE=0
 

@@ -2,14 +2,15 @@
 set -euo pipefail
 
 # ============================================================
-# Filename: phase3_cleanup.sh
-# Purpose : Clean Phase 03 logs and/or output directories
-# Usage   : ./phase3_cleanup.sh [--logs|--output|--all] [--force]
+# Filename: phase4_cleanup.sh
+# Purpose : Clean Phase 04 logs and/or output directories
+# Usage   : ./phase4_cleanup.sh [--logs|--output|--all] [--force]
 # ============================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_DIR="${SCRIPT_DIR}/logs"
-OUT_DIR="${SCRIPT_DIR}/output"
+PHASE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+LOG_DIR="${PHASE_DIR}/logs"
+OUT_DIR="${PHASE_DIR}/output"
 
 DO_LOGS=1
 DO_OUTPUT=1
