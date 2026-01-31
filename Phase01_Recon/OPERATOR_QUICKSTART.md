@@ -27,15 +27,15 @@ After Team Selection, the script’s action menu appears (run, view outputs, exi
 ## Outputs and where to find them
 All outputs are written under:
 - `Phase01_Recon/logs/`
-- `Phase01_Recon/output/`
+- `Phase01_Recon/output/team_###/` (team-scoped)
 
 Key files:
-- `output/cred_ledger.md` (credential ledger)
-- `output/service_map.md` (service tracking)
-- `output/targets_watchlist.md` (prioritized targets)
-- `output/services.txt` / `output/services.csv` / `output/services_hits.txt`
-- `output/targets_candidates.txt`
-- `output/web_fingerprint.txt` / `output/web_fingerprint.csv`
+- `output/team_###/cred_ledger.md` (credential ledger)
+- `output/team_###/service_map.md` (service tracking)
+- `output/team_###/targets_watchlist.md` (prioritized targets)
+- `output/team_###/services.txt` / `output/team_###/services.csv` / `output/team_###/services_hits.txt`
+- `output/team_###/targets_candidates.txt`
+- `output/team_###/web_fingerprint.txt` / `output/team_###/web_fingerprint.csv`
 
 ## What "good output" looks like
 - `services_hits.txt` contains IPs with meaningful headers/titles.

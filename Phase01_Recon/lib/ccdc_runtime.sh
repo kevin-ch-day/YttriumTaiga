@@ -22,6 +22,7 @@ set -euo pipefail
 
 : "${CCDC_BASE_DIR:=}"
 : "${CCDC_LOG_DIR:=}"
+: "${CCDC_OUT_DIR_BASE:=}"
 : "${CCDC_OUT_DIR:=}"
 : "${CCDC_LOG_FILE:=}"
 : "${CCDC_PHASE_NAME:=}"   # optional label for logs
@@ -57,7 +58,8 @@ ccdc__init_env() {
   # Initializes CCDC_BASE_DIR/LOG_DIR/OUT_DIR only.
   CCDC_BASE_DIR="$(ccdc__phase_base_dir)" || return 1
   CCDC_LOG_DIR="${CCDC_BASE_DIR}/logs"
-  CCDC_OUT_DIR="${CCDC_BASE_DIR}/output"
+  CCDC_OUT_DIR_BASE="${CCDC_BASE_DIR}/output"
+  CCDC_OUT_DIR="${CCDC_OUT_DIR_BASE}"
   ccdc__ensure_phase_dirs "$CCDC_BASE_DIR" || return 1
   umask "${CCDC_UMASK}" 2>/dev/null || true
   ccdc__fix_ownership "$CCDC_BASE_DIR"

@@ -77,6 +77,28 @@ write_report() {
 
   local subnet
   subnet="$(ccdc__target_net "$TEAM")"
+  local services_csv services_hits targets_cand web_fp_csv
+  services_csv="${CCDC_OUT_DIR}/services.csv"
+  services_hits="${CCDC_OUT_DIR}/services_hits.txt"
+  targets_cand="${CCDC_OUT_DIR}/targets_candidates.txt"
+  web_fp_csv="${CCDC_OUT_DIR}/web_fingerprint.csv"
+  local count_services count_hits count_cand count_fp
+  count_services="N/A"
+  count_hits="N/A"
+  count_cand="N/A"
+  count_fp="N/A"
+  if [[ -f "$services_csv" ]]; then
+    count_services="$(awk -F',' 'NR>1 {c++} END {print c+0}' "$services_csv" 2>/dev/null)"
+  fi
+  if [[ -f "$services_hits" ]]; then
+    count_hits="$(awk 'NF>0 {c++} END {print c+0}' "$services_hits" 2>/dev/null)"
+  fi
+  if [[ -f "$targets_cand" ]]; then
+    count_cand="$(awk 'NF>0 {c++} END {print c+0}' "$targets_cand" 2>/dev/null)"
+  fi
+  if [[ -f "$web_fp_csv" ]]; then
+    count_fp="$(awk -F',' 'NR>1 {c++} END {print c+0}' "$web_fp_csv" 2>/dev/null)"
+  fi
 
   {
     echo "Phase 1 -- Recon & Access Report"
@@ -94,6 +116,12 @@ write_report() {
     echo "  - ${CCDC_OUT_DIR}/targets_candidates.txt"
     echo "  - ${CCDC_OUT_DIR}/web_fingerprint.txt"
     echo "  - ${CCDC_OUT_DIR}/web_fingerprint.csv"
+    echo ""
+    echo "Quick Counts:"
+    echo "  - Services (CSV rows):     ${count_services}"
+    echo "  - Service hits:            ${count_hits}"
+    echo "  - Candidate targets:       ${count_cand}"
+    echo "  - Web fingerprint entries: ${count_fp}"
     echo ""
     echo "Quick Workflow:"
     echo "  1) Run Service Inventory -> identify likely OpenCart/Webmail/Splunk"
@@ -208,15 +236,16 @@ main() {
   require_child "${SCRIPT_DIR}/phase1_service_inventory.sh" || exit 3
   require_child "${SCRIPT_DIR}/phase1_web_fingerprint.sh" || exit 3
 
-  # Create report path early so View menu works even before runs
-  REPORT_OUT="${CCDC_OUT_DIR}/phase1_team_report.txt"
-  [[ -f "$REPORT_OUT" ]] || : > "$REPORT_OUT"
-
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    # Create report path now that team output dir is set
+    REPORT_OUT="${CCDC_OUT_DIR}/phase1_team_report.txt"
+    [[ -f "$REPORT_OUT" ]] || : > "$REPORT_OUT"
 
     # Log network scheme summary (helps operator orientation)
     ccdc__section "Team Network Summary"
@@ -230,6 +259,11 @@ main() {
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    # Create report path now that team output dir is set
+    REPORT_OUT="${CCDC_OUT_DIR}/phase1_team_report.txt"
+    [[ -f "$REPORT_OUT" ]] || : > "$REPORT_OUT"
     ccdc__section "Team Network Summary"
     ccdc_net__print_team_summary "$TEAM" || true
     run_all || true

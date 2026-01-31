@@ -119,8 +119,8 @@ ccdc__save_last_team() {
   local team="${1:-}"
   ccdc__validate_team "$team" || return 1
 
-  # Ensure output dir exists
-  if [[ -z "${CCDC_OUT_DIR:-}" ]]; then
+  # Ensure base output dir exists
+  if [[ -z "${CCDC_OUT_DIR_BASE:-}" && -z "${CCDC_OUT_DIR:-}" ]]; then
     if declare -F ccdc__init_env >/dev/null 2>&1; then
       ccdc__init_env || return 1
     else
@@ -128,14 +128,15 @@ ccdc__save_last_team() {
     fi
   fi
 
-  echo "$team" > "${CCDC_OUT_DIR}/team.txt" 2>/dev/null || return 1
-  _ccdc_utils__log_kv "Saved team" "${CCDC_OUT_DIR}/team.txt"
+  local base_dir="${CCDC_OUT_DIR_BASE:-${CCDC_OUT_DIR}}"
+  echo "$team" > "${base_dir}/team.txt" 2>/dev/null || return 1
+  _ccdc_utils__log_kv "Saved team" "${base_dir}/team.txt"
   return 0
 }
 
 ccdc__load_last_team() {
   # Returns saved team number or empty.
-  if [[ -z "${CCDC_OUT_DIR:-}" ]]; then
+  if [[ -z "${CCDC_OUT_DIR_BASE:-}" && -z "${CCDC_OUT_DIR:-}" ]]; then
     if declare -F ccdc__init_env >/dev/null 2>&1; then
       ccdc__init_env || { echo ""; return 0; }
     else
@@ -144,9 +145,25 @@ ccdc__load_last_team() {
     fi
   fi
 
-  local f="${CCDC_OUT_DIR}/team.txt"
+  local base_dir="${CCDC_OUT_DIR_BASE:-${CCDC_OUT_DIR}}"
+  local f="${base_dir}/team.txt"
   [[ -f "$f" ]] || { echo ""; return 0; }
   cat "$f" 2>/dev/null || echo ""
+}
+
+ccdc__set_team_output_dir() {
+  # Sets CCDC_OUT_DIR to a team-scoped output folder.
+  local team="${1:-}"
+  ccdc__validate_team "$team" || return 1
+  [[ -n "${CCDC_OUT_DIR_BASE:-}" || -n "${CCDC_OUT_DIR:-}" ]] || ccdc__init_env || return 1
+
+  local base_dir="${CCDC_OUT_DIR_BASE:-${CCDC_OUT_DIR}}"
+  local pad
+  pad="$(printf "%03d" "$team")"
+  CCDC_OUT_DIR="${base_dir}/team_${pad}"
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || return 1
+  _ccdc_utils__log_kv "Output dir" "${CCDC_OUT_DIR}"
+  return 0
 }
 
 ccdc__parse_team_or_last() {

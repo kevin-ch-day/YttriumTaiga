@@ -21,9 +21,9 @@ Run this once before competition to confirm Phase 01 works end-to-end.
    - Exit after the action menu renders; confirm log file exists in `Phase01_Recon/logs/`.
 
 5) Confirm outputs exist
-   - `Phase01_Recon/output/cred_ledger.md`
-   - `Phase01_Recon/output/service_map.md`
-   - `Phase01_Recon/output/targets_watchlist.md`
+   - `Phase01_Recon/output/team_###/cred_ledger.md`
+   - `Phase01_Recon/output/team_###/service_map.md`
+   - `Phase01_Recon/output/team_###/targets_watchlist.md`
    - Other outputs appear after running inventory/fingerprint scripts.
 
 If any step fails, check the script log in `Phase01_Recon/logs/` first.

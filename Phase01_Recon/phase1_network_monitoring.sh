@@ -301,18 +301,20 @@ main() {
     TEAM="$TEAM_PARSED"
   fi
 
-  init_outputs
-
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "1")" || return 0
     [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
     [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
+    [[ -n "$TEAM" ]] && ccdc__set_team_output_dir "$TEAM" || true
+    init_outputs
     menu_loop
   else
     [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
     [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
+    [[ -n "$TEAM" ]] && ccdc__set_team_output_dir "$TEAM" || true
+    init_outputs
     run_full_checks
   fi
   return 0

@@ -39,7 +39,12 @@ source "${SCRIPT_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_me
 source "${SCRIPT_DIR}/lib/ccdc_net_scheme.sh" || { echo "ERROR: Missing lib/ccdc_net_scheme.sh"; exit 3; }
 
 # ---- Tunables (no CLI flags) ----
-MAX_HOSTS="254"
+# Limit total hosts to scan (default full /24)
+MAX_HOSTS="${CCDC_PHASE1_MAX_HOSTS:-254}"
+# Optional max runtime (seconds). 0 = no limit.
+MAX_SECONDS="${CCDC_PHASE1_MAX_SECONDS:-0}"
+# Progress log cadence
+PROGRESS_EVERY="${CCDC_PHASE1_PROGRESS_EVERY:-25}"
 
 # Wire tunables into HTTP lib env vars
 export CCDC_HTTP_TIMEOUT_SECS="2"
@@ -84,6 +89,7 @@ write_header() {
     echo "[*] Output: $(basename "$TXT_OUT"), $(basename "$CSV_OUT"), $(basename "$HITS_OUT")"
     echo "[*] Targets: $(basename "$TARGETS_ALL"), $(basename "$TARGETS_CAND")"
     echo "[*] Settings: timeout=${CCDC_HTTP_TIMEOUT_SECS}s connect_timeout=${CCDC_HTTP_CONNECT_TIMEOUT}s follow=${CCDC_HTTP_FOLLOW_REDIRECTS}"
+    echo "[*] Limits: max_hosts=${MAX_HOSTS} max_seconds=${MAX_SECONDS}"
     echo "--------------------------------------------------------------------------------"
   } > "$TXT_OUT"
 }
@@ -186,9 +192,30 @@ run_scan() {
   build_targets
 
   # Scan the full list (1..254)
+  local start_ts now_ts elapsed count
+  start_ts="$(date +%s 2>/dev/null || echo 0)"
+  count=0
   while read -r ip; do
     [[ -n "$ip" ]] || continue
+    count=$((count + 1))
+    if [[ "$MAX_HOSTS" =~ ^[0-9]+$ ]] && (( count > MAX_HOSTS )); then
+      ccdc__log "[*] Reached max_hosts=${MAX_HOSTS}; stopping scan early."
+      break
+    fi
+    if [[ "$MAX_SECONDS" =~ ^[0-9]+$ ]] && (( MAX_SECONDS > 0 )); then
+      now_ts="$(date +%s 2>/dev/null || echo 0)"
+      elapsed=$((now_ts - start_ts))
+      if (( elapsed >= MAX_SECONDS )); then
+        ccdc__log "[*] Reached max_seconds=${MAX_SECONDS}; stopping scan early."
+        break
+      fi
+    fi
     scan_host "$ip"
+    if [[ "$PROGRESS_EVERY" =~ ^[0-9]+$ ]] && (( PROGRESS_EVERY > 0 )); then
+      if (( count % PROGRESS_EVERY == 0 )); then
+        ccdc__log "[*] Progress: ${count} hosts scanned..."
+      fi
+    fi
   done < "$TARGETS_ALL"
 
   write_summary
@@ -247,14 +274,13 @@ main() {
   # Required tools
   ccdc__require_cmds curl awk sed tr head sort uniq || exit 3
 
-  init_outputs
-
-  # Helpful network summary in logs
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    init_outputs
     ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
   else
@@ -265,6 +291,8 @@ main() {
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
     ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    init_outputs
     ccdc_net__print_team_summary "$TEAM" || true
     run_scan
   fi
