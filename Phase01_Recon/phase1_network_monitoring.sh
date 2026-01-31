@@ -32,6 +32,8 @@ source "${SCRIPT_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_ut
 source "${SCRIPT_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/ccdc_net_scheme.sh" || { echo "ERROR: Missing lib/ccdc_net_scheme.sh"; exit 3; }
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_error.sh" || true
 
 TEAM=""
 OUT_SUMMARY=""
@@ -287,7 +289,11 @@ main() {
   ccdc__init_run "phase1_network_monitoring" || exit 1
 
   # Commands used (warn-only; script still runs with best-effort fallbacks)
-  ccdc__require_cmds ip awk sed hostname whoami df free uptime ss ping || true
+  if declare -F ccdc_err_require_cmds >/dev/null 2>&1; then
+    ccdc_err_require_cmds ip awk sed hostname whoami df free uptime ss ping || true
+  else
+    ccdc__require_cmds ip awk sed hostname whoami df free uptime ss ping || true
+  fi
 
   # Resolve team if provided or previously saved (optional)
   TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""

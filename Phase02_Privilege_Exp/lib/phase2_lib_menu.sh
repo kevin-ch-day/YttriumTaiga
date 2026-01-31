@@ -126,8 +126,8 @@ phase2_menu__ask() {
 }
 
 phase2_menu__confirm() {
-  # Usage: if phase2_menu__confirm "ProceedNO" "Y"; then ...; fi
-  local prompt="${1:-Are you sureNO}"
+  # Usage: if phase2_menu__confirm "Proceed?" "Y"; then ...; fi
+  local prompt="${1:-Are you sure?}"
   local def="${2:-N}"   # default to N for safety
   def="${def^^}"
 

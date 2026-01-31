@@ -196,7 +196,7 @@ phase2_remote_ssh_cmd() {
 
   local rc=0
   # shellcheck disable=SC2046
-  ssh $(phase2_remote__ssh_base_args) "${user}@${host}" "$cmd" </dev/null >>"$out_file" 2>&1 || rc=$NO
+  ssh $(phase2_remote__ssh_base_args) "${user}@${host}" "$cmd" </dev/null >>"$out_file" 2>&1 || rc=$?
 
   echo "" >>"$out_file" 2>/dev/null || true
   echo "ExitCode: ${rc}" >>"$out_file" 2>/dev/null || true
@@ -264,7 +264,7 @@ phase2_remote_scp_get() {
   if [[ "$recursive" == "1" ]]; then scp_args+=("-r"); fi
 
   local rc=0
-  scp "${scp_args[@]}" "${user}@${host}:${remote_path}" "$dest" </dev/null >/dev/null 2>&1 || rc=$NO
+  scp "${scp_args[@]}" "${user}@${host}:${remote_path}" "$dest" </dev/null >/dev/null 2>&1 || rc=$?
 
   if [[ "$rc" -eq 0 ]]; then
     _phase2_remote__log "[*] SCP ok"
@@ -300,7 +300,7 @@ phase2_remote_scp_put() {
   _phase2_remote__log "[*] SCP put -> ${local_path}  =>  ${user}@${host}:${remote_path}"
 
   local rc=0
-  scp "${scp_args[@]}" "$local_path" "${user}@${host}:${remote_path}" </dev/null >/dev/null 2>&1 || rc=$NO
+  scp "${scp_args[@]}" "$local_path" "${user}@${host}:${remote_path}" </dev/null >/dev/null 2>&1 || rc=$?
 
   if [[ "$rc" -eq 0 ]]; then
     _phase2_remote__log "[*] SCP ok"

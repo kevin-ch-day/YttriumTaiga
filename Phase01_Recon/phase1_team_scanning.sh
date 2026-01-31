@@ -28,6 +28,8 @@ source "${SCRIPT_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_ut
 source "${SCRIPT_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/lib/ccdc_net_scheme.sh" || { echo "ERROR: Missing lib/ccdc_net_scheme.sh"; exit 3; }
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_error.sh" || true
 
 TEAM=""
 REPORT_OUT=""
@@ -38,7 +40,14 @@ usage() {
 
 require_child() {
   local path="$1"
-  [[ -f "$path" ]] || { ccdc__die "Missing required script: $path" || true; return 1; }
+  if [[ ! -f "$path" ]]; then
+    if declare -F ccdc_err_die >/dev/null 2>&1; then
+      ccdc_err_die "${E_IO}" "Missing required script: $path"
+    else
+      ccdc__die "Missing required script: $path" || true
+      return 1
+    fi
+  fi
   [[ -x "$path" ]] || chmod +x "$path" 2>/dev/null || true
   return 0
 }

@@ -95,6 +95,11 @@ extract_hosts_from_ping_sweep() {
     return 1
   fi
 
+  if ! command -v awk >/dev/null 2>&1 || ! command -v sort >/dev/null 2>&1; then
+    ccdc__warn "Missing awk/sort; cannot extract targets."
+    return 1
+  fi
+
   # Nmap output usually has: "Nmap scan report for <ip>"
   awk '/Nmap scan report for/ {print $NF}' "$in_file" 2>/dev/null | sort -u > "$TARGETS_FILE" || true
   ccdc__log "[*] Updated targets: $TARGETS_FILE"
