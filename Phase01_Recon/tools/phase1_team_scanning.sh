@@ -246,8 +246,12 @@ main() {
   if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
     export CCDC_BATCH=1
     export CCDC_TEAM_LOCK=1
+    export CCDC_BRIEF="${CCDC_BRIEF:-1}"
+    export CCDC_OVERWRITE="${CCDC_OVERWRITE:-1}"
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    if [[ "${CCDC_BRIEF:-0}" != "1" ]]; then
+      ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    fi
     ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
     ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
     ccdc__section "Phase 1 -- Batch Run"

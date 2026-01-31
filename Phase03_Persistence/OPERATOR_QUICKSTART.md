@@ -22,6 +22,7 @@ All outputs live under `Phase03_Persistence/output/`:
 - `footholds.jsonl` (session/foothold ledger)
 - `reentry.txt` (re-entry + recovery plan)
 - `rules_safety.txt` (rules, stop conditions, approvals)
+- `footholds.csv` (sortable summary of footholds)
 
 Optional:
 - Summary view is available from the menu (counts + top targets).

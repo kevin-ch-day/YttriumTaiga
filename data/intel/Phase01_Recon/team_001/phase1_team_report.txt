@@ -1,5 +1,5 @@
 Phase 1 -- Recon & Access Report
-Time: 01/31/2026  2:56 PM
+Time: 01/31/2026  3:28 PM
 Team: 1
 Subnet: 172.25.21.0/24
 
@@ -15,11 +15,11 @@ Generated Outputs (expected):
   - /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_001/web_fingerprint.csv
 
 Quick Counts:
-  - Services (CSV rows):     2
-  - Service hits:            2
-  - Candidate targets:       13
-  - Web fingerprint entries: 12
-  - Ranked targets:          2
+  - Services (CSV rows):     3
+  - Service hits:            3
+  - Candidate targets:       15
+  - Web fingerprint entries: 18
+  - Ranked targets:          3
 
 Quick Workflow:
   1) Run Service Inventory -> identify likely OpenCart/Webmail/Splunk
@@ -31,6 +31,6 @@ Notes:
 
 Run Status:
   cred_ledger_init: OK
-  service_inventory: FAIL
+  service_inventory: OK
   web_fingerprint:  OK
 

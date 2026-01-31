@@ -24,20 +24,39 @@ source "${PHASE_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_uti
 # shellcheck disable=SC1091
 source "${PHASE_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
 
+TEAM_ARG="${1:-}"
+TEAM=""
 FOOTHOLDS=""
+FOOTHOLDS_CSV=""
 REENTRY=""
 RULES=""
 APPROVALS=""
 PHASE1_DIR=""
 PHASE2_DIR=""
+INTEL_BASE=""
 
 init_outputs() {
   FOOTHOLDS="${CCDC_OUT_DIR}/footholds.jsonl"
+  FOOTHOLDS_CSV="${CCDC_OUT_DIR}/footholds.csv"
   REENTRY="${CCDC_OUT_DIR}/reentry.txt"
   RULES="${CCDC_OUT_DIR}/rules_safety.txt"
   APPROVALS="${PHASE_DIR}/approved_actions.md"
-  PHASE1_DIR="${PHASE_DIR}/../Phase01_Recon"
-  PHASE2_DIR="${PHASE_DIR}/../Phase02_Privilege_Exp"
+  INTEL_BASE="$(cd "${PHASE_DIR}/.." && pwd)/data/intel"
+  if [[ -f "${PHASE_DIR}/../config/ccdc_rules.conf" ]]; then
+    # shellcheck disable=SC1090
+    source "${PHASE_DIR}/../config/ccdc_rules.conf" || true
+  fi
+  if [[ -n "${CCDC_INTEL_DIR:-}" ]]; then
+    if [[ "${CCDC_INTEL_DIR}" = /* ]]; then
+      INTEL_BASE="${CCDC_INTEL_DIR}"
+    else
+      INTEL_BASE="$(cd "${PHASE_DIR}/.." && pwd)/${CCDC_INTEL_DIR}"
+    fi
+  fi
+  if [[ -n "$TEAM" ]]; then
+    PHASE1_DIR="${INTEL_BASE}/Phase01_Recon/team_$(printf "%03d" "$TEAM")"
+    PHASE2_DIR="${INTEL_BASE}/Phase02_Privilege_Exp/team_$(printf "%03d" "$TEAM")"
+  fi
 
   # Ensure output dir is writable
   local testfile="${CCDC_OUT_DIR}/.phase3_write_test"
@@ -48,6 +67,7 @@ init_outputs() {
   rm -f "$testfile" 2>/dev/null || true
 
   [[ -f "$FOOTHOLDS" ]] || : > "$FOOTHOLDS"
+  [[ -f "$FOOTHOLDS_CSV" ]] || : > "$FOOTHOLDS_CSV"
 
   if [[ ! -f "$REENTRY" ]]; then
     cat >"$REENTRY" <<'EOF'
@@ -175,11 +195,12 @@ add_foothold() {
     >> "$FOOTHOLDS"
 
   ccdc__log "[*] Added foothold: $target ($service) -> $FOOTHOLDS"
+  rebuild_footholds_csv || true
 
   # Optional: log to ops ledger
-  if [[ -x "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
+  if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
     if ccdc_menu__confirm "Log this foothold to ops_matrix.csv?" "N"; then
-      "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh"
+      "${PHASE_DIR}/../Scripts/ops_ledger_add.sh"
     fi
   fi
 }
@@ -223,10 +244,55 @@ add_reentry_plan() {
   ccdc__log "[*] Added re-entry checklist: $target -> $REENTRY"
 
   # Optional: log to ops ledger
-  if [[ -x "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
+  if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
     if ccdc_menu__confirm "Log this re-entry validation to ops_matrix.csv?" "N"; then
-      "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh"
+      "${PHASE_DIR}/../Scripts/ops_ledger_add.sh"
     fi
+  fi
+}
+
+rebuild_footholds_csv() {
+  # Convert JSONL footholds to CSV for quick sorting.
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - <<'PY' || true
+import json, csv, sys, os
+path=os.environ.get("FOOTHOLDS")
+out=os.environ.get("FOOTHOLDS_CSV")
+if not path or not out:
+    sys.exit(0)
+rows=[]
+with open(path, "r", encoding="utf-8", errors="ignore") as f:
+    for line in f:
+        line=line.strip()
+        if not line: continue
+        try:
+            rows.append(json.loads(line))
+        except Exception:
+            continue
+with open(out, "w", newline="") as f:
+    w=csv.writer(f)
+    w.writerow(["time","target","service","identity","access_type","stability","obtained","persistence_method","survives_reboot","sensitive_service","notes"])
+    for r in rows:
+        w.writerow([
+            r.get("time",""),
+            r.get("target",""),
+            r.get("service",""),
+            r.get("identity",""),
+            r.get("access_type",""),
+            r.get("stability",""),
+            r.get("obtained",""),
+            r.get("persistence_method",""),
+            r.get("survives_reboot",""),
+            r.get("sensitive_service",""),
+            r.get("notes",""),
+        ])
+PY
+  else
+    # Fallback: basic parse
+    awk -F'"' '
+      {t="";s="";u="";a="";st="";o="";p="";rb="";ss="";n=""}
+      /\"target\":/ {for(i=1;i<=NF;i++){if($i=="target"){t=$(i+2)} if($i=="service"){s=$(i+2)} if($i=="identity"){u=$(i+2)} if($i=="access_type"){a=$(i+2)} if($i=="stability"){st=$(i+2)} if($i=="obtained"){o=$(i+2)} if($i=="persistence_method"){p=$(i+2)} if($i=="survives_reboot"){rb=$(i+2)} if($i=="sensitive_service"){ss=$(i+2)} if($i=="notes"){n=$(i+2)}} if(t!=""){print t","s","u","a","st","o","p","rb","ss","n}}' "$FOOTHOLDS" \
+      > "$FOOTHOLDS_CSV" 2>/dev/null || true
   fi
 }
 
@@ -278,9 +344,9 @@ auto_import_footholds() {
   ccdc__section "Auto-Import Footholds (from Phase 1/2)"
 
   local count=0
-  local svc_csv="${PHASE1_DIR}/output/services.csv"
-  local web_csv="${PHASE1_DIR}/output/web_fingerprint.csv"
-  local creds_csv="${PHASE2_DIR}/output/loot/cred_ledger.csv"
+  local svc_csv="${PHASE1_DIR}/services.csv"
+  local web_csv="${PHASE1_DIR}/web_fingerprint_hits.csv"
+  local creds_csv="${PHASE2_DIR}/loot/cred_ledger.csv"
 
   if [[ -f "$svc_csv" ]]; then
     ccdc__log "[*] Importing from: $svc_csv"
@@ -349,6 +415,7 @@ auto_import_footholds() {
   fi
 
   ccdc__log "[*] Imported entries: ${count}"
+  rebuild_footholds_csv || true
 }
 
 generate_reentry_from_ledger() {
@@ -406,6 +473,7 @@ menu_loop() {
   while true; do
     ccdc_menu__header "Phase 3 - Continuity" "Persistence-lite (safe, reversible)"
     ccdc__log_kv "Footholds" "$FOOTHOLDS"
+    ccdc__log_kv "Footholds CSV" "$FOOTHOLDS_CSV"
     ccdc__log_kv "Re-entry" "$REENTRY"
     ccdc__log_kv "Rules" "$RULES"
     echo ""
@@ -437,7 +505,18 @@ menu_loop() {
 main() {
   ccdc__init_run "phase3_continuity" || exit 1
   ccdc__require_cmds date cat printf awk sort uniq head wc || true
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
   init_outputs
+
+  # Batch mode: auto-import + generate re-entry
+  if [[ "${CCDC_BATCH:-0}" == "1" && -n "$TEAM" ]]; then
+    CCDC_BRIEF=1
+    auto_import_footholds || true
+    generate_reentry_from_ledger || true
+    exit 0
+  fi
 
   if ccdc_menu__is_interactive; then
     menu_loop

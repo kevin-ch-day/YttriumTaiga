@@ -202,7 +202,9 @@ phase2_save_last_team() {
   mkdir -p "$out_dir" 2>/dev/null || return 1
 
   echo "$team" > "${out_dir}/team.txt" 2>/dev/null || return 1
-  _phase2_utils__log_kv "Saved team" "${out_dir}/team.txt"
+  if [[ "${PHASE2_BRIEF:-0}" != "1" ]]; then
+    _phase2_utils__log_kv "Saved team" "${out_dir}/team.txt"
+  fi
   return 0
 }
 

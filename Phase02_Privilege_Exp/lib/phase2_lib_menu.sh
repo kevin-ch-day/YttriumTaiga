@@ -46,6 +46,16 @@ _phase2_menu__warn() {
   fi
 }
 
+# ---------- Output helpers (stderr for menus) ----------
+_phase2_menu__out() {
+  printf "%s\n" "$*" >&2
+}
+
+_phase2_menu__outf() {
+  # shellcheck disable=SC2059
+  printf "$@" >&2
+}
+
 # ---------- TTY / color control ----------
 phase2_menu__is_interactive() {
   [[ -t 0 && -t 1 ]]
@@ -106,12 +116,12 @@ phase2_menu__header() {
   echo ""
 }
 
-phase2_menu__divider() { echo "------------------------------------------------------------"; }
+phase2_menu__divider() { _phase2_menu__out "------------------------------------------------------------"; }
 
 phase2_menu__print_kv() {
   local k="${1:-}"
   local v="${2:-}"
-  printf "%-18s %s\n" "${k}:" "$v"
+  _phase2_menu__outf "%-18s %s\n" "${k}:" "$v"
 }
 
 # ---------- Input helpers ----------
@@ -167,7 +177,7 @@ phase2_menu__confirm() {
     case "$ans" in
       y|yes) return 0 ;;
       n|no)  return 1 ;;
-      *) echo "Please enter y or n." ;;
+      *) _phase2_menu__out "Please enter y or n." ;;
     esac
   done
 }
@@ -191,20 +201,20 @@ phase2_menu__choose() {
     return 0
   fi
 
-  echo ""
-  echo "$title"
+  _phase2_menu__out ""
+  _phase2_menu__out "$title"
   phase2_menu__divider
 
   local i n
   for i in "${!options[@]}"; do
     n=$((i+1))
     if [[ "$n" -eq "$default" ]]; then
-      printf "  %d) %s %s\n" "$n" "${options[$i]}" "$(_phase2_menu__c "36" "(default)")"
+      _phase2_menu__outf "  %d) %s %s\n" "$n" "${options[$i]}" "$(_phase2_menu__c "36" "(default)")"
     else
-      printf "  %d) %s\n" "$n" "${options[$i]}"
+      _phase2_menu__outf "  %d) %s\n" "$n" "${options[$i]}"
     fi
   done
-  echo "  0) Cancel / Back"
+  _phase2_menu__out "  0) Cancel / Back"
 
   local choice=""
   while true; do
@@ -228,7 +238,7 @@ phase2_menu__choose() {
       echo "$choice"
       return 0
     fi
-    echo "Invalid selection."
+    _phase2_menu__out "Invalid selection."
   done
 }
 
@@ -285,15 +295,15 @@ phase2_menu__choose_multi() {
     return 0
   fi
 
-  echo ""
-  echo "$title"
+  _phase2_menu__out ""
+  _phase2_menu__out "$title"
   phase2_menu__divider
   local i
   for i in "${!options[@]}"; do
-    printf "  %d) %s\n" "$((i+1))" "${options[$i]}"
+    _phase2_menu__outf "  %d) %s\n" "$((i+1))" "${options[$i]}"
   done
-  echo "  all) Select all"
-  echo "  0) Cancel / Back"
+  _phase2_menu__out "  all) Select all"
+  _phase2_menu__out "  0) Cancel / Back"
 
   local choice=""
   while true; do
@@ -328,6 +338,6 @@ phase2_menu__choose_multi() {
       fi
     fi
 
-    echo "Invalid selection. Try 1,3 or all or 0."
+    _phase2_menu__out "Invalid selection. Try 1,3 or all or 0."
   done
 }

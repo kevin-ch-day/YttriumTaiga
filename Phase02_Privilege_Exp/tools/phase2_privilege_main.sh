@@ -149,11 +149,10 @@ phase2_main__intel_import() {
     return 1
   fi
 
-  local out_dir notes_dir out_csv
+  local out_dir out_csv
   out_dir="$(phase2__resolve_out_dir 2>/dev/null || true)"
-  notes_dir="${out_dir}/${OUT_SUBDIR_NOTES:-notes}"
-  mkdir -p "$notes_dir" 2>/dev/null || true
-  out_csv="${notes_dir}/phase2_targets_from_phase1.csv"
+  mkdir -p "$out_dir" 2>/dev/null || true
+  out_csv="${out_dir}/phase2_targets_from_phase1.csv"
 
   phase2_section "Import Phase 1 Intel"
   phase2_intel__import_targets "$t" "$out_csv" || return 1

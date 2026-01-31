@@ -7,3 +7,24 @@
 --------------------------------------------------------------------------------
 172.25.22.11    http  80   status=200 server=Apache/2.4.58 (Ubuntu) xpb=- ctype=text/html; charset=utf-8 auth=- loc=- cn=- title=Your Store
 172.25.22.140   http  80   status=200 server=Microsoft-IIS/10.0 xpb=- ctype=text/html auth=- loc=- cn=- title=CyberShield — Home
+
+============================== SUMMARY ==============================
+[*] Top Server headers (count):
+      1 Microsoft-IIS/10.0
+      1 Apache/2.4.58 (Ubuntu)
+
+[*] Top Titles (count):
+      1 Your Store
+      1 CyberShield — Home
+
+[*] Likely web apps (status 200/301/302 with PHP-ish hints):
+====================================================================
+
+--------------------------------------------------------------------------------
+[*] Done.
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/services.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/services.csv
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/services_hits.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/targets_all.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/targets_candidates.txt
+[*] Wrote: /home/kali/Documents/YttriumTaiga/data/intel/Phase01_Recon/team_002/targets_ranked.csv

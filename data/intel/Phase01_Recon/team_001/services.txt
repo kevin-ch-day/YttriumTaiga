@@ -6,16 +6,18 @@
 [*] Limits: max_hosts=254 max_seconds=0
 --------------------------------------------------------------------------------
 172.25.21.11    http  80   status=200 server=Apache/2.4.58 (Ubuntu) xpb=- ctype=text/html; charset=utf-8 auth=- loc=- cn=- title=Your Store
+172.25.21.140   http  80   status=200 server=Microsoft-IIS/10.0 xpb=- ctype=text/html auth=- loc=- cn=- title=CyberShield — Home
 172.25.21.162   http  80   status=200 server=Microsoft-IIS/10.0 xpb=- ctype=text/html auth=- loc=- cn=- title=IIS Windows Server
 
 ============================== SUMMARY ==============================
 [*] Top Server headers (count):
-      1 Microsoft-IIS/10.0
+      2 Microsoft-IIS/10.0
       1 Apache/2.4.58 (Ubuntu)
 
 [*] Top Titles (count):
       1 Your Store
       1 IIS Windows Server
+      1 CyberShield — Home
 
 [*] Likely web apps (status 200/301/302 with PHP-ish hints):
 ====================================================================

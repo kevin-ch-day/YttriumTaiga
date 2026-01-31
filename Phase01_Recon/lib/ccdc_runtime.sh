@@ -18,6 +18,7 @@ set -euo pipefail
 
 : "${CCDC_FATAL:=0}"
 : "${CCDC_QUIET:=0}"
+: "${CCDC_BRIEF:=0}"
 : "${CCDC_UMASK:=002}"
 
 : "${CCDC_BASE_DIR:=}"
@@ -107,12 +108,23 @@ ccdc__init_run() {
   : > "$CCDC_LOG_FILE" 2>/dev/null || return 1
 
   # Run header (helps later when reading logs)
-  ccdc__log "[*] Phase: ${CCDC_PHASE_NAME}"
-  ccdc__log "[*] Run:   ${run_name}"
-  ccdc__log "[*] Time:  $(ccdc__now)"
-  ccdc__log "[*] Base:  ${CCDC_BASE_DIR}"
-  ccdc__log "[*] User:  $(whoami 2>/dev/null || echo unknown)"
-  ccdc__log "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+  if [[ "${CCDC_BRIEF}" == "1" ]]; then
+    {
+      echo "[*] Phase: ${CCDC_PHASE_NAME}"
+      echo "[*] Run:   ${run_name}"
+      echo "[*] Time:  $(ccdc__now)"
+      echo "[*] Base:  ${CCDC_BASE_DIR}"
+      echo "[*] User:  $(whoami 2>/dev/null || echo unknown)"
+      echo "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+    } >> "$CCDC_LOG_FILE" 2>/dev/null || true
+  else
+    ccdc__log "[*] Phase: ${CCDC_PHASE_NAME}"
+    ccdc__log "[*] Run:   ${run_name}"
+    ccdc__log "[*] Time:  $(ccdc__now)"
+    ccdc__log "[*] Base:  ${CCDC_BASE_DIR}"
+    ccdc__log "[*] User:  $(whoami 2>/dev/null || echo unknown)"
+    ccdc__log "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+  fi
   return 0
 }
 

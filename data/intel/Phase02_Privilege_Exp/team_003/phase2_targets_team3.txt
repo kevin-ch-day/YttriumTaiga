@@ -1,0 +1,36 @@
+=== Phase 2 Targets Summary ===
+Phase: Phase 2 (Privilege Expansion) v0.1.0
+Time:  01/31/2026  3:21 PM
+
+Team:        3
+Team octet:  23
+Public /24:  172.25.23.0/24
+Transit:     172.31.23.0/29
+Core IP:     172.31.23.1
+Team IP:     172.31.23.2
+
+Candidate public hosts (common ports/services):
+------------------------------------------------------------
+172.25.23.1
+172.25.23.2
+172.25.23.10
+172.25.23.20
+172.25.23.21
+172.25.23.22
+172.25.23.25
+172.25.23.53
+172.25.23.80
+172.25.23.110
+172.25.23.135
+172.25.23.139
+172.25.23.143
+
+Notes:
+- Phase 2 goal: turn access into control (creds, remote exec, privesc).
+- Use this list for focused checks (SSH/HTTP/admin portals) rather than broad scans.
+
+Phase 1 Intel (if available):
+  - No Phase 1 intel found for this team.
+
+Top Actionable Targets (preview):
+  - (run actionable import to generate CSV)

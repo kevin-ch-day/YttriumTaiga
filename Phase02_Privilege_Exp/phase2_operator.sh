@@ -103,27 +103,47 @@ pick_team_from_list() {
   local t
   for t in $(seq 1 20); do
     if phase2_is_blocked_team "$t"; then
-      echo "  - Team${t} [BLOCKED]"
+      echo "  - Team${t} [BLOCKED]" >&2
     else
-      echo "  - Team${t}"
+      echo "  - Team${t}" >&2
     fi
   done
-  echo ""
+  echo "" >&2
   local chosen
   chosen="$(phase2_menu__ask "Enter team number")"
   phase2_validate_team "$chosen" || return 1
   echo "$chosen"
 }
 
+pick_teams_multi() {
+  phase2_menu__header "Phase 2 Operator" "Pick multiple teams (comma-separated)"
+  phase2_menu__divider
+  echo "Examples: 1,2,3 or 4,7,12" >&2
+  echo "Team 19 is blocked." >&2
+  local raw
+  raw="$(phase2_menu__ask "Enter team numbers")"
+  raw="$(echo "$raw" | tr -d ' ')" # remove spaces
+  [[ -n "$raw" ]] || return 1
+
+  local tlist=()
+  local IFS=','
+  read -r -a parts <<< "$raw"
+  for t in "${parts[@]}"; do
+    [[ -n "$t" ]] || continue
+    phase2_validate_team "$t" || { phase2_warn "Invalid team: $t"; return 1; }
+    tlist+=("$t")
+  done
+  echo "${tlist[@]}"
+}
+
 pick_scope() {
   phase2_menu__header "Phase 2 Operator" "Single Entry Point"
   phase2_menu__divider
   phase2_menu__print_kv "Note" "Team 19 is blocked"
-  echo ""
+  echo "" >&2
   phase2_menu__choose "Select target scope" 1 \
-    "Current team (if saved)" \
-    "Enter a team number" \
-    "Pick from list (1-20, Team19 blocked)" \
+    "Single team" \
+    "Group of teams (multi-select)" \
     "All teams (1-20, Team19 blocked)" \
     "Exit"
 }
@@ -137,29 +157,39 @@ run_for_team() {
 }
 
 run_all_teams() {
-  local action
-  action="$(phase2_menu__choose "All teams: choose action" 1 \
-    "Targets summary only (phase2_targets.sh)" \
-    "Cancel")"
-  case "$action" in
-    0|2) return 0 ;;
-    1)
-      if [[ ! -x "${PHASE_DIR}/tools/phase2_targets.sh" ]]; then
-        phase2_warn "phase2_targets.sh not found or not executable."
-        return 1
+  # Default to targets summary for all teams.
+  local mode="${1:-targets}"
+
+  if [[ "${PHASE2_ALL_PROMPT:-0}" == "1" ]]; then
+    local action
+    action="$(phase2_menu__choose "All teams: choose action" 1 \
+      "Targets summary only (phase2_targets.sh)" \
+      "Cancel")"
+    case "$action" in
+      0|2) return 0 ;;
+      1) mode="targets" ;;
+    esac
+  fi
+
+  if [[ "$mode" == "targets" ]]; then
+    if [[ ! -x "${PHASE_DIR}/tools/phase2_targets.sh" ]]; then
+      phase2_warn "phase2_targets.sh not found or not executable."
+      return 1
+    fi
+    local t
+    for t in $(seq 1 20); do
+      if phase2_is_blocked_team "$t"; then
+        continue
       fi
-      local t
-      for t in $(seq 1 20); do
-        if phase2_is_blocked_team "$t"; then
-          continue
-        fi
-        set_intel_out_dir "$t"
-        phase2_save_last_team "$t" || true
-        PHASE2_BATCH=1 "${PHASE_DIR}/tools/phase2_targets.sh" "$t" || true
-      done
-      return 0
-      ;;
-  esac
+      set_intel_out_dir "$t"
+      phase2_save_last_team "$t" || true
+      PHASE2_BATCH=1 "${PHASE_DIR}/tools/phase2_targets.sh" "$t" || true
+    done
+    return 0
+  fi
+
+  phase2_warn "Unknown all-teams mode: $mode"
+  return 1
 }
 
 main() {
@@ -176,6 +206,7 @@ main() {
 
   if [[ "$MODE" == "all" ]]; then
     export PHASE2_BATCH=1
+    export PHASE2_BRIEF=1
     run_all_teams || true
     exit 0
   fi
@@ -184,26 +215,21 @@ main() {
   choice="$(pick_scope)" || exit 0
   case "$choice" in
     1)
-      local last
-      last="$(phase2_load_last_team 2>/dev/null || true)"
-      [[ -n "$last" ]] || { phase2_warn "No saved team; choose Enter a team number."; exit 1; }
-      run_for_team "$last"
-      ;;
-    2)
-      local t
-      t="$(phase2_menu__ask "Enter team number")"
-      phase2_validate_team "$t" || exit 1
-      run_for_team "$t"
-      ;;
-    3)
       local t
       t="$(pick_team_from_list)" || exit 1
       run_for_team "$t"
       ;;
-    4)
-      run_all_teams || true
+    2)
+      local teams
+      teams="$(pick_teams_multi)" || exit 1
+      for t in $teams; do
+        run_for_team "$t" || true
+      done
       ;;
-    0|5)
+    3)
+      PHASE2_BRIEF=1 run_all_teams "targets" || true
+      ;;
+    0|4)
       exit 0
       ;;
   esac

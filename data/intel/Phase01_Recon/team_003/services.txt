@@ -1,0 +1,7 @@
+[*] Phase 1 Service Inventory (read-only)
+[*] Target Net: 172.25.23.0/24
+[*] Output: services.txt, services.csv, services_hits.txt
+[*] Targets: targets_all.txt, targets_candidates.txt
+[*] Settings: timeout=2s connect_timeout=1s follow=0
+[*] Limits: max_hosts=254 max_seconds=0
+--------------------------------------------------------------------------------

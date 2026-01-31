@@ -37,8 +37,7 @@ source "${LIB_DIR}/phase2_lib_intel.sh"
 phase2_targets__notes_dir() {
   local out_dir
   out_dir="$(phase2__resolve_out_dir)" || return 1
-  local sub="${OUT_SUBDIR_NOTES:-notes}"
-  echo "${out_dir}/${sub}"
+  echo "${out_dir}"
 }
 
 phase2_targets__write_report() {
@@ -74,6 +73,17 @@ phase2_targets__write_report() {
     echo ""
     echo "Phase 1 Intel (if available):"
     phase2_intel__summary_plain "$team" 2>/dev/null || true
+
+    echo ""
+    echo "Top Actionable Targets (preview):"
+    local out_dir preview_csv
+    out_dir="$(phase2__resolve_out_dir 2>/dev/null || true)"
+    preview_csv="${out_dir}/phase2_targets_actionable.csv"
+    if [[ -f "$preview_csv" ]]; then
+      awk -F',' 'NR==1 {next} {printf "  - %s (%s %s %s) %s\n", $1, $2, $3, $4, $6}' "$preview_csv" | head -n 10
+    else
+      echo "  - (run actionable import to generate CSV)"
+    fi
   } > "$report_path"
 }
 
@@ -94,21 +104,30 @@ main() {
   fi
 
   ccdc_net__warn_if_team_out_of_range "$team" || true
-  phase2_log_kv "Mapping" "$(ccdc_net__mapping_source)"
+  if [[ "${PHASE2_BRIEF:-0}" != "1" ]]; then
+    phase2_log_kv "Mapping" "$(ccdc_net__mapping_source)"
+  fi
 
   # Save for later scripts
   phase2_save_last_team "$team" || true
 
-  phase2_section "Team Network Summary"
-  ccdc_net__print_team_summary "$team" || {
-    phase2_warn "Could not print team summary (net scheme issue)."
-  }
+  if [[ "${PHASE2_BRIEF:-0}" != "1" ]]; then
+    phase2_section "Team Network Summary"
+    ccdc_net__print_team_summary "$team" || {
+      phase2_warn "Could not print team summary (net scheme issue)."
+    }
+  fi
 
   # Write deterministic note
   local notes_dir report_path
   notes_dir="$(phase2_targets__notes_dir)"
   mkdir -p "$notes_dir" 2>/dev/null || true
   report_path="${notes_dir}/phase2_targets_team${team}.txt"
+
+  # Build actionable CSV alongside the report
+  local actionable_csv
+  actionable_csv="${notes_dir}/phase2_targets_actionable.csv"
+  phase2_intel__actionable_csv "$team" "$actionable_csv" || true
 
   phase2_targets__write_report "$team" "$report_path"
   phase2_log "[*] Wrote targets note: $report_path"

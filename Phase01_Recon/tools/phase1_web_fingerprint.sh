@@ -43,6 +43,7 @@ TEAM=""
 TXT_OUT=""
 CSV_OUT=""
 TARGETS_USED=""
+TARGETS_USED_MODE="ip"
 
 # HTTP lib settings
 export CCDC_HTTP_TIMEOUT_SECS="3"
@@ -64,6 +65,10 @@ PATHS=(
 
 # Optional cap on number of targets used (0 = no limit)
 FP_MAX_HOSTS="${CCDC_PHASE1_FP_MAX_HOSTS:-0}"
+# Ports to probe (comma or space separated)
+FP_PORTS="${CCDC_PHASE1_FP_PORTS:-80,443,8080,8443}"
+FP_PORTS_CLEAN="$(echo "${FP_PORTS}" | tr ',' ' ')"
+read -r -a FP_PORT_LIST <<< "${FP_PORTS_CLEAN}"
 
 usage() { ccdc__usage_team "$(basename "$0")"; }
 
@@ -107,8 +112,11 @@ build_targets_used() {
 
   if [[ -f "$services_csv" ]]; then
     ccdc__log "[*] Using targets from services.csv: $services_csv"
-    awk -F',' 'NR>1 && $1!="" {print $1}' "$services_csv" | sort -u > "$TARGETS_USED"
-    [[ -s "$TARGETS_USED" ]] && return 0
+    awk -F',' 'NR>1 && $1!="" {print $1","$2","$3}' "$services_csv" | sort -u > "$TARGETS_USED"
+    if [[ -s "$TARGETS_USED" ]]; then
+      TARGETS_USED_MODE="tuple"
+      return 0
+    fi
     ccdc__warn "services.csv is empty; falling back to candidates/hits/full scan."
   fi
 
@@ -126,13 +134,17 @@ build_targets_used() {
           if (t==team && ip ~ "^172\\.25\\."oct"\\.") print ip;
         }
       ' "$known" | sort -u > "$TARGETS_USED"
-      [[ -s "$TARGETS_USED" ]] && return 0
+      if [[ -s "$TARGETS_USED" ]]; then
+        TARGETS_USED_MODE="ip"
+        return 0
+      fi
     fi
   fi
 
   if [[ -f "$cand" ]]; then
     ccdc__log "[*] Using targets from candidates: $cand"
     if write_targets_used_from_file "$cand"; then
+      TARGETS_USED_MODE="ip"
       return 0
     fi
     ccdc__warn "Candidates list is empty; falling back to hits/full scan."
@@ -141,11 +153,15 @@ build_targets_used() {
   if [[ -f "$hits" ]]; then
     ccdc__log "[*] Using targets from hits: $hits"
     extract_targets_from_hits "$hits" > "$TARGETS_USED"
-    [[ -s "$TARGETS_USED" ]] && return 0
+    if [[ -s "$TARGETS_USED" ]]; then
+      TARGETS_USED_MODE="ip"
+      return 0
+    fi
   fi
 
   ccdc__warn "No candidates/hits found; using full public /24 (this is slower)"
   ccdc_net__public_hosts_range "$TEAM" > "$TARGETS_USED" 2>/dev/null || return 1
+  TARGETS_USED_MODE="ip"
   return 0
 }
 
@@ -223,10 +239,19 @@ probe_host() {
   done
 }
 
+port_to_scheme() {
+  local port="${1:-}"
+  case "$port" in
+    443|8443) echo "https" ;;
+    *) echo "http" ;;
+  esac
+}
+
 run_fingerprint() {
   ccdc__section "Phase 1 Web Fingerprint (read-only)"
   ccdc__log_kv "Team" "$TEAM"
   ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
+  ccdc__log_kv "Ports" "${FP_PORTS_CLEAN}"
 
   # Print full net scheme summary for operator context
   ccdc_net__print_team_summary "$TEAM" || true
@@ -237,12 +262,33 @@ run_fingerprint() {
 
   ccdc__log "[*] Targets used: $TARGETS_USED ($(wc -l < "$TARGETS_USED" 2>/dev/null || echo "NO") hosts)"
 
-  local ip
-  while read -r ip; do
-    [[ -n "$ip" ]] || continue
-    probe_host "$ip" "http" "80"
-    probe_host "$ip" "https" "443"
-  done < "$TARGETS_USED"
+  local ip scheme port
+  if [[ "$TARGETS_USED_MODE" == "tuple" ]]; then
+    while IFS=',' read -r ip scheme port; do
+      [[ -n "$ip" ]] || continue
+      if [[ -z "${port:-}" ]]; then
+        for port in "${FP_PORT_LIST[@]}"; do
+          [[ -n "$port" ]] || continue
+          scheme="$(port_to_scheme "$port")"
+          probe_host "$ip" "$scheme" "$port"
+        done
+      else
+        if [[ -z "${scheme:-}" ]]; then
+          scheme="$(port_to_scheme "$port")"
+        fi
+        probe_host "$ip" "$scheme" "$port"
+      fi
+    done < "$TARGETS_USED"
+  else
+    while read -r ip; do
+      [[ -n "$ip" ]] || continue
+      for port in "${FP_PORT_LIST[@]}"; do
+        [[ -n "$port" ]] || continue
+        scheme="$(port_to_scheme "$port")"
+        probe_host "$ip" "$scheme" "$port"
+      done
+    done < "$TARGETS_USED"
+  fi
 
   ccdc__section "Done"
   ccdc__log "[*] Wrote: $TXT_OUT"
@@ -312,7 +358,7 @@ main() {
 
   ccdc__require_cmds curl awk sed tr head sort uniq grep wc || exit 3
 
-  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+  if [[ "${CCDC_BATCH:-0}" == "1" || "${CCDC_TEAM_LOCK:-0}" == "1" ]]; then
     if [[ -z "${TEAM:-}" ]]; then
       ccdc__warn "Team not set for batch run."
       return 1

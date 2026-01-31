@@ -15,6 +15,7 @@
 
 4) Confirm outputs exist
    - `Phase03_Persistence/output/footholds.jsonl`
+   - `Phase03_Persistence/output/footholds.csv`
    - `Phase03_Persistence/output/reentry.txt`
    - `Phase03_Persistence/output/rules_safety.txt`
    - `Phase03_Persistence/approved_actions.md` (if prompted)

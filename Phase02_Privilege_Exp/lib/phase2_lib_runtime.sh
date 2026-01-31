@@ -24,6 +24,7 @@ set -euo pipefail
 
 : "${PHASE2_FATAL:=0}"
 : "${PHASE2_QUIET:=0}"
+: "${PHASE2_BRIEF:=0}"
 : "${PHASE2_UMASK:=002}"
 
 : "${PHASE2_BASE_DIR:=}"
@@ -111,7 +112,9 @@ phase2_init_env() {
 
   PHASE2_BASE_DIR="$(phase2_phase_base_dir)" || return 1
   PHASE2_LOG_DIR="${PHASE2_BASE_DIR}/${PHASE_LOG_DIR}"
-  PHASE2_OUT_DIR="${PHASE2_BASE_DIR}/${PHASE_OUT_DIR}"
+  if [[ -z "${PHASE2_OUT_DIR:-}" ]]; then
+    PHASE2_OUT_DIR="${PHASE2_BASE_DIR}/${PHASE_OUT_DIR}"
+  fi
 
   phase2_ensure_phase_dirs "$PHASE2_BASE_DIR" || return 1
   umask "${PHASE2_UMASK}" 2>/dev/null || true
@@ -142,12 +145,23 @@ phase2_init_run() {
   fi
 
   # Run header (helps later when reading logs)
-  phase2_log "[*] Phase: ${PHASE_NAME} v${PHASE_VERSION} (${PHASE_ID})"
-  phase2_log "[*] Run:   ${run_name:-${LOG_FILE_DEFAULT}}"
-  phase2_log "[*] Time:  $(phase2_now)"
-  phase2_log "[*] Base:  ${PHASE2_BASE_DIR}"
-  phase2_log "[*] User:  $(whoami 2>/dev/null || echo unknown)"
-  phase2_log "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+  if [[ "${PHASE2_BRIEF}" == "1" ]]; then
+    {
+      echo "[*] Phase: ${PHASE_NAME} v${PHASE_VERSION} (${PHASE_ID})"
+      echo "[*] Run:   ${run_name:-${LOG_FILE_DEFAULT}}"
+      echo "[*] Time:  $(phase2_now)"
+      echo "[*] Base:  ${PHASE2_BASE_DIR}"
+      echo "[*] User:  $(whoami 2>/dev/null || echo unknown)"
+      echo "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+    } >> "$PHASE2_LOG_FILE" 2>/dev/null || true
+  else
+    phase2_log "[*] Phase: ${PHASE_NAME} v${PHASE_VERSION} (${PHASE_ID})"
+    phase2_log "[*] Run:   ${run_name:-${LOG_FILE_DEFAULT}}"
+    phase2_log "[*] Time:  $(phase2_now)"
+    phase2_log "[*] Base:  ${PHASE2_BASE_DIR}"
+    phase2_log "[*] User:  $(whoami 2>/dev/null || echo unknown)"
+    phase2_log "[*] Host:  $(hostname 2>/dev/null || echo unknown)"
+  fi
   return 0
 }
 

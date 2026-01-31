@@ -173,3 +173,73 @@ phase2_intel__import_targets() {
   _phase2_intel__log "[*] Imported Phase 1 targets -> $out_csv"
   return 0
 }
+
+phase2_intel__actionable_csv() {
+  # Build a deduped, actionable target list for Phase 2.
+  # Output CSV: ip,source,priority,port,service,hints,notes
+  local team="${1:-}"
+  local out_csv="${2:-}"
+  [[ -n "$team" && -n "$out_csv" ]] || return 1
+
+  local p1
+  p1="$(phase2_intel__phase1_dir "$team")"
+  if [[ ! -d "$p1" ]]; then
+    _phase2_intel__warn "Phase 1 intel not found for team ${team}: $p1"
+    return 1
+  fi
+
+  local services_csv web_hits web_csv ranked_csv
+  services_csv="${p1}/services.csv"
+  web_hits="${p1}/web_fingerprint_hits.csv"
+  web_csv="${p1}/web_fingerprint.csv"
+  ranked_csv="${p1}/targets_ranked.csv"
+
+  printf "ip,source,priority,port,service,hints,notes\n" > "$out_csv" 2>/dev/null || return 1
+
+  # 1) Known hosts (highest priority)
+  local base known
+  base="$(phase2_intel__base_dir)"
+  known="${CCDC_KNOWN_HOSTS_CSV:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/data/ops_known_hosts.csv}"
+  if [[ -f "$known" ]]; then
+    awk -F',' -v team="$team" '
+      NR==1 {next}
+      {
+        t=$1; ip=$2; role=$3; notes=$4;
+        gsub(/^[ \t]+|[ \t]+$/, "", t);
+        gsub(/^[ \t]+|[ \t]+$/, "", ip);
+        if (t==team && ip!="") {
+          printf "%s,known_hosts,HIGH,,%s,,%s\n", ip, role, notes;
+        }
+      }
+    ' "$known" >> "$out_csv" 2>/dev/null || true
+  fi
+
+  # 2) Ranked targets (high)
+  if [[ -f "$ranked_csv" ]]; then
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_ranked,HIGH,,,%s,%s\n", $3, $2, $4}' "$ranked_csv" >> "$out_csv" 2>/dev/null || true
+  fi
+
+  # 3) Service inventory (medium)
+  if [[ -f "$services_csv" ]]; then
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_services,MED,%s,%s,%s,%s\n", $1, $3, $2, $11, $5}' "$services_csv" >> "$out_csv" 2>/dev/null || true
+  fi
+
+  # 4) Web fingerprint hits (medium)
+  if [[ -f "$web_hits" ]]; then
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_hits,MED,%s,%s,%s,%s\n", $1, $3, $2, $6, $12}' "$web_hits" >> "$out_csv" 2>/dev/null || true
+  elif [[ -f "$web_csv" ]]; then
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_fp,LOW,%s,%s,%s,%s\n", $1, $3, $2, $6, $12}' "$web_csv" >> "$out_csv" 2>/dev/null || true
+  fi
+
+  # Dedup by IP+port+source keeping highest priority ordering.
+  awk -F',' '
+    NR==1 {print; next}
+    {
+      key=$1"|"$4"|"$2;
+      if (!(key in seen)) {seen[key]=1; print}
+    }
+  ' "$out_csv" > "${out_csv}.tmp" 2>/dev/null && mv "${out_csv}.tmp" "$out_csv"
+
+  _phase2_intel__log "[*] Wrote actionable targets -> $out_csv"
+  return 0
+}

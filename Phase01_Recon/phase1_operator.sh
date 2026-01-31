@@ -132,7 +132,7 @@ main() {
       if ccdc__is_blocked_team "$t"; then
         continue
       fi
-      CCDC_BATCH=1 run_all_for_team "$t"
+      CCDC_BATCH=1 CCDC_BRIEF=1 CCDC_OVERWRITE=1 run_all_for_team "$t"
     done
     exit 0
   fi

@@ -46,6 +46,14 @@ MAX_HOSTS="${CCDC_PHASE1_MAX_HOSTS:-254}"
 MAX_SECONDS="${CCDC_PHASE1_MAX_SECONDS:-0}"
 # Progress log cadence
 PROGRESS_EVERY="${CCDC_PHASE1_PROGRESS_EVERY:-25}"
+# Ports to probe (comma or space separated)
+HTTP_PORTS="${CCDC_PHASE1_HTTP_PORTS:-80,443,8080,8443}"
+HTTP_PORTS_CLEAN="$(echo "${HTTP_PORTS}" | tr ',' ' ')"
+read -r -a HTTP_PORT_LIST <<< "${HTTP_PORTS_CLEAN}"
+
+if [[ "${CCDC_BRIEF:-0}" == "1" ]]; then
+  PROGRESS_EVERY="0"
+fi
 
 # Wire tunables into HTTP lib env vars
 export CCDC_HTTP_TIMEOUT_SECS="2"
@@ -94,9 +102,18 @@ write_header() {
     echo "[*] Output: $(basename "$TXT_OUT"), $(basename "$CSV_OUT"), $(basename "$HITS_OUT")"
     echo "[*] Targets: $(basename "$TARGETS_ALL"), $(basename "$TARGETS_CAND")"
     echo "[*] Settings: timeout=${CCDC_HTTP_TIMEOUT_SECS}s connect_timeout=${CCDC_HTTP_CONNECT_TIMEOUT}s follow=${CCDC_HTTP_FOLLOW_REDIRECTS}"
+    echo "[*] Ports: ${HTTP_PORTS_CLEAN}"
     echo "[*] Limits: max_hosts=${MAX_HOSTS} max_seconds=${MAX_SECONDS}"
     echo "--------------------------------------------------------------------------------"
   } > "$TXT_OUT"
+}
+
+port_to_scheme() {
+  local port="${1:-}"
+  case "$port" in
+    443|8443) echo "https" ;;
+    *) echo "http" ;;
+  esac
 }
 
 probe_one() {
@@ -125,7 +142,7 @@ probe_one() {
   fi
 
   cn=""
-  if [[ "$scheme" == "https" ]]; then
+  if [[ "$scheme" == "https" && "$port" == "443" ]]; then
     cn="$(ccdc_http__tls_cn "$ip")"
   fi
 
@@ -154,8 +171,12 @@ probe_one() {
 
 scan_host() {
   local ip="$1"
-  probe_one "$ip" "http" "80"  || true
-  probe_one "$ip" "https" "443" || true
+  local port scheme
+  for port in "${HTTP_PORT_LIST[@]}"; do
+    [[ -n "$port" ]] || continue
+    scheme="$(port_to_scheme "$port")"
+    probe_one "$ip" "$scheme" "$port" || true
+  done
 }
 
 write_summary() {
@@ -320,7 +341,7 @@ main() {
   # Required tools
   ccdc__require_cmds curl awk sed tr head sort uniq || exit 3
 
-  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+  if [[ "${CCDC_BATCH:-0}" == "1" || "${CCDC_TEAM_LOCK:-0}" == "1" ]]; then
     if [[ -z "${TEAM:-}" ]]; then
       ccdc__warn "Team not set for batch run."
       return 1

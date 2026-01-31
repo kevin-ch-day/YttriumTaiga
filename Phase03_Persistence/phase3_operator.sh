@@ -43,14 +43,53 @@ set_intel_out_dir() {
   export CCDC_OUT_DIR_BASE="${CCDC_OUT_DIR}"
 }
 
+pick_team_from_list() {
+  ccdc_menu__header "Phase 3 Operator" "Pick a team (Team 19 blocked)"
+  ccdc_menu__divider
+  local t
+  for t in $(seq 1 20); do
+    if ccdc__is_blocked_team "$t"; then
+      echo "  - Team${t} [BLOCKED]" >&2
+    else
+      echo "  - Team${t}" >&2
+    fi
+  done
+  echo "" >&2
+  local chosen
+  chosen="$(ccdc_menu__ask "Enter team number")"
+  ccdc__validate_team "$chosen" || return 1
+  echo "$chosen"
+}
+
+pick_teams_multi() {
+  ccdc_menu__header "Phase 3 Operator" "Pick multiple teams (comma-separated)"
+  ccdc_menu__divider
+  echo "Examples: 1,2,3 or 4,7,12" >&2
+  echo "Team 19 is blocked." >&2
+  local raw
+  raw="$(ccdc_menu__ask "Enter team numbers")"
+  raw="$(echo "$raw" | tr -d ' ')"
+  [[ -n "$raw" ]] || return 1
+
+  local tlist=()
+  local IFS=','
+  read -r -a parts <<< "$raw"
+  for t in "${parts[@]}"; do
+    [[ -n "$t" ]] || continue
+    ccdc__validate_team "$t" || { ccdc__warn "Invalid team: $t"; return 1; }
+    tlist+=("$t")
+  done
+  echo "${tlist[@]}"
+}
+
 pick_scope() {
   ccdc_menu__header "Phase 3 Operator" "Single Entry Point"
   ccdc_menu__divider
   ccdc_menu__print_kv "Note" "Team 19 is blocked"
-  echo ""
+  echo "" >&2
   ccdc_menu__choose "Select target scope" 1 \
-    "Current team (if saved)" \
-    "Enter a team number" \
+    "Single team" \
+    "Group of teams (multi-select)" \
     "All teams (1-20, Team19 blocked)" \
     "Exit"
 }
@@ -59,7 +98,7 @@ run_for_team() {
   local team="$1"
   ccdc__save_last_team "$team" || true
   set_intel_out_dir "$team"
-  "$MAIN"
+  CCDC_TEAM_LOCK=1 "$MAIN" "$team"
 }
 
 main() {
@@ -68,16 +107,16 @@ main() {
   choice="$(pick_scope)" || exit 0
   case "$choice" in
     1)
-      local last
-      last="$(ccdc__load_last_team 2>/dev/null || true)"
-      [[ -n "$last" ]] || { ccdc__warn "No saved team; choose Enter a team number."; exit 1; }
-      run_for_team "$last"
+      local t
+      t="$(pick_team_from_list)" || exit 1
+      run_for_team "$t"
       ;;
     2)
-      local t
-      t="$(ccdc_menu__ask "Enter team number")"
-      ccdc__validate_team "$t" || exit 1
-      run_for_team "$t"
+      local teams
+      teams="$(pick_teams_multi)" || exit 1
+      for t in $teams; do
+        run_for_team "$t" || true
+      done
       ;;
     3)
       local t
@@ -85,8 +124,8 @@ main() {
         if ccdc__is_blocked_team "$t"; then
           continue
         fi
-        ccdc__save_last_team "$t" || true
-        "$MAIN"
+        set_intel_out_dir "$t"
+        CCDC_BATCH=1 CCDC_BRIEF=1 CCDC_TEAM_LOCK=1 "$MAIN" "$t"
       done
       ;;
     0|4)

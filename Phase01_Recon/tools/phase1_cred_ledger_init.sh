@@ -92,9 +92,15 @@ EOF
 )"
 
   ccdc__section "Writing templates"
-  ccdc__write_file_safe "$OUT_CRED" "$cred_ledger" || return 1
-  ccdc__write_file_safe "$OUT_MAP" "$service_map" || return 1
-  ccdc__write_file_safe "$OUT_WATCH" "$watchlist" || return 1
+  if [[ "${CCDC_OVERWRITE:-0}" == "1" ]]; then
+    ccdc__write_file_overwrite "$OUT_CRED" "$cred_ledger" || return 1
+    ccdc__write_file_overwrite "$OUT_MAP" "$service_map" || return 1
+    ccdc__write_file_overwrite "$OUT_WATCH" "$watchlist" || return 1
+  else
+    ccdc__write_file_safe "$OUT_CRED" "$cred_ledger" || return 1
+    ccdc__write_file_safe "$OUT_MAP" "$service_map" || return 1
+    ccdc__write_file_safe "$OUT_WATCH" "$watchlist" || return 1
+  fi
 
   return 0
 }
@@ -181,7 +187,9 @@ main() {
 
     ccdc__section "Phase 1 Doc Init (Batch)"
     ccdc__log_kv "Team" "$TEAM"
-    ccdc_net__print_team_summary "$TEAM" || true
+    if [[ "${CCDC_BRIEF:-0}" != "1" ]]; then
+      ccdc_net__print_team_summary "$TEAM" || true
+    fi
     build_templates "$TEAM" || return 1
     ccdc__section "Done"
     ccdc__log "[*] Files under: ${CCDC_OUT_DIR}"

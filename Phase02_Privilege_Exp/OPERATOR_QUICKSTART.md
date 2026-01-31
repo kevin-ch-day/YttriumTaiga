@@ -27,8 +27,8 @@ Phase 2 writes team-scoped intel under:
 - `data/intel/Phase02_Privilege_Exp/team_###/`
 
 Common files:
-- `notes/phase2_targets_team#.txt`
-- `notes/phase2_targets_from_phase1.csv`
+- `phase2_targets_team#.txt`
+- `phase2_targets_from_phase1.csv`
 - `loot/cred_ledger.csv`
 
 ## Safety
