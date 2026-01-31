@@ -1,10 +1,14 @@
 # Red Team Ops Ledger (CSV Contract)
 
-This repo uses two CSV files at the project root as the authoritative ops ledger:
-- `teams.csv` (team metadata, stable)
-- `ops_matrix.csv` (action outcomes, updated during event)
+This repo uses two CSV files under the project `data/` directory as the authoritative ops ledger:
+- `data/teams.csv` (team metadata, stable)
+- `data/ops_matrix.csv` (action outcomes, updated during event)
 
-## teams.csv (stable reference)
+Excel copies are provided for convenience:
+- `data/teams.xlsx`
+- `data/ops_matrix.xlsx`
+
+## data/teams.csv (stable reference)
 
 Purpose: define Team1..Team20 metadata and targeting rules.
 
@@ -21,7 +25,7 @@ Columns:
 
 Rule: Team19 is `targetable=no` and must never be targeted.
 
-## ops_matrix.csv (event ledger)
+## data/ops_matrix.csv (event ledger)
 
 Purpose: one row per action attempt, with outcomes per team.
 
