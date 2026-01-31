@@ -76,7 +76,7 @@ ccdc_menu__header() {
   local title="${1:-}"
   local subtitle="${2:-}"
   _ccdc_menu__load_theme || exit 3
-  ccdc_theme__header "$title" "$subtitle"
+  ccdc_theme__header "$title" "$subtitle" >&2
   return 0
   local ts
   ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"

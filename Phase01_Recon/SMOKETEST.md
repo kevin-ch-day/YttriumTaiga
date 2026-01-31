@@ -17,13 +17,13 @@ Run this once before competition to confirm Phase 01 works end-to-end.
 
 4) Run operator launcher once
    - `./Phase01_Recon/phase1_operator.sh` (no args)
-   - Choose a Team in the Team Selection menu.
-   - Exit after the action menu renders; confirm log file exists in `Phase01_Recon/logs/`.
+   - Choose a Team (or All Teams) in the menu.
+   - Confirm a log file exists in `Phase01_Recon/logs/`.
 
 5) Confirm outputs exist
-   - `Phase01_Recon/output/team_###/cred_ledger.md`
-   - `Phase01_Recon/output/team_###/service_map.md`
-   - `Phase01_Recon/output/team_###/targets_watchlist.md`
+   - `data/intel/Phase01_Recon/team_###/cred_ledger.csv`
+   - `data/intel/Phase01_Recon/team_###/service_map.csv`
+   - `data/intel/Phase01_Recon/team_###/targets_watchlist.csv`
    - Other outputs appear after running inventory/fingerprint scripts.
 
 If any step fails, check the script log in `Phase01_Recon/logs/` first.

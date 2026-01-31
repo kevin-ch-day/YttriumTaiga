@@ -199,7 +199,19 @@ ccdc__set_team_output_dir() {
   ccdc__validate_team "$team" || return 1
   [[ -n "${CCDC_OUT_DIR_BASE:-}" || -n "${CCDC_OUT_DIR:-}" ]] || ccdc__init_env || return 1
 
+  # Prefer central intel dir if configured
+  ccdc__load_rules || true
   local base_dir="${CCDC_OUT_DIR_BASE:-${CCDC_OUT_DIR}}"
+  if [[ -n "${CCDC_INTEL_DIR:-}" ]]; then
+    local repo_root intel_root
+    repo_root="$(cd "${CCDC_BASE_DIR}/.." && pwd 2>/dev/null || echo "")"
+    if [[ "${CCDC_INTEL_DIR}" = /* ]]; then
+      intel_root="${CCDC_INTEL_DIR}"
+    else
+      intel_root="${repo_root}/${CCDC_INTEL_DIR}"
+    fi
+    base_dir="${intel_root}/${CCDC_PHASE_NAME}"
+  fi
   local pad
   pad="$(printf "%03d" "$team")"
   CCDC_OUT_DIR="${base_dir}/team_${pad}"

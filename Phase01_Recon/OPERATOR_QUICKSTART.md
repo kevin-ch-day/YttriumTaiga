@@ -5,10 +5,12 @@ Phase 01 is read-only recon. It inventories exposed services, fingerprints web a
 and sets up operator notes for tracking credentials and targets.
 
 ## Recommended run order
-1) **Operator: Launcher (recommended)**
-   - `./phase1_operator.sh <TEAM>` (choose Recon or Monitor)
-2) **Operator: Primary Recon**
-   - `./phase1_operator_recon.sh <TEAM>` (or run without args and select Team in the menu)
+1) **Operator: Single Entry (recommended)**
+   - `./phase1_operator.sh`
+   - Choose **Team** or **All Teams** (Team19 blocked)
+   - The operator will run **all Phase 1 abilities** by default
+2) **Operator: Primary Recon (advanced/legacy)**
+   - `./phase1_operator_recon.sh <TEAM>`
 3) **Operator: Local Health Snapshot (optional)**
    - `./phase1_operator_monitor.sh <TEAM>` (Team is optional; menu allows continue without team)
 
@@ -35,15 +37,15 @@ After Team Selection, the script’s action menu appears (run, view outputs, exi
 ## Outputs and where to find them
 All outputs are written under:
 - `Phase01_Recon/logs/`
-- `Phase01_Recon/output/team_###/` (team-scoped)
+- Central intel: `data/intel/Phase01_Recon/team_###/` (team-scoped)
 
 Key files:
-- `output/team_###/cred_ledger.md` (credential ledger)
-- `output/team_###/service_map.md` (service tracking)
-- `output/team_###/targets_watchlist.md` (prioritized targets)
-- `output/team_###/services.txt` / `output/team_###/services.csv` / `output/team_###/services_hits.txt`
-- `output/team_###/targets_candidates.txt`
-- `output/team_###/web_fingerprint.txt` / `output/team_###/web_fingerprint.csv`
+- `data/intel/Phase01_Recon/team_###/cred_ledger.csv` (credential ledger)
+- `data/intel/Phase01_Recon/team_###/service_map.csv` (service tracking)
+- `data/intel/Phase01_Recon/team_###/targets_watchlist.csv` (prioritized targets)
+- `data/intel/Phase01_Recon/team_###/services.txt` / `services.csv` / `services_hits.txt`
+- `data/intel/Phase01_Recon/team_###/targets_candidates.txt`
+- `data/intel/Phase01_Recon/team_###/web_fingerprint.txt` / `web_fingerprint.csv`
 
 ## What "good output" looks like
 - `services_hits.txt` contains IPs with meaningful headers/titles.

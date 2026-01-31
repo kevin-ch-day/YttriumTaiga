@@ -7,8 +7,8 @@
    - `mkdir -p Phase03_Persistence/logs Phase03_Persistence/output`
    - `touch Phase03_Persistence/logs/.smoketest Phase03_Persistence/output/.smoketest`
 
-3) Run continuity script (menu should render)
-   - `CAPTAIN_APPROVED=1 ./Phase03_Persistence/phase3_continuity.sh`
+3) Run operator (menu should render)
+   - `CAPTAIN_APPROVED=1 ./Phase03_Persistence/phase3_operator.sh`
    - If prompted, enter captain initials to create `approved_actions.md`
    - Exit after menu renders; confirm log file exists in `Phase03_Persistence/logs/`.
    - If you only see a prompt, scroll up for the menu.

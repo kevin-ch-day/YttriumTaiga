@@ -63,17 +63,17 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 1) Phase 0 (Setup)
    - `Phase00_Setup/` scripts prepare Kali. Run once before event.
 2) Phase 1 (Recon)
-   - `Phase01_Recon/phase1_team_scanning.sh` (menu coordinator)
-   - `Phase01_Recon/phase1_service_inventory.sh` (HTTP/HTTPS inventory)
-   - `Phase01_Recon/phase1_web_fingerprint.sh` (web hints, low-noise)
+   - `Phase01_Recon/phase1_operator.sh` (single entry point)
 3) Phase 2 (Privilege Expansion)
-   - `Phase02_Privilege_Exp/phase2_privilege_main.sh` (menu entrypoint)
+   - `Phase02_Privilege_Exp/phase2_operator.sh` (single entry point)
 4) Phase 3 (Continuity)
-   - `Phase03_Persistence/phase3_continuity.sh`
-5) Phase 6 (End of Day)
-   - `Phase06_Day_End/clear_terminal_history.sh`
-   - `Phase06_Day_End/clear_history.sh`
-   - `Phase06_Day_End/system_cleanup.sh`
+   - `Phase03_Persistence/phase3_operator.sh` (single entry point)
+5) Phase 4 (Controlled Disruption)
+   - `Phase04_Controlled_Disruption/phase4_operator.sh` (stub)
+6) Phase 5 (Kill Service)
+   - `Phase05_Kill_Service/phase5_operator.sh` (stub)
+7) Phase 6 (End of Day)
+   - `Phase06_Day_End/phase6_operator.sh` (single entry point)
 
 ## Outputs and logs
 
@@ -102,3 +102,10 @@ CSV override supported:
 - Phase 01 operators: `phase1_operator.sh` (launcher), `phase1_operator_recon.sh` (primary), `phase1_operator_monitor.sh` (health).
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
 - Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).
+- Single entry point per phase:
+  - Phase01: `Phase01_Recon/phase1_operator.sh`
+  - Phase02: `Phase02_Privilege_Exp/phase2_operator.sh`
+  - Phase03: `Phase03_Persistence/phase3_operator.sh`
+  - Phase04: `Phase04_Controlled_Disruption/phase4_operator.sh`
+  - Phase05: `Phase05_Kill_Service/phase5_operator.sh`
+  - Phase06: `Phase06_Day_End/phase6_operator.sh`

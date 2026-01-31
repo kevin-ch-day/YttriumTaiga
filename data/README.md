@@ -11,3 +11,8 @@ Rules:
 - Team19 is reserved for baseline connectivity and must not be targeted.
 - Keep CSVs as the source of truth; regenerate XLSX via `Scripts/ops_ledger_export.sh`.
 - Log times in Central Time using the format in `config/ccdc_rules.conf` (e.g., `1/21/2026 1:45 PM`).
+
+## Shared intel (cross-phase)
+Phase outputs can be copied into `data/intel/` for cross-phase use:
+- Sync Phase01 outputs: `Scripts/intel_sync_phase01.sh <TEAM>`
+- Intel will land in: `data/intel/team_###/phase01/`

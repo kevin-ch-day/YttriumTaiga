@@ -12,9 +12,9 @@ set -euo pipefail
 #
 # Output (Phase 1 dirs):
 #   ./logs/phase1_cred_ledger_init.log
-#   ./output/cred_ledger.md
-#   ./output/service_map.md
-#   ./output/targets_watchlist.md
+#   ./output/cred_ledger.csv
+#   ./output/service_map.csv
+#   ./output/targets_watchlist.csv
 # ============================================================
 
 TEAM_ARG="${1:-}"
@@ -72,34 +72,22 @@ build_templates() {
   local cred_ledger service_map watchlist
 
   cred_ledger="$(cat <<'EOF'
-# Credential Ledger (Phase 1)
-
-| Time | Source (IP/service/page) | Username | Password / Token | Auth Type | Role Guess | Tested Where | Result | Notes |
-|------|---------------------------|----------|------------------|-----------|------------|--------------|--------|-------|
+time,source,username,password_or_token,auth_type,role_guess,tested_where,result,notes
 EOF
 )"
 
   service_map="$(cat <<EOF
-# Service Map (Phase 1) -- Team ${team}
-
-Public subnet: ${pub_subnet}
-
-| Public IP | Hostname Hint | Service | Port | Tech/Headers | Auth Surface | Notes |
-|----------:|---------------|---------|------|--------------|--------------|-------|
+# Team ${team} | Public subnet: ${pub_subnet}
+public_ip,hostname_hint,service,port,tech_headers,auth_surface,notes
 EOF
 )"
 
   watchlist="$(cat <<EOF
-# Targets Watchlist -- Team ${team}
-
-Use this to track "likely OpenCart", "likely Webmail", "likely Splunk", etc.
-
-| Suspected System | Public IP | Evidence (title/header/path) | Priority | Notes |
-|------------------|----------:|------------------------------|----------|-------|
-| OpenCart (e-commerce) | (fill) | | High | |
-| Webmail | (fill) | | High | |
-| Splunk | (fill) | | Medium | |
-| Windows Web | (fill) | | Medium | |
+suspected_system,public_ip,evidence,priority,notes
+OpenCart (e-commerce),,,"High",
+Webmail,,,"High",
+Splunk,,,"Medium",
+Windows Web,,,"Medium",
 EOF
 )"
 
@@ -116,9 +104,9 @@ open_docs_menu() {
   while true; do
     ccdc_menu__header "Phase 1 -- Docs" "Open generated docs"
     choice="$(ccdc_menu__choose "Select file" 1 \
-      "cred_ledger.md" \
-      "service_map.md" \
-      "targets_watchlist.md" \
+      "cred_ledger.csv" \
+      "service_map.csv" \
+      "targets_watchlist.csv" \
       "Back")"
 
     case "$choice" in
@@ -184,9 +172,9 @@ main() {
     ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
 
     # Output paths (fixed names)
-    OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.md"
-    OUT_MAP="${CCDC_OUT_DIR}/service_map.md"
-    OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.md"
+  OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.csv"
+  OUT_MAP="${CCDC_OUT_DIR}/service_map.csv"
+  OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.csv"
 
     ccdc__section "Phase 1 Doc Init"
     ccdc__log_kv "Team" "$TEAM"

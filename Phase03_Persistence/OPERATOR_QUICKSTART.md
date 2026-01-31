@@ -36,7 +36,9 @@ If approvals file is missing and you have a TTY, the script will prompt for
 captain initials and create an entry.
 
 ## Recommended run order
-1) Initialize docs and safety rules:
+1) Operator entry point (recommended):
+   - `./phase3_operator.sh`
+2) Initialize docs and safety rules:
    - `./phase3_continuity.sh`
 2) Add foothold/session entries
 3) Generate a re-entry checklist per foothold

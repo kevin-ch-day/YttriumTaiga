@@ -87,7 +87,7 @@ ccdc_menu__header() {
   local title="${1:-}"
   local subtitle="${2:-}"
   _ccdc_menu__load_theme || exit 3
-  ccdc_theme__header "$title" "$subtitle"
+  ccdc_theme__header "$title" "$subtitle" >&2
   return 0
   local ts
   ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
@@ -280,6 +280,19 @@ ccdc_menu__pick_team() {
   local allow_empty="${2:-0}"
   local _clean
   _clean() { printf "%s" "$1" | tr -d '[:space:]'; }
+  local _print_team_list
+  _print_team_list() {
+    _ccdc_menu__out "Available teams (1-20; Team 19 blocked):"
+    local i label
+    for i in $(seq 1 20); do
+      if declare -F ccdc__is_blocked_team >/dev/null 2>&1 && ccdc__is_blocked_team "$i"; then
+        label="Team${i} [BLOCKED]"
+      else
+        label="Team${i}"
+      fi
+      _ccdc_menu__out "  - ${label}"
+    done
+  }
 
   while true; do
     current="$(_clean "$current")"
@@ -297,12 +310,14 @@ ccdc_menu__pick_team() {
         choice="$(ccdc_menu__choose "Select action" 1 \
           "Use current team (${current})" \
           "Enter a new team number" \
+          "Pick from list (1-20, Team19 blocked)" \
           "Continue without a team" \
           "Exit")"
       else
         choice="$(ccdc_menu__choose "Select action" 1 \
           "Use current team (${current})" \
           "Enter a new team number" \
+          "Pick from list (1-20, Team19 blocked)" \
           "Exit")"
       fi
       case "$choice" in
@@ -321,24 +336,40 @@ ccdc_menu__pick_team() {
           return 0
           ;;
         3)
+          _print_team_list
+          local pick
+          pick="$(ccdc_menu__ask "Enter team number")"
+          pick="$(_clean "$pick")"
+          if declare -F ccdc__validate_team >/dev/null 2>&1; then
+            ccdc__validate_team "$pick" || { _ccdc_menu__warn "Invalid team number: $pick"; continue; }
+          else
+            [[ "$pick" =~ ^[0-9]{1,3}$ ]] || { _ccdc_menu__warn "Invalid team number: $pick"; continue; }
+          fi
+          current="$pick"
+          echo "$current"
+          return 0
+          ;;
+        4)
           if [[ "$allow_empty" == "1" ]]; then
             echo ""
             return 0
           fi
           return 1
           ;;
-        0|4) return 1 ;;
+        0|5) return 1 ;;
       esac
     else
       local choice2
       if [[ "$allow_empty" == "1" ]]; then
         choice2="$(ccdc_menu__choose "Select action" 1 \
           "Enter a team number" \
+          "Pick from list (1-20, Team19 blocked)" \
           "Continue without a team" \
           "Exit")"
       else
         choice2="$(ccdc_menu__choose "Select action" 1 \
           "Enter a team number" \
+          "Pick from list (1-20, Team19 blocked)" \
           "Exit")"
       fi
       case "$choice2" in
@@ -356,13 +387,27 @@ ccdc_menu__pick_team() {
           return 0
           ;;
         2)
+          _print_team_list
+          local pick2
+          pick2="$(ccdc_menu__ask "Enter team number")"
+          pick2="$(_clean "$pick2")"
+          if declare -F ccdc__validate_team >/dev/null 2>&1; then
+            ccdc__validate_team "$pick2" || { _ccdc_menu__warn "Invalid team number: $pick2"; continue; }
+          else
+            [[ "$pick2" =~ ^[0-9]{1,3}$ ]] || { _ccdc_menu__warn "Invalid team number: $pick2"; continue; }
+          fi
+          current="$pick2"
+          echo "$current"
+          return 0
+          ;;
+        3)
           if [[ "$allow_empty" == "1" ]]; then
             echo ""
             return 0
           fi
           return 1
           ;;
-        0|3) return 1 ;;
+        0|4) return 1 ;;
       esac
     fi
   done

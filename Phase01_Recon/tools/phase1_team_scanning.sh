@@ -108,9 +108,9 @@ write_report() {
     echo "Subnet: ${subnet}"
     echo ""
     echo "Generated Outputs (expected):"
-    echo "  - ${CCDC_OUT_DIR}/cred_ledger.md"
-    echo "  - ${CCDC_OUT_DIR}/service_map.md"
-    echo "  - ${CCDC_OUT_DIR}/targets_watchlist.md"
+    echo "  - ${CCDC_OUT_DIR}/cred_ledger.csv"
+    echo "  - ${CCDC_OUT_DIR}/service_map.csv"
+    echo "  - ${CCDC_OUT_DIR}/targets_watchlist.csv"
     echo "  - ${CCDC_OUT_DIR}/services.txt"
     echo "  - ${CCDC_OUT_DIR}/services.csv"
     echo "  - ${CCDC_OUT_DIR}/services_hits.txt"
@@ -176,8 +176,8 @@ view_outputs_menu() {
 
     case "$choice" in
       1) file="${CCDC_OUT_DIR}/phase1_team_report.txt" ;;
-      2) file="${CCDC_OUT_DIR}/cred_ledger.md" ;;
-      3) file="${CCDC_OUT_DIR}/targets_watchlist.md" ;;
+      2) file="${CCDC_OUT_DIR}/cred_ledger.csv" ;;
+      3) file="${CCDC_OUT_DIR}/targets_watchlist.csv" ;;
       4) file="${CCDC_OUT_DIR}/services_hits.txt" ;;
       5) file="${CCDC_OUT_DIR}/services.txt" ;;
       6) file="${CCDC_OUT_DIR}/services.csv" ;;
