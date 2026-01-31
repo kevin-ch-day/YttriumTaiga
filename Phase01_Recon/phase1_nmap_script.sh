@@ -137,20 +137,31 @@ menu_loop() {
 main() {
   ccdc__init_run "phase1_nmap_script" || exit 1
 
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || { usage; return 1; }
-  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
-
-  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+  TEAM=""
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
 
   init_paths
 
-  ccdc__section "Team Network Summary"
-  ccdc_net__print_team_summary "$TEAM" || true
-
   if ccdc_menu__is_interactive; then
+    TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__section "Team Network Summary"
+    ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
   else
+    if [[ -z "${TEAM:-}" ]]; then
+      usage
+      return 1
+    fi
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__section "Team Network Summary"
+    ccdc_net__print_team_summary "$TEAM" || true
     write_command_worksheet
   fi
 
