@@ -174,6 +174,13 @@ add_foothold() {
     >> "$FOOTHOLDS"
 
   ccdc__log "[*] Added foothold: $target ($service) -> $FOOTHOLDS"
+
+  # Optional: log to ops ledger
+  if [[ -x "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
+    if ccdc_menu__confirm "Log this foothold to ops_matrix.csv?" "N"; then
+      "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh"
+    fi
+  fi
 }
 
 add_reentry_plan() {
@@ -213,6 +220,13 @@ add_reentry_plan() {
   } >> "$REENTRY"
 
   ccdc__log "[*] Added re-entry checklist: $target -> $REENTRY"
+
+  # Optional: log to ops ledger
+  if [[ -x "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
+    if ccdc_menu__confirm "Log this re-entry validation to ops_matrix.csv?" "N"; then
+      "${SCRIPT_DIR}/../Scripts/ops_ledger_add.sh"
+    fi
+  fi
 }
 
 view_files_menu() {

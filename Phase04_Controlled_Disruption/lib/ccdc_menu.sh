@@ -112,8 +112,8 @@ ccdc_menu__ask() {
 }
 
 ccdc_menu__confirm() {
-  # Usage: if ccdc_menu__confirm "ProceedNO" "Y"; then ...; fi
-  local prompt="${1:-Are you sureNO}"
+  # Usage: if ccdc_menu__confirm "Proceed?" "Y"; then ...; fi
+  local prompt="${1:-Are you sure?}"
   local def="${2:-N}"   # default to N for safety
   def="${def^^}"
 

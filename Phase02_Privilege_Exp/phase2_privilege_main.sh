@@ -119,22 +119,23 @@ phase2_main__menu() {
     [[ -n "$last_team" ]] && ccdc_net__warn_if_team_out_of_range "$last_team" || true
     [[ -n "$last_team" ]] && phase2_menu__print_kv "Mapping" "$(ccdc_net__mapping_source)"
 
-    phase2_menu__divider
-    local idx
-    idx="$(
-      phase2_menu__choose "Select an action" 1 \
-        "Show Phase 2 paths + status" \
-        "Self-check (tools + dirs + ledger)" \
-        "Targets: team/subnet summary + candidates (phase2_targets.sh)" \
-        "Creds: add/list/update ledger (phase2_creds_ops.sh)" \
-        "Remote/PrivEsc: SSH proof + triage (phase2_remote_privesc.sh)" \
-        "Quick: Local PrivEsc triage now (this host)" \
-        "Open cred ledger (view)" \
-        "Exit"
-    )"
+      phase2_menu__divider
+      local idx
+      idx="$(
+        phase2_menu__choose "Select an action" 1 \
+          "Show Phase 2 paths + status" \
+          "Self-check (tools + dirs + ledger)" \
+          "Targets: team/subnet summary + candidates (phase2_targets.sh)" \
+          "Creds: add/list/update ledger (phase2_creds_ops.sh)" \
+          "Remote/PrivEsc: SSH proof + triage (phase2_remote_privesc.sh)" \
+          "Quick: Local PrivEsc triage now (this host)" \
+          "Open cred ledger (view)" \
+          "Ops ledger: add action row (ops_matrix.csv)" \
+          "Exit"
+      )"
 
     case "$idx" in
-      0|8)
+      0|9)
         phase2_log "[*] Exiting Phase 2 main."
         return 0
         ;;
@@ -193,6 +194,14 @@ phase2_main__menu() {
           phase2_open_viewer "$csv" || true
         else
           phase2_warn "cred_ledger.csv not found yet. Run creds init/add first."
+        fi
+        phase2_menu__pause
+        ;;
+      8)
+        if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
+          "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" || true
+        else
+          phase2_warn "ops_ledger_add.sh not found or not executable."
         fi
         phase2_menu__pause
         ;;

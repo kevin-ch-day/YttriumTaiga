@@ -40,11 +40,11 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 - Phase 06 quickstart: `Phase06_Day_End/OPERATOR_QUICKSTART.md`
 - Phase 06 smoke test: `Phase06_Day_End/SMOKETEST.md`
 
-## Ops ledger (data directory)
+## Ops ledger (canonical in data/)
 
-- `data/teams.csv` - team metadata and subnet mapping (Team19 is not targetable)
-- `data/ops_matrix.csv` - action outcomes matrix (one row per action attempt)
-- Excel copies: `data/teams.xlsx`, `data/ops_matrix.xlsx`
+- `data/ops_teams.csv` - team metadata and subnet mapping (Team19 is not targetable)
+- `data/ops_ledger.csv` - action outcomes matrix (one row per action attempt)
+- Excel copies (view only): `data/ops_teams.xlsx`, `data/ops_ledger.xlsx`
 - Contract/details: `OPS_LEDGER.md`
 
 ## Useful scripts
@@ -54,6 +54,8 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
+- Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
+- Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 
 ## Phase quick start (at a glance)
 
