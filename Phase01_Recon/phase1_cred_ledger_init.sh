@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ============================================================
+# Filename: phase1_cred_ledger_init.sh
+# Purpose : Phase 1 - Initialize credential + service tracking docs
+# Version : 0.3.0
+#
+# Usage:
+#   ./phase1_cred_ledger_init.sh
+#   ./phase1_cred_ledger_init.sh <TEAM_NUMBER>
+#
+# Output (Phase 1 dirs):
+#   ./logs/phase1_cred_ledger_init.log
+#   ./output/cred_ledger.md
+#   ./output/service_map.md
+#   ./output/targets_watchlist.md
+# ============================================================
+
+TEAM_ARG="${1:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# ---- Import libs (Phase 1 local lib only) ----
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_runtime.sh" || { echo "ERROR: Missing lib/ccdc_runtime.sh"; exit 3; }
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_utils.sh"   || { echo "ERROR: Missing lib/ccdc_utils.sh"; exit 3; }
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_menu.sh"    || { echo "ERROR: Missing lib/ccdc_menu.sh"; exit 3; }
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/ccdc_net_scheme.sh" || { echo "ERROR: Missing lib/ccdc_net_scheme.sh"; exit 3; }
+
+OUT_CRED=""
+OUT_MAP=""
+OUT_WATCH=""
+
+usage() {
+  ccdc__usage_team "$(basename "$0")"
+}
+
+build_templates() {
+  local team="$1"
+  local pub_subnet
+  pub_subnet="$(ccdc__target_net "$team")"
+
+  local cred_ledger service_map watchlist
+
+  cred_ledger="$(cat <<'EOF'
+# Credential Ledger (Phase 1)
+
+| Time | Source (IP/service/page) | Username | Password / Token | Auth Type | Role Guess | Tested Where | Result | Notes |
+|------|---------------------------|----------|------------------|-----------|------------|--------------|--------|-------|
+EOF
+)"
+
+  service_map="$(cat <<EOF
+# Service Map (Phase 1) — Team ${team}
+
+Public subnet: ${pub_subnet}
+
+| Public IP | Hostname Hint | Service | Port | Tech/Headers | Auth Surface | Notes |
+|----------:|---------------|---------|------|--------------|--------------|-------|
+EOF
+)"
+
+  watchlist="$(cat <<EOF
+# Targets Watchlist — Team ${team}
+
+Use this to track "likely OpenCart", "likely Webmail", "likely Splunk", etc.
+
+| Suspected System | Public IP | Evidence (title/header/path) | Priority | Notes |
+|------------------|----------:|------------------------------|----------|-------|
+| OpenCart (e-commerce) | (fill) | | High | |
+| Webmail | (fill) | | High | |
+| Splunk | (fill) | | Medium | |
+| Windows Web | (fill) | | Medium | |
+EOF
+)"
+
+  ccdc__section "Writing templates"
+  ccdc__write_file_safe "$OUT_CRED" "$cred_ledger" || return 1
+  ccdc__write_file_safe "$OUT_MAP" "$service_map" || return 1
+  ccdc__write_file_safe "$OUT_WATCH" "$watchlist" || return 1
+
+  return 0
+}
+
+open_docs_menu() {
+  local choice file
+  while true; do
+    ccdc_menu__header "Phase 1 — Docs" "Open generated docs"
+    choice="$(ccdc_menu__choose "Select file" 1 \
+      "cred_ledger.md" \
+      "service_map.md" \
+      "targets_watchlist.md" \
+      "Back")"
+
+    case "$choice" in
+      1) file="$OUT_CRED" ;;
+      2) file="$OUT_MAP" ;;
+      3) file="$OUT_WATCH" ;;
+      0|4) return 0 ;;
+    esac
+
+    ccdc__open_viewer "$file" || true
+    ccdc_menu__pause
+  done
+}
+
+menu_loop() {
+  while true; do
+    ccdc_menu__header "Phase 1 — Credential/Service Docs" "Initialize your working notes"
+    ccdc__log_kv "Team" "$TEAM"
+    ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
+    ccdc__log_kv "Output dir" "${CCDC_OUT_DIR}"
+    echo ""
+
+    local choice
+    choice="$(ccdc_menu__choose "Select action" 1 \
+      "Generate templates (safe-write)" \
+      "Open templates" \
+      "Exit")"
+
+    case "$choice" in
+      1) build_templates "$TEAM"; ccdc_menu__pause ;;
+      2) open_docs_menu ;;
+      0|3) return 0 ;;
+    esac
+  done
+}
+
+main() {
+  ccdc__init_run "phase1_cred_ledger_init" || exit 1
+
+  # Resolve team: arg -> last saved -> fail
+  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || {
+    usage
+    return 1
+  }
+
+  # Persist for other scripts
+  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+
+  # Output paths (fixed names)
+  OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.md"
+  OUT_MAP="${CCDC_OUT_DIR}/service_map.md"
+  OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.md"
+
+  ccdc__section "Phase 1 Doc Init"
+  ccdc__log_kv "Team" "$TEAM"
+
+  # Print full team net scheme (nice for logs / operator context)
+  ccdc_net__print_team_summary "$TEAM" || true
+
+  # If interactive, menu; else just generate
+  if ccdc_menu__is_interactive; then
+    menu_loop
+  else
+    build_templates "$TEAM"
+  fi
+
+  ccdc__section "Done"
+  ccdc__log "[*] Files under: ${CCDC_OUT_DIR}"
+  ccdc__log "    - $OUT_CRED"
+  ccdc__log "    - $OUT_MAP"
+  ccdc__log "    - $OUT_WATCH"
+  return 0
+}
+
+main
