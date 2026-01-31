@@ -23,6 +23,7 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 
 - Phase 01 quickstart: `Phase01_Recon/OPERATOR_QUICKSTART.md`
 - Phase 01 smoke test: `Phase01_Recon/SMOKETEST.md`
+- Phase 03 quickstart: `Phase03_Persistence/OPERATOR_QUICKSTART.md`
 
 ## Notes
 

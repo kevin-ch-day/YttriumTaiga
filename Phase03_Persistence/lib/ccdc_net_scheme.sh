@@ -92,7 +92,7 @@ WARN Usually "plumbing" (observe only / avoid touching unless rules allow):
 - 172.31.<team_octet>.0/29  (core transit)
 - 172.16.x.x               (firewall/router interfaces)
 
-NO Typically not directly accessible from outside / not your initial focus:
+NOT Typically not directly accessible from outside / not your initial focus:
 - 172.20.x.x               (internal LAN behind firewalls)
 EOF
 }
@@ -130,8 +130,8 @@ ccdc_net__team_octet_from_csv() {
     NR==1 {
       for (i=1;i<=NF;i++) {
         h=$i; gsub(/^[ \t"]+|[ \t"]+$/, "", h);
-        if (h ~ /^team$/ || h ~ /team[_ ]NOnumber/ ) team_col=i;
-        if (h ~ /public[_ ]NOoctet/ || h ~ /^octet$/ || h ~ /public[_ ]NOsubnet/ ) oct_col=i;
+        if (h ~ /^team$/ || h ~ /team[_ ]?number/ ) team_col=i;
+        if (h ~ /public[_ ]?octet/ || h ~ /^octet$/ || h ~ /public[_ ]?subnet/ ) oct_col=i;
       }
       next
     }
