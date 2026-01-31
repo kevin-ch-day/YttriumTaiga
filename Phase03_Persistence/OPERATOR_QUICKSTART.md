@@ -1,38 +1,56 @@
 # Phase 03 - Operator Quick Start (Persistence-lite)
 
 ## Purpose (one sentence)
-Phase 03 is about maintaining access and continuity safely, not deploying persistence or making irreversible changes.
+Phase 03 is recoverable persistence + continuity + documentation. It is reversible and explainable.
 
 ## When to run
 - Only after you have validated access from Phase 1/2.
 - Use it to document footholds, re-entry options, and safety rules.
 
 ## What Phase 03 does
-- Records access sessions (footholds) in a ledger.
-- Generates re-entry checklists per target.
+- Records footholds and persistence notes in a ledger.
+- Generates re-entry + recovery checklists per target.
 - Captures safety/authorization rules for the day.
 
 ## What Phase 03 will NOT do
-- No malware, no stealth implants, no irreversible changes.
-- No privilege escalation or service tampering.
-- No OS-level persistence unless explicitly approved.
+- No irreversible persistence.
+- No actions that prevent recovery or disable scoring.
+- No auth/startup/service tampering beyond reversible, approved changes.
 
 ## Outputs (file-based, phase-local)
 All outputs live under `Phase03_Persistence/output/`:
 - `footholds.jsonl` (session/foothold ledger)
-- `reentry.md` (continuity plan/checklists)
+- `reentry.md` (re-entry + recovery plan)
 - `rules_safety.md` (rules, stop conditions, approvals)
+
+Optional:
+- Summary view is available from the menu (counts + top targets).
 
 ## Captain approval gate
 Actions that write/update these files require approval:
-- Set `CAPTAIN_APPROVED=1` before running the script, or
-- Type `CAPTAIN` when prompted (interactive only).
+- Provide one of:
+  - `CAPTAIN_APPROVED=1`, or
+  - `Phase03_Persistence/approved_actions.md` with a quick approval entry.
+
+If approvals file is missing and you have a TTY, the script will prompt for
+captain initials and create an entry.
 
 ## Recommended run order
 1) Initialize docs and safety rules:
    - `./phase3_continuity.sh`
 2) Add foothold/session entries
 3) Generate a re-entry checklist per foothold
+
+## Optional helpers (safe)
+- Auto-import footholds from Phase 1/2 outputs
+- Generate re-entry sections from existing ledger
+- Recovery summary view for defenders
+
+## Stability definition (standardized)
+- Stable: repeatable access, survives reboot
+- Semi-stable: survives logout, not reboot
+- Fragile: session/token based
+- Unknown: observed once, not revalidated
 
 ## Stop conditions
 If you cannot explain the action to the captain in one sentence, stop.

@@ -5,6 +5,9 @@
 CONFIRM="${CONFIRM:-0}"
 if [[ "$CONFIRM" != "1" ]]; then
     echo "[!] WARNING: This will clear shell history for this user."
+    if [[ $EUID -eq 0 ]]; then
+        echo "[!] You are root. This will clear root's history, not your user history."
+    fi
     if [[ -t 0 ]]; then
         read -r -p "Type CLEAR to proceed: " ans
         if [[ "$ans" != "CLEAR" ]]; then

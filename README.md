@@ -2,12 +2,22 @@
 
 YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
 
+## Table of contents
+
+- [Structure](#structure)
+- [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
+- [Operator docs](#operator-docs)
+- [Phase quick start (at a glance)](#phase-quick-start-at-a-glance)
+- [Outputs and logs](#outputs-and-logs)
+- [Network model (Phase 01 default)](#network-model-phase-01-default)
+- [Notes](#notes)
+
 ## Structure
 
 - `Phase00_Setup/` - Kali bootstrap, updates, and preconfig.
 - `Phase01_Recon/` - Read-only recon: inventory, fingerprinting, and operator notes.
 - `Phase02_Privilege_Exp/` - Credential ops, remote workflows, safe privesc triage.
-- `Phase03_Persistence/` - Placeholder scaffold (phase-local libs in place).
+- `Phase03_Persistence/` - Persistence-lite continuity (foothold ledger + re-entry planning).
 - `Phase04_Controlled_Disruption/` - Placeholder scaffold.
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
@@ -23,8 +33,54 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 
 - Phase 01 quickstart: `Phase01_Recon/OPERATOR_QUICKSTART.md`
 - Phase 01 smoke test: `Phase01_Recon/SMOKETEST.md`
+- Phase 03 continuity script: `Phase03_Persistence/phase3_continuity.sh`
 - Phase 03 quickstart: `Phase03_Persistence/OPERATOR_QUICKSTART.md`
 - Phase 03 smoke test: `Phase03_Persistence/SMOKETEST.md`
+- Phase 06 quickstart: `Phase06_Day_End/OPERATOR_QUICKSTART.md`
+- Phase 06 smoke test: `Phase06_Day_End/SMOKETEST.md`
+
+## Useful scripts
+
+- Make scripts executable: `Scripts/make_executable.sh`
+- Log monitor: `Scripts/log_monitor.sh`
+- Disk usage checker: `Scripts/disk_usage_checker.sh`
+- Service checker: `Scripts/service_checker.sh`
+- Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
+
+## Phase quick start (at a glance)
+
+1) Phase 0 (Setup)
+   - `Phase00_Setup/` scripts prepare Kali. Run once before event.
+2) Phase 1 (Recon)
+   - `Phase01_Recon/phase1_team_scanning.sh` (menu coordinator)
+   - `Phase01_Recon/phase1_service_inventory.sh` (HTTP/HTTPS inventory)
+   - `Phase01_Recon/phase1_web_fingerprint.sh` (web hints, low-noise)
+3) Phase 2 (Privilege Expansion)
+   - `Phase02_Privilege_Exp/phase2_privilege_main.sh` (menu entrypoint)
+4) Phase 3 (Continuity)
+   - `Phase03_Persistence/phase3_continuity.sh`
+5) Phase 6 (End of Day)
+   - `Phase06_Day_End/clear_terminal_history.sh`
+   - `Phase06_Day_End/clear_history.sh`
+   - `Phase06_Day_End/system_cleanup.sh`
+
+## Outputs and logs
+
+Each phase writes artifacts locally under that phase directory:
+- `logs/` - runtime logs (per script run)
+- `output/` - generated artifacts (CSVs, notes, ledgers)
+
+If you use `sudo`, Phase 01-03 runtimes now fix ownership so you can still edit/delete outputs as your user.
+
+## Network model (Phase 01 default)
+
+- Teams 1-20 only
+- Public target subnet: `172.25.(20+team).0/24`
+- Transit infra subnet: `172.31.(20+team).0/29` (do not scan)
+- Internal LAN behind NAT: `172.20.x.x`
+
+CSV override supported:
+- Set `CCDC_TEAM_MAP_CSV=/path/to/ccdc_team_map.csv`, or drop it next to the phase lib.
 
 ## Notes
 

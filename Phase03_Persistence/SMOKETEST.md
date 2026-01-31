@@ -9,6 +9,7 @@
 
 3) Run continuity script (menu should render)
    - `CAPTAIN_APPROVED=1 ./Phase03_Persistence/phase3_continuity.sh`
+   - If prompted, enter captain initials to create `approved_actions.md`
    - Exit after menu renders; confirm log file exists in `Phase03_Persistence/logs/`.
    - If you only see a prompt, scroll up for the menu.
 
@@ -16,5 +17,6 @@
    - `Phase03_Persistence/output/footholds.jsonl`
    - `Phase03_Persistence/output/reentry.md`
    - `Phase03_Persistence/output/rules_safety.md`
+   - `Phase03_Persistence/approved_actions.md` (if prompted)
 
 If any step fails, check the script log in `Phase03_Persistence/logs/` first.
