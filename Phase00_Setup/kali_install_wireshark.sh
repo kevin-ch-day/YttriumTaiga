@@ -30,7 +30,14 @@ apt install -y wireshark
 # Step 3: Configure Wireshark for Non-Root Usage
 echo_step "Step 3: Configuring Wireshark for Non-Root Usage..."
 dpkg-reconfigure wireshark-common
-usermod -aG wireshark $USER
+TARGET_USER="${SUDO_USER:-$USER}"
+usermod -aG wireshark "$TARGET_USER"
+
+# Fix ownership if run via sudo so logs/history aren't root-owned
+if [[ -n "${SUDO_USER:-}" ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  chown -R "${SUDO_USER}:${SUDO_USER}" "$SCRIPT_DIR" 2>/dev/null || true
+fi
 
 # Final message
 echo -e "\e[1;100m################################################################################\e[0m"

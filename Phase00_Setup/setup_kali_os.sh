@@ -38,6 +38,11 @@ OUT_FILE="${OUT_DIR}/setup_kali_redteam.summary.txt"
 : > "$LOG_FILE"
 : > "$OUT_FILE"
 
+# Ensure files stay writable for the invoking user when run via sudo
+if [[ -n "${SUDO_USER:-}" ]]; then
+  chown -R "${SUDO_USER}:${SUDO_USER}" "$LOG_DIR" "$OUT_DIR" 2>/dev/null || true
+fi
+
 # ---- Tunables (edit here; no CLI args) ----
 INSTALL_DESKTOP="1"   # 1=yes, 0=no
 INSTALL_VSCODE="1"    # 1=yes, 0=no

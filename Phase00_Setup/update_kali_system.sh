@@ -44,6 +44,11 @@ OUT_FILE="${OUT_DIR}/update_kali_system.summary.txt"
 : > "$LOG_FILE"
 : > "$OUT_FILE"
 
+# Ensure files stay writable for the invoking user when run via sudo
+if [[ -n "${SUDO_USER:-}" ]]; then
+  chown -R "${SUDO_USER}:${SUDO_USER}" "$LOG_DIR" "$OUT_DIR" 2>/dev/null || true
+fi
+
 # -------------------------
 # Tunables (edit here only)
 # -------------------------

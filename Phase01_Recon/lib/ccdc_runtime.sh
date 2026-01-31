@@ -18,6 +18,7 @@ set -euo pipefail
 
 : "${CCDC_FATAL:=0}"
 : "${CCDC_QUIET:=0}"
+: "${CCDC_UMASK:=002}"
 
 : "${CCDC_BASE_DIR:=}"
 : "${CCDC_LOG_DIR:=}"
@@ -41,12 +42,25 @@ ccdc__ensure_phase_dirs() {
   return 0
 }
 
+ccdc__fix_ownership() {
+  # Ensure artifacts are owned by the invoking user when run via sudo.
+  # This avoids root-owned logs/outputs that operators can't edit.
+  local target_dir="${1:-}"
+  [[ -n "$target_dir" ]] || return 1
+  [[ "${EUID:-$(id -u 2>/dev/null || echo 0)}" -eq 0 ]] || return 0
+  [[ -n "${SUDO_USER:-}" ]] || return 0
+  chown -R "${SUDO_USER}:${SUDO_USER}" "$target_dir" 2>/dev/null || true
+  return 0
+}
+
 ccdc__init_env() {
   # Initializes CCDC_BASE_DIR/LOG_DIR/OUT_DIR only.
   CCDC_BASE_DIR="$(ccdc__phase_base_dir)" || return 1
   CCDC_LOG_DIR="${CCDC_BASE_DIR}/logs"
   CCDC_OUT_DIR="${CCDC_BASE_DIR}/output"
   ccdc__ensure_phase_dirs "$CCDC_BASE_DIR" || return 1
+  umask "${CCDC_UMASK}" 2>/dev/null || true
+  ccdc__fix_ownership "$CCDC_BASE_DIR"
 
   # Default phase name from folder if not set
   if [[ -z "${CCDC_PHASE_NAME:-}" ]]; then

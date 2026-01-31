@@ -80,6 +80,23 @@ TOOLS = [
 LOG_FILE: Path = Path("/tmp/preconfig_tools.log")
 
 
+def fix_ownership(path: Path) -> None:
+    """Ensure artifacts are owned by the invoking user when run via sudo."""
+    try:
+        sudo_user = os.environ.get("SUDO_USER")
+        if not sudo_user:
+            return
+        import pwd
+        pw = pwd.getpwnam(sudo_user)
+        for p in [path, *path.glob("**/*")]:
+            try:
+                os.chown(p, pw.pw_uid, pw.pw_gid)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
 # =========================
 # Helpers
 # =========================
@@ -333,6 +350,10 @@ def main() -> None:
 
     write_summary(summary_lines, summary_file)
     log("[*] Done.")
+
+    # Ensure artifacts are writable by the invoking user
+    fix_ownership(log_dir)
+    fix_ownership(out_dir)
 
 
 if __name__ == "__main__":
