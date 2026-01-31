@@ -296,17 +296,23 @@ main() {
   fi
 
   # Resolve team if provided or previously saved (optional)
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
-  [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
-
-  [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-  [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
+  TEAM=""
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
 
   init_outputs
 
   if ccdc_menu__is_interactive; then
+    TEAM="$(ccdc_menu__pick_team "$TEAM" "1")" || return 0
+    [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
+    [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
     menu_loop
   else
+    [[ -n "$TEAM" ]] && ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    [[ -n "$TEAM" ]] && ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)" || true
+    [[ -n "$TEAM" ]] && ccdc__save_last_team "$TEAM" || true
     run_full_checks
   fi
   return 0

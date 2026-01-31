@@ -38,8 +38,32 @@ usage() {
   ccdc__usage_team "$(basename "$0")"
 }
 
+set_team_interactive() {
+  local ans=""
+  ans="$(ccdc_menu__ask "Enter team number (blank = keep unset)" "${TEAM:-}")"
+  [[ -n "$ans" ]] || return 1
+  if ! ccdc__validate_team "$ans"; then
+    ccdc__warn "Invalid team number: $ans"
+    return 1
+  fi
+  TEAM="$ans"
+  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+  return 0
+}
+
+ensure_team_for_templates() {
+  if [[ -z "${TEAM:-}" ]]; then
+    ccdc__warn "Team not set. Use 'Set/Change team' first."
+    return 1
+  fi
+  return 0
+}
+
 build_templates() {
   local team="$1"
+  ccdc__validate_team "$team" || { ccdc__warn "Invalid team number: $team"; return 1; }
   local pub_subnet
   pub_subnet="$(ccdc__target_net "$team")"
 
@@ -110,21 +134,33 @@ open_docs_menu() {
 menu_loop() {
   while true; do
     ccdc_menu__header "Phase 1 -- Credential/Service Docs" "Initialize your working notes"
-    ccdc__log_kv "Team" "$TEAM"
-    ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
+    if [[ -n "${TEAM:-}" ]]; then
+      ccdc__log_kv "Team" "$TEAM"
+      ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
+    else
+      ccdc__log_kv "Team" "(unset)"
+      ccdc__log_kv "Public subnet" "(unset)"
+    fi
     ccdc__log_kv "Output dir" "${CCDC_OUT_DIR}"
     echo ""
 
-    local choice
-    choice="$(ccdc_menu__choose "Select action" 1 \
+    local choice default_choice
+    if [[ -n "${TEAM:-}" ]]; then
+      default_choice=2
+    else
+      default_choice=1
+    fi
+    choice="$(ccdc_menu__choose "Select action" "$default_choice" \
+      "Set/Change team number" \
       "Generate templates (safe-write)" \
       "Open templates" \
       "Exit")"
 
     case "$choice" in
-      1) build_templates "$TEAM"; ccdc_menu__pause ;;
-      2) open_docs_menu ;;
-      0|3) return 0 ;;
+      1) set_team_interactive || true; ccdc_menu__pause ;;
+      2) ensure_team_for_templates && build_templates "$TEAM"; ccdc_menu__pause ;;
+      3) open_docs_menu ;;
+      0|4) return 0 ;;
     esac
   done
 }
@@ -132,33 +168,38 @@ menu_loop() {
 main() {
   ccdc__init_run "phase1_cred_ledger_init" || exit 1
 
-  # Resolve team: arg -> last saved -> fail
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || {
-    usage
-    return 1
-  }
-
-  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
-
-  # Persist for other scripts
-  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+  # Resolve team: arg -> last saved (if available).
+  TEAM=""
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
 
   # Output paths (fixed names)
   OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.md"
   OUT_MAP="${CCDC_OUT_DIR}/service_map.md"
   OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.md"
 
-  ccdc__section "Phase 1 Doc Init"
-  ccdc__log_kv "Team" "$TEAM"
-
-  # Print full team net scheme (nice for logs / operator context)
-  ccdc_net__print_team_summary "$TEAM" || true
-
-  # If interactive, menu; else just generate
   if ccdc_menu__is_interactive; then
+    TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+
+    ccdc__section "Phase 1 Doc Init"
+    ccdc__log_kv "Team" "$TEAM"
+    ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
   else
+    if [[ -z "${TEAM:-}" ]]; then
+      usage
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__section "Phase 1 Doc Init"
+    ccdc__log_kv "Team" "$TEAM"
+    ccdc_net__print_team_summary "$TEAM" || true
     build_templates "$TEAM"
   fi
 

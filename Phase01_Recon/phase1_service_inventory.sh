@@ -239,15 +239,10 @@ menu_loop() {
 main() {
   ccdc__init_run "phase1_service_inventory" || exit 1
 
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || {
-    usage
-    return 1
-  }
-
-  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
-
-  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+  TEAM=""
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
 
   # Required tools
   ccdc__require_cmds curl awk sed tr head sort uniq || exit 3
@@ -255,11 +250,22 @@ main() {
   init_outputs
 
   # Helpful network summary in logs
-  ccdc_net__print_team_summary "$TEAM" || true
-
   if ccdc_menu__is_interactive; then
+    TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
   else
+    if [[ -z "${TEAM:-}" ]]; then
+      usage
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc_net__print_team_summary "$TEAM" || true
     run_scan
   fi
 

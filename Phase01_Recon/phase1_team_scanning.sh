@@ -198,16 +198,10 @@ menu_loop() {
 main() {
   ccdc__init_run "phase1_team_scanning" || exit 1
 
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || {
-    usage
-    return 1
-  }
-
-  ccdc_net__warn_if_team_out_of_range "$TEAM" || true
-  ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
-
-  # Persist for other Phase 1 scripts
-  ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+  TEAM=""
+  if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
+    TEAM="$TEAM_PARSED"
+  fi
 
   # Ensure Phase 1 scripts exist
   require_child "${SCRIPT_DIR}/phase1_cred_ledger_init.sh" || exit 3
@@ -218,13 +212,26 @@ main() {
   REPORT_OUT="${CCDC_OUT_DIR}/phase1_team_report.txt"
   [[ -f "$REPORT_OUT" ]] || : > "$REPORT_OUT"
 
-  # Log network scheme summary (helps operator orientation)
-  ccdc__section "Team Network Summary"
-  ccdc_net__print_team_summary "$TEAM" || true
-
   if ccdc_menu__is_interactive; then
+    TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+
+    # Log network scheme summary (helps operator orientation)
+    ccdc__section "Team Network Summary"
+    ccdc_net__print_team_summary "$TEAM" || true
     menu_loop
   else
+    if [[ -z "${TEAM:-}" ]]; then
+      usage
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__section "Team Network Summary"
+    ccdc_net__print_team_summary "$TEAM" || true
     run_all || true
   fi
 

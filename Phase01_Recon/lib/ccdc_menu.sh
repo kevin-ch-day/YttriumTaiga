@@ -158,6 +158,7 @@ ccdc_menu__choose() {
 
   echo ""
   echo "$title"
+  echo "Options:"
   ccdc_menu__divider
 
   local i n
@@ -170,6 +171,10 @@ ccdc_menu__choose() {
     fi
   done
   echo "  0) Cancel / Back"
+  if [[ "$default" -gt 0 ]]; then
+    echo "Tip: Press Enter to choose the default option."
+  fi
+  echo "Type the number and press Enter."
 
   local choice=""
   while true; do
@@ -233,6 +238,97 @@ ccdc_menu__choose_kv() {
 
   echo "${values[$((idx-1))]}"
   return 0
+}
+
+ccdc_menu__pick_team() {
+  # Interactive team selection helper.
+  # Usage: TEAM="$(ccdc_menu__pick_team "$CURRENT_TEAM" "0")" || exit 0
+  # allow_empty: "1" to allow unset team (returns empty string).
+  local current="${1:-}"
+  local allow_empty="${2:-0}"
+
+  while true; do
+    ccdc_menu__header "Team Selection" "Choose the team number to target"
+    if [[ -n "$current" ]]; then
+      ccdc_menu__print_kv "Current team" "$current"
+    else
+      ccdc_menu__print_kv "Current team" "(none)"
+    fi
+    echo ""
+
+    if [[ -n "$current" ]]; then
+      local choice
+      if [[ "$allow_empty" == "1" ]]; then
+        choice="$(ccdc_menu__choose "Select action" 1 \
+          "Use current team (${current})" \
+          "Enter a new team number" \
+          "Continue without a team" \
+          "Exit")"
+      else
+        choice="$(ccdc_menu__choose "Select action" 1 \
+          "Use current team (${current})" \
+          "Enter a new team number" \
+          "Exit")"
+      fi
+      case "$choice" in
+        1) echo "$current"; return 0 ;;
+        2)
+          local ans
+          ans="$(ccdc_menu__ask "Enter team number" "$current")"
+          if declare -F ccdc__validate_team >/dev/null 2>&1; then
+            ccdc__validate_team "$ans" || { _ccdc_menu__warn "Invalid team number: $ans"; continue; }
+          else
+            [[ "$ans" =~ ^[0-9]{1,3}$ ]] || { _ccdc_menu__warn "Invalid team number: $ans"; continue; }
+          fi
+          current="$ans"
+          echo "$current"
+          return 0
+          ;;
+        3)
+          if [[ "$allow_empty" == "1" ]]; then
+            echo ""
+            return 0
+          fi
+          return 1
+          ;;
+        0|4) return 1 ;;
+      esac
+    else
+      local choice2
+      if [[ "$allow_empty" == "1" ]]; then
+        choice2="$(ccdc_menu__choose "Select action" 1 \
+          "Enter a team number" \
+          "Continue without a team" \
+          "Exit")"
+      else
+        choice2="$(ccdc_menu__choose "Select action" 1 \
+          "Enter a team number" \
+          "Exit")"
+      fi
+      case "$choice2" in
+        1)
+          local ans2
+          ans2="$(ccdc_menu__ask "Enter team number")"
+          if declare -F ccdc__validate_team >/dev/null 2>&1; then
+            ccdc__validate_team "$ans2" || { _ccdc_menu__warn "Invalid team number: $ans2"; continue; }
+          else
+            [[ "$ans2" =~ ^[0-9]{1,3}$ ]] || { _ccdc_menu__warn "Invalid team number: $ans2"; continue; }
+          fi
+          current="$ans2"
+          echo "$current"
+          return 0
+          ;;
+        2)
+          if [[ "$allow_empty" == "1" ]]; then
+            echo ""
+            return 0
+          fi
+          return 1
+          ;;
+        0|3) return 1 ;;
+      esac
+    fi
+  done
 }
 
 ccdc_menu__choose_multi() {
