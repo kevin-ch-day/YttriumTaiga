@@ -30,3 +30,4 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 
 - Most scripts are designed to be safe and low-noise unless explicitly configured otherwise.
 - Phase 0-2 are implemented; Phase 3-5 are scaffolds for future build-out.
+- Phase 01 scripts prompt for Team Selection before showing action menus.
