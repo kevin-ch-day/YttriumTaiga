@@ -32,6 +32,14 @@ init_outputs() {
   REENTRY="${CCDC_OUT_DIR}/reentry.md"
   RULES="${CCDC_OUT_DIR}/rules_safety.md"
 
+  # Ensure output dir is writable
+  local testfile="${CCDC_OUT_DIR}/.phase3_write_test"
+  if ! (echo "test" > "$testfile" 2>/dev/null); then
+    ccdc__die "Output directory is not writable: ${CCDC_OUT_DIR}"
+    return 1
+  fi
+  rm -f "$testfile" 2>/dev/null || true
+
   [[ -f "$FOOTHOLDS" ]] || : > "$FOOTHOLDS"
 
   if [[ ! -f "$REENTRY" ]]; then
@@ -187,6 +195,7 @@ menu_loop() {
 
 main() {
   ccdc__init_run "phase3_continuity" || exit 1
+  ccdc__require_cmds date cat printf || true
   init_outputs
 
   if ccdc_menu__is_interactive; then
