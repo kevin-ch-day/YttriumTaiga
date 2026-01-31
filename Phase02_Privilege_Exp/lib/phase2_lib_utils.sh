@@ -81,7 +81,7 @@ phase2_load_rules() {
   if [[ -z "$rules_file" ]]; then
     local lib_dir
     lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
-    rules_file="${lib_dir}/../../Config/ccdc_rules.conf"
+    rules_file="${lib_dir}/../../config/ccdc_rules.conf"
   fi
 
   if [[ -f "$rules_file" ]]; then
