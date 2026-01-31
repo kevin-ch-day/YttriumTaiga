@@ -5,6 +5,7 @@ This directory contains the **canonical** ops-tracking data used during the even
 Files:
 - `ops_teams.csv` — team metadata + subnet mapping
 - `ops_ledger.csv` — action outcomes ledger (one row per action attempt)
+- `ops_known_hosts.csv` — known IPs by team to seed targeting
 - `ops_teams.xlsx` / `ops_ledger.xlsx` — view-only exports
 
 Rules:

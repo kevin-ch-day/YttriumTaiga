@@ -97,9 +97,38 @@ extract_targets_from_hits() {
 }
 
 build_targets_used() {
-  # Prefer candidates, then hits, then full public range
+  # Prefer services.csv (highest signal), then known hosts, then candidates, then hits, then full public range
+  local services_csv="${CCDC_OUT_DIR}/services.csv"
   local cand="${CCDC_OUT_DIR}/targets_candidates.txt"
   local hits="${CCDC_OUT_DIR}/services_hits.txt"
+  local base known
+  base="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  known="${CCDC_KNOWN_HOSTS_CSV:-${base}/data/ops_known_hosts.csv}"
+
+  if [[ -f "$services_csv" ]]; then
+    ccdc__log "[*] Using targets from services.csv: $services_csv"
+    awk -F',' 'NR>1 && $1!="" {print $1}' "$services_csv" | sort -u > "$TARGETS_USED"
+    [[ -s "$TARGETS_USED" ]] && return 0
+    ccdc__warn "services.csv is empty; falling back to candidates/hits/full scan."
+  fi
+
+  if [[ -f "$known" ]]; then
+    ccdc__log "[*] Using targets from ops_known_hosts.csv: $known"
+    local oct
+    oct="$(ccdc_net__team_octet "$TEAM" 2>/dev/null || true)"
+    if [[ -n "$oct" ]]; then
+      awk -F',' -v team="$TEAM" -v oct="$oct" '
+        NR==1 {next}
+        {
+          t=$1; ip=$2;
+          gsub(/^[ \t]+|[ \t]+$/, "", t);
+          gsub(/^[ \t]+|[ \t]+$/, "", ip);
+          if (t==team && ip ~ "^172\\.25\\."oct"\\.") print ip;
+        }
+      ' "$known" | sort -u > "$TARGETS_USED"
+      [[ -s "$TARGETS_USED" ]] && return 0
+    fi
+  fi
 
   if [[ -f "$cand" ]]; then
     ccdc__log "[*] Using targets from candidates: $cand"
@@ -282,6 +311,23 @@ main() {
   fi
 
   ccdc__require_cmds curl awk sed tr head sort uniq grep wc || exit 3
+
+  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+    if [[ -z "${TEAM:-}" ]]; then
+      ccdc__warn "Team not set for batch run."
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    TXT_OUT="${CCDC_OUT_DIR}/web_fingerprint.txt"
+    CSV_OUT="${CCDC_OUT_DIR}/web_fingerprint.csv"
+    TARGETS_USED="${CCDC_OUT_DIR}/web_fingerprint_targets_used.txt"
+    run_fingerprint
+    return 0
+  fi
 
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0

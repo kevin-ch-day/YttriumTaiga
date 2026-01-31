@@ -164,6 +164,33 @@ main() {
     TEAM="$TEAM_PARSED"
   fi
 
+  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+    if [[ -z "${TEAM:-}" ]]; then
+      ccdc__warn "Team not set for batch run."
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+
+    # Output paths (fixed names)
+    OUT_CRED="${CCDC_OUT_DIR}/cred_ledger.csv"
+    OUT_MAP="${CCDC_OUT_DIR}/service_map.csv"
+    OUT_WATCH="${CCDC_OUT_DIR}/targets_watchlist.csv"
+
+    ccdc__section "Phase 1 Doc Init (Batch)"
+    ccdc__log_kv "Team" "$TEAM"
+    ccdc_net__print_team_summary "$TEAM" || true
+    build_templates "$TEAM" || return 1
+    ccdc__section "Done"
+    ccdc__log "[*] Files under: ${CCDC_OUT_DIR}"
+    ccdc__log "    - $OUT_CRED"
+    ccdc__log "    - $OUT_MAP"
+    ccdc__log "    - $OUT_WATCH"
+    return 0
+  fi
+
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0
     ccdc_net__warn_if_team_out_of_range "$TEAM" || true

@@ -5,6 +5,8 @@ set -euo pipefail
 # Filename: phase2_operator.sh
 # Purpose : Phase 2 Operator Single Entry Point
 # Run     : ./phase2_operator.sh
+#          ./phase2_operator.sh --team 3 --preset fast
+#          ./phase2_operator.sh --all --preset fast
 # ============================================================
 
 PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,6 +24,57 @@ if [[ ! -x "$MAIN" ]]; then
   echo "ERROR: Missing Phase 2 main script: $MAIN" >&2
   exit 2
 fi
+
+PRESET=""
+MODE=""
+TEAM_ARG=""
+
+usage() {
+  echo "Usage:"
+  echo "  ./phase2_operator.sh"
+  echo "  ./phase2_operator.sh --team <N> [--preset fast|normal|full]"
+  echo "  ./phase2_operator.sh --all [--preset fast|normal|full]"
+}
+
+apply_preset() {
+  local preset="${1^^}"
+  case "$preset" in
+    FAST)
+      export PHASE2_HTTP_CONNECT_TIMEOUT="2"
+      export PHASE2_HTTP_TIMEOUT_SECS="4"
+      export PHASE2_SSH_CONNECT_TIMEOUT="3"
+      ;;
+    NORMAL)
+      export PHASE2_HTTP_CONNECT_TIMEOUT="3"
+      export PHASE2_HTTP_TIMEOUT_SECS="8"
+      export PHASE2_SSH_CONNECT_TIMEOUT="5"
+      ;;
+    FULL)
+      export PHASE2_HTTP_CONNECT_TIMEOUT="5"
+      export PHASE2_HTTP_TIMEOUT_SECS="15"
+      export PHASE2_SSH_CONNECT_TIMEOUT="8"
+      ;;
+    "") ;;
+    *) phase2_warn "Unknown preset: $preset"; return 1 ;;
+  esac
+  export PHASE2_PRESET="$preset"
+  return 0
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --team) TEAM_ARG="${2:-}"; MODE="team"; shift 2 ;;
+      --all) MODE="all"; shift ;;
+      --preset) PRESET="${2:-}"; shift 2 ;;
+      --fast) PRESET="FAST"; shift ;;
+      --normal) PRESET="NORMAL"; shift ;;
+      --full) PRESET="FULL"; shift ;;
+      -h|--help) usage; exit 0 ;;
+      *) phase2_warn "Unknown arg: $1"; usage; exit 1 ;;
+    esac
+  done
+}
 
 load_rules() {
   local rules="${PHASE_DIR}/../config/ccdc_rules.conf"
@@ -111,6 +164,22 @@ run_all_teams() {
 
 main() {
   phase2_init_run "phase2_operator" || true
+  parse_args "$@"
+  [[ -n "$PRESET" ]] && apply_preset "$PRESET" || true
+
+  if [[ "$MODE" == "team" ]]; then
+    [[ -n "$TEAM_ARG" ]] || { phase2_warn "Missing team number."; usage; exit 1; }
+    phase2_validate_team "$TEAM_ARG" || exit 1
+    run_for_team "$TEAM_ARG"
+    exit 0
+  fi
+
+  if [[ "$MODE" == "all" ]]; then
+    export PHASE2_BATCH=1
+    run_all_teams || true
+    exit 0
+  fi
+
   local choice
   choice="$(pick_scope)" || exit 0
   case "$choice" in

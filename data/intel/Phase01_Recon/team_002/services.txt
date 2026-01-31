@@ -1,0 +1,9 @@
+[*] Phase 1 Service Inventory (read-only)
+[*] Target Net: 172.25.22.0/24
+[*] Output: services.txt, services.csv, services_hits.txt
+[*] Targets: targets_all.txt, targets_candidates.txt
+[*] Settings: timeout=2s connect_timeout=1s follow=0
+[*] Limits: max_hosts=254 max_seconds=0
+--------------------------------------------------------------------------------
+172.25.22.11    http  80   status=200 server=Apache/2.4.58 (Ubuntu) xpb=- ctype=text/html; charset=utf-8 auth=- loc=- cn=- title=Your Store
+172.25.22.140   http  80   status=200 server=Microsoft-IIS/10.0 xpb=- ctype=text/html auth=- loc=- cn=- title=CyberShield — Home

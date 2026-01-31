@@ -63,7 +63,7 @@ run_child() {
   ccdc__section "Run: $label"
   ccdc__log "[*] Exec: $path $TEAM"
 
-  if "$path" "$TEAM"; then
+  if CCDC_BATCH="${CCDC_BATCH:-0}" CCDC_TEAM_LOCK="${CCDC_TEAM_LOCK:-0}" "$path" "$TEAM"; then
     ccdc__log "[+] OK: $label"
     return 0
   fi
@@ -242,6 +242,19 @@ main() {
   require_child "${SCRIPT_DIR}/tools/phase1_cred_ledger_init.sh" || exit 3
   require_child "${SCRIPT_DIR}/tools/phase1_service_inventory.sh" || exit 3
   require_child "${SCRIPT_DIR}/tools/phase1_web_fingerprint.sh" || exit 3
+
+  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+    export CCDC_BATCH=1
+    export CCDC_TEAM_LOCK=1
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    ccdc__section "Phase 1 -- Batch Run"
+    ccdc__log_kv "Team" "$TEAM"
+    run_all || true
+    return 0
+  fi
 
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0

@@ -278,6 +278,16 @@ ccdc_menu__pick_team() {
   # allow_empty: "1" to allow unset team (returns empty string).
   local current="${1:-}"
   local allow_empty="${2:-0}"
+  # If a team is already set and lock is requested, skip the menu.
+  if [[ -n "$current" && "${CCDC_TEAM_LOCK:-0}" == "1" ]]; then
+    echo "$current"
+    return 0
+  fi
+  # Optional preset for non-interactive batch runs.
+  if [[ -z "$current" && -n "${CCDC_TEAM_PRESET:-}" ]]; then
+    echo "${CCDC_TEAM_PRESET}"
+    return 0
+  fi
   local _clean
   _clean() { printf "%s" "$1" | tr -d '[:space:]'; }
   local _print_team_list

@@ -28,7 +28,6 @@ fi
 
 pick_mode() {
   ccdc_menu__header "Phase 01 Operator" "Single Entry Point"
-  echo "Select target scope:"
   local choice
   choice="$(ccdc_menu__choose "Scope" 1 \
     "Current team (if saved)" \
@@ -109,7 +108,7 @@ run_all_for_team() {
   local team="$1"
   echo ""
   echo "=== Phase01: Team ${team} ==="
-  "${RECON}" "$team"
+  CCDC_TEAM_LOCK=1 CCDC_BATCH="${CCDC_BATCH:-0}" "${RECON}" "$team"
 }
 
 main() {
@@ -133,7 +132,7 @@ main() {
       if ccdc__is_blocked_team "$t"; then
         continue
       fi
-      run_all_for_team "$t"
+      CCDC_BATCH=1 run_all_for_team "$t"
     done
     exit 0
   fi

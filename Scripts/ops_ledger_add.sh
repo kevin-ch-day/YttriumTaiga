@@ -11,6 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 TEAMS_CSV="${ROOT_DIR}/data/ops_teams.csv"
 OPS_CSV="${ROOT_DIR}/data/ops_ledger.csv"
+OPS_EXPORT="${ROOT_DIR}/Scripts/ops_ledger_export.sh"
 RULES_FILE="${ROOT_DIR}/config/ccdc_rules.conf"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -91,11 +92,33 @@ for t in $(normalize_list "$fail_list"); do
   outcomes["Team${t}"]="Fail"
 done
 
-# Build row
-row="${time_start},${time_end},${action_id},\"${action}\",${operator},\"${notes}\""
+# Build row (CSV-safe for text fields)
+csv_escape() {
+  local s="$1"
+  s="${s//$'\r'/ }"
+  s="${s//$'\n'/ }"
+  s="${s//\"/\"\"}"
+  printf "\"%s\"" "$s"
+}
+
+row="${time_start},${time_end},${action_id},$(csv_escape "$action"),$(csv_escape "$operator"),$(csv_escape "$notes")"
 for i in $(seq 1 20); do
   row+=",${outcomes[Team${i}]}"
 done
 
 echo "$row" >> "$OPS_CSV"
 echo "Wrote row to ${OPS_CSV}"
+
+# Auto-export to XLSX unless disabled
+OPS_LEDGER_AUTO_EXPORT="${OPS_LEDGER_AUTO_EXPORT:-1}"
+if [[ "$OPS_LEDGER_AUTO_EXPORT" == "1" ]]; then
+  if [[ -x "$OPS_EXPORT" ]]; then
+    if "$OPS_EXPORT"; then
+      echo "Updated XLSX via ${OPS_EXPORT}"
+    else
+      echo "WARN: XLSX export failed (CSV still updated)." >&2
+    fi
+  else
+    echo "WARN: Missing or non-executable ${OPS_EXPORT} (CSV still updated)." >&2
+  fi
+fi

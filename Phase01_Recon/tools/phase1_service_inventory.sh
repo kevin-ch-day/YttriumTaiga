@@ -202,6 +202,30 @@ build_targets() {
   ccdc_net__public_host_candidates "$TEAM" > "$TARGETS_CAND" 2>/dev/null || true
 }
 
+append_known_targets() {
+  # Merge known hosts from a shared CSV into targets_candidates.txt
+  # CSV format: team,ip,role,notes
+  local base
+  base="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+  local known="${CCDC_KNOWN_HOSTS_CSV:-${base}/data/ops_known_hosts.csv}"
+  [[ -f "$known" ]] || return 0
+  local oct
+  oct="$(ccdc_net__team_octet "$TEAM" 2>/dev/null || true)"
+  [[ -n "$oct" ]] || return 0
+
+  awk -F',' -v team="$TEAM" -v oct="$oct" '
+    NR==1 {next}
+    {
+      t=$1; ip=$2;
+      gsub(/^[ \t]+|[ \t]+$/, "", t);
+      gsub(/^[ \t]+|[ \t]+$/, "", ip);
+      if (t==team && ip ~ "^172\\.25\\."oct"\\.") print ip;
+    }
+  ' "$known" >> "$TARGETS_CAND" 2>/dev/null || true
+
+  sort -u "$TARGETS_CAND" -o "$TARGETS_CAND" 2>/dev/null || true
+}
+
 run_scan() {
   local target_net
   target_net="$(ccdc__target_net "$TEAM")"
@@ -209,6 +233,7 @@ run_scan() {
   ccdc__section "Scanning ${target_net} (HTTP/HTTPS only)"
   write_header "$target_net"
   build_targets
+  append_known_targets
 
   # Scan the full list (1..254)
   local start_ts now_ts elapsed count
@@ -294,6 +319,21 @@ main() {
 
   # Required tools
   ccdc__require_cmds curl awk sed tr head sort uniq || exit 3
+
+  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+    if [[ -z "${TEAM:-}" ]]; then
+      ccdc__warn "Team not set for batch run."
+      return 1
+    fi
+    ccdc_net__warn_if_team_out_of_range "$TEAM" || true
+    ccdc__log_kv "Mapping" "$(ccdc_net__mapping_source)"
+    ccdc__save_last_team "$TEAM" || ccdc__warn "Could not save output/team.txt (continuing)"
+    ccdc__set_team_output_dir "$TEAM" || ccdc__warn "Could not set team output dir (continuing)"
+    init_outputs
+    ccdc_net__print_team_summary "$TEAM" || true
+    run_scan
+    return 0
+  fi
 
   if ccdc_menu__is_interactive; then
     TEAM="$(ccdc_menu__pick_team "$TEAM" "0")" || return 0

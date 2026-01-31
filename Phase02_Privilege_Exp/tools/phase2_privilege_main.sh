@@ -174,6 +174,7 @@ phase2_main__menu() {
       fi
     fi
     [[ -n "$last_team" ]] && phase2_menu__print_kv "Team" "$last_team"
+    [[ -n "${PHASE2_PRESET:-}" ]] && phase2_menu__print_kv "Preset" "${PHASE2_PRESET}"
     [[ -n "$last_team" ]] && ccdc_net__warn_if_team_out_of_range "$last_team" || true
     [[ -n "$last_team" ]] && phase2_menu__print_kv "Mapping" "$(ccdc_net__mapping_source)"
     phase2_menu__print_kv "Output dir" "$(phase2__resolve_out_dir 2>/dev/null || echo unknown)"
@@ -289,6 +290,17 @@ main() {
 
   # Ensure base dirs exist early
   phase2_init_env || true
+
+  if [[ "${PHASE2_AUTO_IMPORT:-0}" == "1" ]]; then
+    phase2_main__intel_import || true
+  fi
+
+  if [[ "${PHASE2_BATCH:-0}" == "1" ]]; then
+    phase2_main__self_check || true
+    phase2_main__intel_summary || true
+    phase2_main__intel_import || true
+    exit 0
+  fi
 
   # Start menu
   phase2_main__menu
