@@ -194,7 +194,7 @@ phase2_rp__scp_get() {
   remote_path="$(phase2_menu__ask "Remote path to fetch" "/etc/passwd")"
   local_name="$(phase2_menu__ask "Local name (optional)" "")"
   rec="0"
-  if phase2_menu__confirm "Recursive (-r)?" "N"; then
+  if phase2_menu__confirm "Recursive (-r)NO" "N"; then
     rec="1"
   fi
 

@@ -216,7 +216,7 @@ rockyou_extract() {
     apt_install seclists
   fi
 
-  # RockYou is typically gzip’d on Kali.
+  # RockYou is typically gzip'd on Kali.
   local gz="/usr/share/wordlists/rockyou.txt.gz"
   local txt="/usr/share/wordlists/rockyou.txt"
 
@@ -268,7 +268,7 @@ main() {
   out "APT: full-upgrade completed"
 
   section "Step 3: Baseline tools"
-  # Keep baseline “competition essentials”
+  # Keep baseline "competition essentials"
   apt_install \
     ca-certificates curl wget git jq unzip zip tar gzip \
     dnsutils net-tools iproute2 traceroute \

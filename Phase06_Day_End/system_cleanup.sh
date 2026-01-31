@@ -9,6 +9,22 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Safety confirmation (avoid accidental cleanup)
+CONFIRM="${CONFIRM:-0}"
+if [[ "$CONFIRM" != "1" ]]; then
+  echo "WARNING: This cleanup removes packages and truncates logs."
+  if [[ -t 0 ]]; then
+    read -r -p "Type CLEAN to proceed: " ans
+    if [[ "$ans" != "CLEAN" ]]; then
+      echo "Aborted."
+      exit 1
+    fi
+  else
+    echo "Non-interactive shell. Re-run with CONFIRM=1 to proceed."
+    exit 1
+  fi
+fi
+
 # Function to display messages with enhanced formatting
 echo_step() {
   echo -e "\n\e[1;100m\e[1;97m==============================================\e[0m"

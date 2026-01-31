@@ -14,7 +14,7 @@ set -euo pipefail
 # Integrations:
 # - If phase2_lib_runtime.sh is loaded: uses phase2_log/phase2_warn
 # - If phase2_lib_utils.sh is loaded: uses phase2__resolve_out_dir
-# - Uses Phase 2 meta defaults (OUT_SUBDIR_LOOT, etc.) if sourced :contentReference[oaicite:1]{index=1}
+# - Uses Phase 2 meta defaults (OUT_SUBDIR_LOOT, etc.) if sourced
 # ============================================================
 
 # -----------------------------

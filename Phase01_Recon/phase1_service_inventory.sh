@@ -109,7 +109,7 @@ probe_one() {
 
   local title cn
   title=""
-  if [[ "$status" =~ ^2|^3 ]]; then
+  if [[ "$status" =~ ^[23] ]]; then
     title="$(ccdc_http__title_if_html "$url" "${ctype:-}")"
   fi
 
@@ -128,7 +128,7 @@ probe_one() {
   title="$(ccdc_http__csv_safe "${title:-}")"
 
   printf "%-15s %-5s %-4s status=%-3s server=%s xpb=%s ctype=%s auth=%s loc=%s cn=%s title=%s\n" \
-    "$ip" "$scheme" "$port" "${status:-"?"}" \
+    "$ip" "$scheme" "$port" "${status:-"NO"}" \
     "${server:-"-"}" "${xpb:-"-"}" "${ctype:-"-"}" "${auth:-"-"}" "${loc:-"-"}" "${cn:-"-"}" "${title:-"-"}" \
     >> "$TXT_OUT"
 
@@ -211,7 +211,7 @@ run_scan() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Service Inventory" "Read-only HTTP/HTTPS inventory"
+    ccdc_menu__header "Phase 1 -- Service Inventory" "Read-only HTTP/HTTPS inventory"
     ccdc__log_kv "Team" "$TEAM"
     ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
     echo ""

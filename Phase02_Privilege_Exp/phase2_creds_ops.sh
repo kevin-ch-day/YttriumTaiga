@@ -78,7 +78,7 @@ phase2_creds_ops__list_masked() {
 phase2_creds_ops__list_full() {
   phase2_section "Credential Ledger (FULL / includes secrets)"
   phase2_warn "FULL view includes secrets. Do not paste into shared chat/logs."
-  if ! phase2_menu__confirm "Show FULL ledger now?" "N"; then
+  if ! phase2_menu__confirm "Show FULL ledger nowNO" "N"; then
     return 0
   fi
   phase2_creds_list --full || true
@@ -113,12 +113,12 @@ phase2_creds_ops__open_ledger() {
   fi
 
   local which
-  which="$(phase2_menu__choose "Open which file?" 1 "Markdown (no secrets)" "CSV (contains secrets)" "Cancel")"
+  which="$(phase2_menu__choose "Open which fileNO" 1 "Markdown (no secrets)" "CSV (contains secrets)" "Cancel")"
   case "$which" in
     1) [[ -n "$md" ]] && phase2_open_viewer "$md" || phase2_warn "MD not found";;
     2)
       phase2_warn "CSV contains secrets."
-      if phase2_menu__confirm "Open CSV anyway?" "N"; then
+      if phase2_menu__confirm "Open CSV anywayNO" "N"; then
         [[ -n "$csv" ]] && phase2_open_viewer "$csv" || phase2_warn "CSV not found"
       fi
       ;;

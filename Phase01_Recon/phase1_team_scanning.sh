@@ -70,7 +70,7 @@ write_report() {
   subnet="$(ccdc__target_net "$TEAM")"
 
   {
-    echo "Phase 1 — Recon & Access Report"
+    echo "Phase 1 -- Recon & Access Report"
     echo "Time: $(ccdc__now)"
     echo "Team: ${TEAM}"
     echo "Subnet: ${subnet}"
@@ -123,7 +123,7 @@ run_all() {
 view_outputs_menu() {
   local choice file
   while true; do
-    ccdc_menu__header "Phase 1 — View Outputs" "Choose a file to view"
+    ccdc_menu__header "Phase 1 -- View Outputs" "Choose a file to view"
     choice="$(ccdc_menu__choose "Select output" 1 \
       "phase1_team_report.txt" \
       "cred_ledger.md" \
@@ -156,7 +156,7 @@ view_outputs_menu() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Team Recon Coordinator" "Read-only Recon & Access"
+    ccdc_menu__header "Phase 1 -- Team Recon Coordinator" "Read-only Recon & Access"
     ccdc__log_kv "Team" "$TEAM"
     ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
     ccdc__log_kv "Output dir" "${CCDC_OUT_DIR}"

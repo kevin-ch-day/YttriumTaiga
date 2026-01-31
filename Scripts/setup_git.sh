@@ -186,7 +186,7 @@ maybe_create_ssh_key() {
 }
 
 main() {
-  section "Kali Git Setup شروع"
+  section "Kali Git Setup Start"
   log "[*] Time: $(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
   log "[*] Script: $0"
   log "[*] User: ${SUDO_USER:-root}"

@@ -1,0 +1,14 @@
+**/logs/
+**/output/
+**/workspace/
+**/*.log
+**/*.summary.txt
+**/*.tmp
+**/*.bak
+
+# OS/editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/

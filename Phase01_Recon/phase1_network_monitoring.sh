@@ -64,13 +64,13 @@ dns_test() {
   # returns 0 if DNS resolves example.com using available tool
   if command -v dig >/dev/null 2>&1; then
     dig +time=2 +tries=1 example.com A >/dev/null 2>&1
-    return $?
+    return $NO
   elif command -v nslookup >/dev/null 2>&1; then
     nslookup example.com >/dev/null 2>&1
-    return $?
+    return $NO
   elif command -v host >/dev/null 2>&1; then
     host example.com >/dev/null 2>&1
-    return $?
+    return $NO
   fi
   return 2
 }
@@ -85,15 +85,15 @@ write_team_context() {
     append "Team transit: $(ccdc_net__core_transit_team_ip "$TEAM" 2>/dev/null || echo unknown)"
     append ""
     append "Red Team Focus (Phase 1):"
-    append "  ✅ Primary surface: 172.25.<team_octet>.0/24 (scoring/public)"
-    append "  ⚠️ Observe only:    172.31.<team_octet>.0/29 (transit plumbing)"
-    append "  ❌ Not your focus:  172.20.x.x (internal LAN behind firewalls)"
+    append "  OK Primary surface: 172.25.<team_octet>.0/24 (scoring/public)"
+    append "  WARN Observe only:    172.31.<team_octet>.0/29 (transit plumbing)"
+    append "  NO Not your focus:  172.20.x.x (internal LAN behind firewalls)"
     append ""
   fi
 }
 
 write_quick_block() {
-  quick "CCDC Phase 1 — Network Quick Check"
+  quick "CCDC Phase 1 -- Network Quick Check"
   quick "Time: $(ccdc__now)"
   quick "Host: $(hostname 2>/dev/null || echo unknown)"
   quick "User: $(whoami 2>/dev/null || echo unknown)"
@@ -150,7 +150,7 @@ run_quick_checks() {
   if dns_test; then
     dns_status="OK"
   else
-    rc=$?
+    rc=$NO
     if [[ "$rc" -eq 2 ]]; then dns_status="SKIP (no tool)"; else dns_status="FAIL"; fi
   fi
   append "DNS resolve example.com: $dns_status"
@@ -258,7 +258,7 @@ run_full_checks() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Network Monitoring" "Red Team posture + health checks (read-only)"
+    ccdc_menu__header "Phase 1 -- Network Monitoring" "Red Team posture + health checks (read-only)"
     ccdc__log_kv "Quick" "$OUT_QUICK"
     ccdc__log_kv "Full"  "$OUT_SUMMARY"
     echo ""

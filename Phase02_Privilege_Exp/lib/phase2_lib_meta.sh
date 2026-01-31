@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # File:    phase2_lib_meta.sh
-# Purpose: Phase 2 (Privilege Expansion) — phase-local metadata + defaults
+# Purpose: Phase 2 (Privilege Expansion) -- phase-local metadata + defaults
 # Notes:   This file is ONLY about Phase 2. No cross-phase assumptions.
 # =============================================================================
 # shellcheck shell=bash
@@ -73,7 +73,7 @@ OUT_SUBDIR_NOTES="notes"
 SSH_CONNECT_TIMEOUT_SEC_DEFAULT="5"
 HTTP_TIMEOUT_SEC_DEFAULT="5"
 
-# Enumeration “depth” (light by default)
+# Enumeration "depth" (light by default)
 ENUM_MAX_TARGETS_DEFAULT="50"    # safety cap for loops over hosts
 ENUM_MAX_PORTS_DEFAULT="200"     # when doing targeted re-scans
 

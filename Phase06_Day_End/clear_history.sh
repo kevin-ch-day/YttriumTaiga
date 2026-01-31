@@ -6,6 +6,21 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+CONFIRM="${CONFIRM:-0}"
+if [[ "$CONFIRM" != "1" ]]; then
+    echo "[!] WARNING: This will shred history and system log files."
+    if [[ -t 0 ]]; then
+        read -r -p "Type CLEAR to proceed: " ans
+        if [[ "$ans" != "CLEAR" ]]; then
+            echo "[*] Aborted."
+            exit 1
+        fi
+    else
+        echo "[!] Non-interactive shell. Re-run with CONFIRM=1 to proceed."
+        exit 1
+    fi
+fi
+
 echo "=========================================================="
 echo "           Terminal Command History Cleaner               "
 echo "=========================================================="
@@ -41,7 +56,7 @@ for FILE in "${HISTORY_FILES[@]}"; do
     if [[ -f $FILE ]]; then
         echo "[*] Processing $FILE..."
         shred -u -z $FILE 2>/dev/null
-        if [[ $? -eq 0 ]]; then
+        if [[ $NO -eq 0 ]]; then
             echo "[+] Successfully deleted $FILE."
         else
             echo "[!] Failed to delete $FILE. Check permissions or file status."

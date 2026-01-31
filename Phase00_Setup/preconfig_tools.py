@@ -51,7 +51,7 @@ ALIASES = [
     "alias nmap_deep='nmap -A -T4 -Pn'",
 ]
 
-# “Tool name” (binary) -> apt packages to install
+# "Tool name" (binary) -> apt packages to install
 TOOLS = [
     ("nmap", ["nmap"]),
     ("curl", ["curl"]),

@@ -14,9 +14,9 @@ set -euo pipefail
 # Notes:
 # - No exploit automation. This is enumeration + reporting only.
 # - Integrates with:
-#   - phase2_lib_meta.sh for output subdirs and default tags :contentReference[oaicite:1]{index=1}
-#   - phase2_lib_runtime.sh for logging if available :contentReference[oaicite:2]{index=2}
-#   - phase2_lib_utils.sh for output dir resolution if available :contentReference[oaicite:3]{index=3}
+#   - phase2_lib_meta.sh for output subdirs and default tags
+#   - phase2_lib_runtime.sh for logging if available
+#   - phase2_lib_utils.sh for output dir resolution if available
 # ============================================================
 
 # -----------------------------
@@ -45,7 +45,7 @@ _phase2_privesc__log() {
 # -----------------------------
 : "${OUT_SUBDIR_ENUM:=enum}"
 : "${OUT_SUBDIR_PROOF:=proof}"
-: "${PROOF_TAG_DEFAULT:=privexp}"   # from meta :contentReference[oaicite:4]{index=4}
+: "${PROOF_TAG_DEFAULT:=privexp}"   # from meta
 
 # -----------------------------
 # Output dirs

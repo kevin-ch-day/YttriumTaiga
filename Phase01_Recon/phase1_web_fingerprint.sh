@@ -77,14 +77,18 @@ write_targets_used_from_file() {
   local f="$1"
   [[ -f "$f" ]] || return 1
   cat "$f" 2>/dev/null | sed '/^\s*$/d' | sort -u > "$TARGETS_USED"
+  [[ -s "$TARGETS_USED" ]] || return 1
   return 0
 }
 
 extract_targets_from_hits() {
   local hits="$1"
   [[ -f "$hits" ]] || return 1
+  local oct
+  oct="$(ccdc_net__team_octet "$TEAM" 2>/dev/null || true)"
+  [[ -n "$oct" ]] || return 1
   # first token is IP in our hits format
-  awk -v team="$TEAM" '$1 ~ ("^172\\.25\\."team"\\.") {print $1}' "$hits" 2>/dev/null | sort -u
+  awk -v oct="$oct" '$1 ~ ("^172\.25\."oct"\.") {print $1}' "$hits" 2>/dev/null | sort -u
 }
 
 build_targets_used() {
@@ -94,7 +98,10 @@ build_targets_used() {
 
   if [[ -f "$cand" ]]; then
     ccdc__log "[*] Using targets from candidates: $cand"
-    write_targets_used_from_file "$cand" && return 0
+    if write_targets_used_from_file "$cand"; then
+      return 0
+    fi
+    ccdc__warn "Candidates list is empty; falling back to hits/full scan."
   fi
 
   if [[ -f "$hits" ]]; then
@@ -132,7 +139,7 @@ probe_url() {
   body="$(ccdc_http__curl_tiny_get "$url")"
 
   title=""
-  if [[ "$status" =~ ^2|^3 ]]; then
+  if [[ "$status" =~ ^[23] ]]; then
     title="$(echo "$body" | ccdc_http__extract_title 2>/dev/null || true)"
     [[ -z "$title" ]] && title="$(ccdc_http__title_if_html "$url" "${ctype:-}")"
   fi
@@ -184,7 +191,7 @@ run_fingerprint() {
   init_outputs
   build_targets_used
 
-  ccdc__log "[*] Targets used: $TARGETS_USED ($(wc -l < "$TARGETS_USED" 2>/dev/null || echo "?") hosts)"
+  ccdc__log "[*] Targets used: $TARGETS_USED ($(wc -l < "$TARGETS_USED" 2>/dev/null || echo "NO") hosts)"
 
   local ip
   while read -r ip; do
@@ -202,7 +209,7 @@ run_fingerprint() {
 view_outputs_menu() {
   local choice file
   while true; do
-    ccdc_menu__header "Phase 1 — Web Fingerprint Outputs" "Choose a file to view"
+    ccdc_menu__header "Phase 1 -- Web Fingerprint Outputs" "Choose a file to view"
     choice="$(ccdc_menu__choose "Select output" 1 \
       "web_fingerprint.txt" \
       "web_fingerprint.csv" \
@@ -227,7 +234,7 @@ view_outputs_menu() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Web Fingerprint" "Read-only light fingerprinting"
+    ccdc_menu__header "Phase 1 -- Web Fingerprint" "Read-only light fingerprinting"
     ccdc__log_kv "Team" "$TEAM"
     ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
     ccdc__log_kv "Outputs" "${CCDC_OUT_DIR}"

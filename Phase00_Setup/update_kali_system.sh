@@ -191,7 +191,7 @@ ensure_keyring() {
 
 count_packages() {
   # package count (best-effort)
-  dpkg-query -f '.' -W 2>/dev/null | wc -c | tr -d ' ' || echo "?"
+  dpkg-query -f '.' -W 2>/dev/null | wc -c | tr -d ' ' || echo "NO"
 }
 
 do_upgrade() {
@@ -258,7 +258,7 @@ main() {
 
   capture_system_info
 
-  # quick environment hints (don’t block unless lock or non-kali)
+  # quick environment hints (don't block unless lock or non-kali)
   section "0a) Quick checks (network/dns/disk)"
   check_disk_space
   if command -v ip >/dev/null 2>&1 && command -v ping >/dev/null 2>&1; then

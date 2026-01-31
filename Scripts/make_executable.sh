@@ -179,4 +179,4 @@ done
 
 section "Done"
 echo "$(c "1;92" "[OK]") Updated executable bit on $changed file(s)."
-echo "$(c "1;92" "[OK]") Tip: run with --dry-run first if you’re unsure."
+echo "$(c "1;92" "[OK]") Tip: run with --dry-run first if you're unsure."

@@ -105,7 +105,7 @@ main() {
   phase2_log "[*] Wrote targets note: $report_path"
 
   # Offer to view it
-  if phase2_menu__confirm "Open targets note now?" "Y"; then
+  if phase2_menu__confirm "Open targets note nowNO" "Y"; then
     phase2_open_viewer "$report_path" || true
   fi
 

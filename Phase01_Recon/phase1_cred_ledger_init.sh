@@ -54,7 +54,7 @@ EOF
 )"
 
   service_map="$(cat <<EOF
-# Service Map (Phase 1) — Team ${team}
+# Service Map (Phase 1) -- Team ${team}
 
 Public subnet: ${pub_subnet}
 
@@ -64,7 +64,7 @@ EOF
 )"
 
   watchlist="$(cat <<EOF
-# Targets Watchlist — Team ${team}
+# Targets Watchlist -- Team ${team}
 
 Use this to track "likely OpenCart", "likely Webmail", "likely Splunk", etc.
 
@@ -88,7 +88,7 @@ EOF
 open_docs_menu() {
   local choice file
   while true; do
-    ccdc_menu__header "Phase 1 — Docs" "Open generated docs"
+    ccdc_menu__header "Phase 1 -- Docs" "Open generated docs"
     choice="$(ccdc_menu__choose "Select file" 1 \
       "cred_ledger.md" \
       "service_map.md" \
@@ -109,7 +109,7 @@ open_docs_menu() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Credential/Service Docs" "Initialize your working notes"
+    ccdc_menu__header "Phase 1 -- Credential/Service Docs" "Initialize your working notes"
     ccdc__log_kv "Team" "$TEAM"
     ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
     ccdc__log_kv "Output dir" "${CCDC_OUT_DIR}"

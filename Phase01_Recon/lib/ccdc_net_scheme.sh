@@ -85,14 +85,14 @@ ccdc_net__redteam_guidance() {
   cat <<'EOF'
 Red Team targeting guidance (Phase 1)
 
-✅ Primary recon surface:
+OK Primary recon surface:
 - 172.25.<team_octet>.0/24  (public/scoring network)
 
-⚠️ Usually "plumbing" (observe only / avoid touching unless rules allow):
+WARN Usually "plumbing" (observe only / avoid touching unless rules allow):
 - 172.31.<team_octet>.0/29  (core transit)
 - 172.16.x.x               (firewall/router interfaces)
 
-❌ Typically not directly accessible from outside / not your initial focus:
+NOT Typically not directly accessible from outside / not your initial focus:
 - 172.20.x.x               (internal LAN behind firewalls)
 EOF
 }

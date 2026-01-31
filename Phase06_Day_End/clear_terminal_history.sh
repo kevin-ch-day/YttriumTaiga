@@ -2,13 +2,28 @@
 
 # Description: This script securely clears terminal history for both bash and zsh shells.
 
+CONFIRM="${CONFIRM:-0}"
+if [[ "$CONFIRM" != "1" ]]; then
+    echo "[!] WARNING: This will clear shell history for this user."
+    if [[ -t 0 ]]; then
+        read -r -p "Type CLEAR to proceed: " ans
+        if [[ "$ans" != "CLEAR" ]]; then
+            echo "[*] Aborted."
+            exit 1
+        fi
+    else
+        echo "[!] Non-interactive shell. Re-run with CONFIRM=1 to proceed."
+        exit 1
+    fi
+fi
+
 # Function to securely clear bash history
 clear_bash_history() {
     if [ -f ~/.bash_history ]; then
         echo "[*] Clearing bash history..."
         history -c                      # Clear current session history
         > ~/.bash_history               # Empty the bash history file
-        history -w                      # Rewrite the history file to ensure it’s clean
+        history -w                      # Rewrite the history file to ensure it's clean
         echo "[+] Bash history cleared successfully."
     else
         echo "[-] Bash history file not found. Skipping..."

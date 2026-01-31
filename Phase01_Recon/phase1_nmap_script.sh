@@ -60,7 +60,7 @@ write_command_worksheet() {
   pub="$(ccdc__target_net "$TEAM")"
 
   {
-    echo "# Phase 1 — Nmap Worksheet (copy/paste commands you choose to run)"
+    echo "# Phase 1 -- Nmap Worksheet (copy/paste commands you choose to run)"
     echo "# Time: $(ccdc__now)"
     echo "# Team: ${TEAM}"
     echo "# Public subnet: ${pub}"
@@ -103,7 +103,7 @@ extract_hosts_from_ping_sweep() {
 
 menu_loop() {
   while true; do
-    ccdc_menu__header "Phase 1 — Nmap Workflow Assistant" "Organize recon commands + results (no scans run)"
+    ccdc_menu__header "Phase 1 -- Nmap Workflow Assistant" "Organize recon commands + results (no scans run)"
     ccdc__log_kv "Team" "$TEAM"
     ccdc__log_kv "Public subnet" "$(ccdc__target_net "$TEAM")"
     ccdc__log_kv "Workspace" "$BASE_DIR"

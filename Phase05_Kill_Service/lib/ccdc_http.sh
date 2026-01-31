@@ -93,15 +93,15 @@ ccdc_http__extract_header() {
 
 ccdc_http__extract_last_status() {
   local hdrs="${1:-}"
-  [[ -n "$hdrs" ]] || { echo "?"; return 0; }
+  [[ -n "$hdrs" ]] || { echo "NO"; return 0; }
 
   if ! _ccdc_http__need_cmd awk; then
     _ccdc_http__warn "awk missing; cannot parse HTTP status"
-    echo "?"
+    echo "NO"
     return 1
   fi
 
-  echo "$hdrs" | awk 'BEGIN{code="?"} toupper($0) ~ /^HTTP\// {code=$2} END{print code}'
+  echo "$hdrs" | awk 'BEGIN{code="NO"} toupper($0) ~ /^HTTP\// {code=$2} END{print code}'
 }
 
 ccdc_http__url_for_ip_port() {
@@ -210,7 +210,7 @@ ccdc_http__title_if_html() {
 
 ccdc_http__normalize_url() {
   local s="${1:-}"
-  if [[ "$s" =~ ^https?:// ]]; then
+  if [[ "$s" =~ ^httpsNO:// ]]; then
     echo "$s"
   else
     echo "http://${s}"
@@ -286,7 +286,7 @@ ccdc_http__fetch_fields() {
   hdrs="$(ccdc_http__curl_headers "$url" 2>/dev/null || true)"
   [[ -n "$hdrs" ]] || { echo "|||||"; return 1; }
 
-  status="$(ccdc_http__extract_last_status "$hdrs" || echo "?")"
+  status="$(ccdc_http__extract_last_status "$hdrs" || echo "NO")"
   server="$(ccdc_http__extract_header "$hdrs" "Server" || true)"
   xpb="$(ccdc_http__extract_header "$hdrs" "X-Powered-By" || true)"
   ctype="$(ccdc_http__extract_header "$hdrs" "Content-Type" || true)"

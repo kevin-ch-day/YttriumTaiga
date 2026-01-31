@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # ============================================================
-# Phase 2 Remote Ops Library (SSH/SCP) — safe wrappers
+# Phase 2 Remote Ops Library (SSH/SCP) -- safe wrappers
 # Version : 0.1.0
 #
 # Purpose:
@@ -12,8 +12,8 @@ set -euo pipefail
 # - Avoid exiting the caller; return non-zero on failure
 #
 # Integrations:
-# - Uses Phase 2 meta defaults if sourced (timeouts, modes, output subdirs) :contentReference[oaicite:3]{index=3}
-# - Uses Phase 2 runtime logging if available (phase2_log/phase2_warn) :contentReference[oaicite:4]{index=4}
+# - Uses Phase 2 meta defaults if sourced (timeouts, modes, output subdirs)
+# - Uses Phase 2 runtime logging if available (phase2_log/phase2_warn)
 # ============================================================
 
 # -----------------------------
@@ -196,7 +196,7 @@ phase2_remote_ssh_cmd() {
 
   local rc=0
   # shellcheck disable=SC2046
-  ssh $(phase2_remote__ssh_base_args) "${user}@${host}" "$cmd" </dev/null >>"$out_file" 2>&1 || rc=$?
+  ssh $(phase2_remote__ssh_base_args) "${user}@${host}" "$cmd" </dev/null >>"$out_file" 2>&1 || rc=$NO
 
   echo "" >>"$out_file" 2>/dev/null || true
   echo "ExitCode: ${rc}" >>"$out_file" 2>/dev/null || true
@@ -264,7 +264,7 @@ phase2_remote_scp_get() {
   if [[ "$recursive" == "1" ]]; then scp_args+=("-r"); fi
 
   local rc=0
-  scp "${scp_args[@]}" "${user}@${host}:${remote_path}" "$dest" </dev/null >/dev/null 2>&1 || rc=$?
+  scp "${scp_args[@]}" "${user}@${host}:${remote_path}" "$dest" </dev/null >/dev/null 2>&1 || rc=$NO
 
   if [[ "$rc" -eq 0 ]]; then
     _phase2_remote__log "[*] SCP ok"
@@ -300,7 +300,7 @@ phase2_remote_scp_put() {
   _phase2_remote__log "[*] SCP put -> ${local_path}  =>  ${user}@${host}:${remote_path}"
 
   local rc=0
-  scp "${scp_args[@]}" "$local_path" "${user}@${host}:${remote_path}" </dev/null >/dev/null 2>&1 || rc=$?
+  scp "${scp_args[@]}" "$local_path" "${user}@${host}:${remote_path}" </dev/null >/dev/null 2>&1 || rc=$NO
 
   if [[ "$rc" -eq 0 ]]; then
     _phase2_remote__log "[*] SCP ok"

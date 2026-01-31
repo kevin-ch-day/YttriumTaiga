@@ -104,15 +104,15 @@ phase2_http__extract_header() {
 
 phase2_http__extract_last_status() {
   local hdrs="${1:-}"
-  [[ -n "$hdrs" ]] || { echo "?"; return 0; }
+  [[ -n "$hdrs" ]] || { echo "NO"; return 0; }
 
   if ! _phase2_http__need_cmd awk; then
     _phase2_http__warn "awk missing; cannot parse HTTP status"
-    echo "?"
+    echo "NO"
     return 1
   fi
 
-  echo "$hdrs" | awk 'BEGIN{code="?"} toupper($0) ~ /^HTTP\// {code=$2} END{print code}'
+  echo "$hdrs" | awk 'BEGIN{code="NO"} toupper($0) ~ /^HTTP\// {code=$2} END{print code}'
 }
 
 phase2_http__url_for_ip_port() {
@@ -219,7 +219,7 @@ phase2_http__title_if_html() {
 
 phase2_http__normalize_url() {
   local s="${1:-}"
-  if [[ "$s" =~ ^https?:// ]]; then
+  if [[ "$s" =~ ^httpsNO:// ]]; then
     echo "$s"
   else
     echo "http://${s}"
@@ -297,7 +297,7 @@ phase2_http__fetch_fields() {
   hdrs="$(phase2_http__curl_headers "$url" 2>/dev/null || true)"
   [[ -n "$hdrs" ]] || { echo "|||||"; return 1; }
 
-  status="$(phase2_http__extract_last_status "$hdrs" || echo "?")"
+  status="$(phase2_http__extract_last_status "$hdrs" || echo "NO")"
   server="$(phase2_http__extract_header "$hdrs" "Server" || true)"
   xpb="$(phase2_http__extract_header "$hdrs" "X-Powered-By" || true)"
   ctype="$(phase2_http__extract_header "$hdrs" "Content-Type" || true)"
