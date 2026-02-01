@@ -10,8 +10,13 @@ Files:
 
 Rules:
 - Team19 is reserved for baseline connectivity and must not be targeted.
-- Keep CSVs as the source of truth; regenerate XLSX via `Scripts/ops_ledger_export.sh`.
+- Keep CSVs as the source of truth; regenerate XLSX via `Scripts/ops_ledger_export.sh`
+  (or run `Scripts/ops_ledger_add.sh`, which auto-exports by default).
 - Log times in Central Time using the format in `config/ccdc_rules.conf` (e.g., `1/21/2026 1:45 PM`).
+
+Ledger helper input:
+- `Scripts/ops_ledger_add.sh` accepts comma-separated team numbers, `Team#` tokens,
+  and ranges like `1-3`. Invalid entries are skipped with a warning.
 
 ## Shared intel (cross-phase)
 Phase outputs are written into `data/intel/` for cross-phase use:

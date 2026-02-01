@@ -1,6 +1,10 @@
-# YttriumTaiga
+# YttriumTaiga (v1)
 
 YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
+
+Versioning:
+- `config/version.conf` holds the current version and release date.
+- `config/version_info.sh` prints the current version banner.
 
 ## Table of contents
 
@@ -58,6 +62,7 @@ YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped 
 - Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 - Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`
+  - `ops_ledger_add.sh` accepts `Team#` tokens and ranges (e.g., `1-3`) and skips invalid entries.
 
 ## Phase quick start (at a glance)
 

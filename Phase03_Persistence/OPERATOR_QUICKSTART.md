@@ -17,8 +17,8 @@ Phase 03 is recoverable persistence + continuity + documentation. It is reversib
 - No actions that prevent recovery or disable scoring.
 - No auth/startup/service tampering beyond reversible, approved changes.
 
-## Outputs (file-based, phase-local)
-All outputs live under `Phase03_Persistence/output/`:
+## Outputs (file-based, shared intel)
+All outputs live under `data/intel/Phase03_Persistence/team_###/` (or `CCDC_INTEL_DIR` override):
 - `footholds.jsonl` (session/foothold ledger)
 - `reentry.txt` (re-entry + recovery plan)
 - `rules_safety.txt` (rules, stop conditions, approvals)

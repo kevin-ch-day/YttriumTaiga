@@ -15,6 +15,7 @@ OPS_EXPORT="${ROOT_DIR}/Scripts/ops_ledger_export.sh"
 RULES_FILE="${ROOT_DIR}/config/ccdc_rules.conf"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
+warn() { echo "WARN: $*" >&2; }
 need_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 [[ -f "$TEAMS_CSV" ]] || die "Missing ${TEAMS_CSV}"
@@ -76,20 +77,74 @@ normalize_list() {
   echo "$1" | tr -d ' ' | tr ',' ' '
 }
 
+validate_team() {
+  local team="$1"
+  if [[ ! "$team" =~ ^[0-9]+$ ]]; then
+    warn "Invalid team token: ${team}"
+    return 1
+  fi
+  if ((team < 1 || team > 20)); then
+    warn "Team${team} is out of range (1-20)."
+    return 1
+  fi
+  if [[ "$team" == "19" ]]; then
+    warn "Team19 is forbidden; skipping Success/Fail."
+    return 1
+  fi
+  return 0
+}
+
+mark_outcome() {
+  local team="$1"
+  local outcome="$2"
+  validate_team "$team" || return 0
+  if [[ "${outcomes[Team${team}]}" == "Success" && "$outcome" == "Fail" ]]; then
+    warn "Team${team} cannot be both Success and Fail; keeping Success."
+    return 0
+  fi
+  outcomes["Team${team}"]="$outcome"
+}
+
+normalize_token() {
+  local token="${1,,}"
+  token="${token#team}"
+  echo "$token"
+}
+
+expand_and_mark() {
+  local token
+  local outcome="$1"
+  local raw="$2"
+  token="$(normalize_token "$raw")"
+  if [[ "$token" =~ ^[0-9]+-[0-9]+$ ]]; then
+    local start="${token%-*}"
+    local end="${token#*-}"
+    if ((start > end)); then
+      warn "Invalid range ${raw}; start is greater than end."
+      return 0
+    fi
+    for t in $(seq "$start" "$end"); do
+      mark_outcome "$t" "$outcome"
+    done
+  else
+    mark_outcome "$token" "$outcome"
+  fi
+}
+
+declare -A seen_success
+declare -A seen_fail
 for t in $(normalize_list "$success_list"); do
   [[ -n "$t" ]] || continue
-  [[ "$t" == "19" ]] && die "Team19 is forbidden; cannot mark Success/Fail."
-  outcomes["Team${t}"]="Success"
+  [[ -n "${seen_success[$t]:-}" ]] && continue
+  seen_success["$t"]=1
+  expand_and_mark "Success" "$t"
 done
 
 for t in $(normalize_list "$fail_list"); do
   [[ -n "$t" ]] || continue
-  [[ "$t" == "19" ]] && die "Team19 is forbidden; cannot mark Success/Fail."
-  # prevent overwriting success
-  if [[ "${outcomes[Team${t}]}" == "Success" ]]; then
-    die "Team${t} cannot be both Success and Fail."
-  fi
-  outcomes["Team${t}"]="Fail"
+  [[ -n "${seen_fail[$t]:-}" ]] && continue
+  seen_fail["$t"]=1
+  expand_and_mark "Fail" "$t"
 done
 
 # Build row (CSV-safe for text fields)
