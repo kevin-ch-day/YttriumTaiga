@@ -15,12 +15,21 @@ An interactive helper is provided to append rows safely:
 
 It enforces:
 - Team19 cannot be marked Success/Fail
+- Team numbers must be valid (1-20), with invalid entries skipped
 - One row per action attempt
 
 Export helper (CSV -> XLSX):
 - `Scripts/ops_ledger_export.sh`
 Shared export module:
 - `Scripts/export_utils.py` (CSV/XLSX/JSONL helpers)
+Auto-export behavior:
+- `Scripts/ops_ledger_add.sh` runs the export script automatically when
+  `OPS_LEDGER_AUTO_EXPORT=1` (default).
+
+Accepted team input formats:
+- Comma-separated numbers (e.g., `1,2,7`)
+- `Team#` tokens (e.g., `Team4`)
+- Ranges (e.g., `1-3`)
 
 ## data/ops_teams.csv (stable reference)
 

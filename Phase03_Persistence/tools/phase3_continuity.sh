@@ -6,11 +6,11 @@ set -euo pipefail
 # Purpose : Phase 3 - Access Continuity (Persistence-lite)
 # Version : 0.1.0
 #
-# Outputs (Phase 3 dirs):
+# Outputs (Phase 3 dirs, see CCDC_OUT_DIR):
 #   ./logs/phase3_continuity.log
-#   ./output/footholds.jsonl
-#   ./output/reentry.txt
-#   ./output/rules_safety.txt
+#   ${CCDC_OUT_DIR}/footholds.jsonl
+#   ${CCDC_OUT_DIR}/reentry.txt
+#   ${CCDC_OUT_DIR}/rules_safety.txt
 # ============================================================
 
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -199,7 +199,7 @@ add_foothold() {
 
   # Optional: log to ops ledger
   if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
-    if ccdc_menu__confirm "Log this foothold to ops_matrix.csv?" "N"; then
+    if ccdc_menu__confirm "Log this foothold to ops_ledger.csv?" "N"; then
       "${PHASE_DIR}/../Scripts/ops_ledger_add.sh"
     fi
   fi
@@ -245,7 +245,7 @@ add_reentry_plan() {
 
   # Optional: log to ops ledger
   if [[ -x "${PHASE_DIR}/../Scripts/ops_ledger_add.sh" ]]; then
-    if ccdc_menu__confirm "Log this re-entry validation to ops_matrix.csv?" "N"; then
+    if ccdc_menu__confirm "Log this re-entry validation to ops_ledger.csv?" "N"; then
       "${PHASE_DIR}/../Scripts/ops_ledger_add.sh"
     fi
   fi
