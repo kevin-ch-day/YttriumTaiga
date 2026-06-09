@@ -154,20 +154,20 @@ phase2_intel__import_targets() {
   web_csv="${p1}/web_fingerprint.csv"
   ranked_csv="${p1}/targets_ranked.csv"
 
-  printf "ip,source,score,port,scheme,title,hints,reason\n" > "$out_csv" 2>/dev/null || return 1
+  printf "ip,source,score,port,scheme,title,hints,reason,security_header_gaps,meta_findings\n" > "$out_csv" 2>/dev/null || return 1
 
   if [[ -f "$ranked_csv" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_targets_ranked,%s,,,,,%s\n", $3, $2, $4}' "$ranked_csv" >> "$out_csv" 2>/dev/null || true
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_targets_ranked,%s,,,,,%s,,\n", $3, $2, $4}' "$ranked_csv" >> "$out_csv" 2>/dev/null || true
   fi
 
   if [[ -f "$services_csv" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_services,,%s,%s,%s,,service %s/%s\n", $1, $3, $2, $11, $2, $3}' "$services_csv" >> "$out_csv" 2>/dev/null || true
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_services,,%s,%s,%s,,service %s/%s,,\n", $1, $3, $2, $11, $2, $3}' "$services_csv" >> "$out_csv" 2>/dev/null || true
   fi
 
   if [[ -f "$web_hits" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_hits,,%s,%s,%s,%s,web hit\n", $1, $3, $2, $6, $12}' "$web_hits" >> "$out_csv" 2>/dev/null || true
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_hits,,%s,%s,%s,%s,web hit,%s,%s\n", $1, $3, $2, $6, $12, $13, $14}' "$web_hits" >> "$out_csv" 2>/dev/null || true
   elif [[ -f "$web_csv" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_fingerprint,,%s,%s,%s,%s,web fp\n", $1, $3, $2, $6, $12}' "$web_csv" >> "$out_csv" 2>/dev/null || true
+    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_fingerprint,,%s,%s,%s,%s,web fp,%s,%s\n", $1, $3, $2, $6, $12, $13, $14}' "$web_csv" >> "$out_csv" 2>/dev/null || true
   fi
 
   _phase2_intel__log "[*] Imported Phase 1 targets -> $out_csv"
@@ -226,9 +226,29 @@ phase2_intel__actionable_csv() {
 
   # 4) Web fingerprint hits (medium)
   if [[ -f "$web_hits" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_hits,MED,%s,%s,%s,%s\n", $1, $3, $2, $6, $12}' "$web_hits" >> "$out_csv" 2>/dev/null || true
+    awk -F',' '
+      NR==1 {next}
+      {
+        ip=$1; port=$3; scheme=$2; title=$6; hints=$12; sec=$13; meta=$14;
+        priority="MED";
+        notes="web hit";
+        if (tolower(hints) ~ /admin|login|dashboard|jenkins|tomcat|grafana|splunk|phpmyadmin|webmin|cockpit|proxmox|opencart|wordpress|drupal|joomla/) priority="HIGH";
+        if (meta!="") { notes=notes " meta=" meta; if (meta ~ /robots_meta_paths|cross_domain_policy_present/) priority="HIGH"; }
+        if (sec!="") notes=notes " sec=" sec;
+        printf "%s,phase1_web_hits,%s,%s,%s,%s,%s\n", ip, priority, port, scheme, hints, notes;
+      }' "$web_hits" >> "$out_csv" 2>/dev/null || true
   elif [[ -f "$web_csv" ]]; then
-    awk -F',' 'NR==1 {next} {printf "%s,phase1_web_fp,LOW,%s,%s,%s,%s\n", $1, $3, $2, $6, $12}' "$web_csv" >> "$out_csv" 2>/dev/null || true
+    awk -F',' '
+      NR==1 {next}
+      {
+        ip=$1; port=$3; scheme=$2; hints=$12; sec=$13; meta=$14;
+        priority="LOW";
+        notes="web fp";
+        if (tolower(hints) ~ /admin|login|dashboard|jenkins|tomcat|grafana|splunk|phpmyadmin|webmin|cockpit|proxmox|opencart|wordpress|drupal|joomla/) priority="MED";
+        if (meta!="") { notes=notes " meta=" meta; if (meta ~ /robots_meta_paths|cross_domain_policy_present/) priority="MED"; }
+        if (sec!="") notes=notes " sec=" sec;
+        printf "%s,phase1_web_fp,%s,%s,%s,%s,%s\n", ip, priority, port, scheme, hints, notes;
+      }' "$web_csv" >> "$out_csv" 2>/dev/null || true
   fi
 
   # Dedup by IP+port+source keeping highest priority ordering.
