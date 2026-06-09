@@ -150,6 +150,52 @@ json_escape() {
   echo "$s"
 }
 
+foothold_import_exists() {
+  # Import sources can be rerun during an event; keep generated entries idempotent
+  # by matching the stable fields instead of the timestamp.
+  local target="${1:-}"
+  local service="${2:-}"
+  local obtained="${3:-}"
+  local et es eo
+  et="$(json_escape "$target")"
+  es="$(json_escape "$service")"
+  eo="$(json_escape "$obtained")"
+
+  [[ -f "$FOOTHOLDS" ]] || return 1
+  grep -F "\"target\":\"${et}\"" "$FOOTHOLDS" 2>/dev/null \
+    | grep -F "\"service\":\"${es}\"" \
+    | grep -F "\"obtained\":\"${eo}\"" >/dev/null 2>&1
+}
+
+append_imported_foothold() {
+  local target="${1:-}"
+  local service="${2:-}"
+  local identity="${3:-}"
+  local access_type="${4:-}"
+  local obtained="${5:-}"
+  local notes="${6:-}"
+
+  [[ -n "$target" ]] || return 1
+  if foothold_import_exists "$target" "$service" "$obtained"; then
+    return 1
+  fi
+
+  printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
+    "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
+    "$(json_escape "$target")" \
+    "$(json_escape "$service")" \
+    "$(json_escape "$identity")" \
+    "$(json_escape "$access_type")" \
+    "unknown" \
+    "$(json_escape "$obtained")" \
+    "none" \
+    "false" \
+    "" \
+    "false" \
+    "$(json_escape "$notes")" \
+    >> "$FOOTHOLDS"
+}
+
 add_foothold() {
   require_captain_approval || return 1
 
@@ -350,68 +396,32 @@ auto_import_footholds() {
 
   if [[ -f "$svc_csv" ]]; then
     ccdc__log "[*] Importing from: $svc_csv"
-    awk -F',' 'NR>1 {print $1","$2","$3","$5}' "$svc_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r ip scheme port server; do
+    while IFS=',' read -r ip scheme port server; do
       [[ -n "$ip" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$ip" \
-        "${scheme}:${port}" \
-        "" \
-        "web" \
-        "unknown" \
-        "ph1_service_inventory" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "server=${server}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$ip" "${scheme}:${port}" "" "web" "ph1_service_inventory" "server=${server}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $1","$2","$3","$5}' "$svc_csv" 2>/dev/null | head -n 50)
   fi
 
   if [[ -f "$web_csv" ]]; then
     ccdc__log "[*] Importing from: $web_csv"
-    awk -F',' 'NR>1 {print $1","$2","$3","$4","$6}' "$web_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r ip scheme port path title; do
+    while IFS=',' read -r ip scheme port path title; do
       [[ -n "$ip" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$ip" \
-        "${scheme}:${port}${path}" \
-        "" \
-        "web" \
-        "unknown" \
-        "ph1_web_fingerprint" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "title=${title}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$ip" "${scheme}:${port}${path}" "" "web" "ph1_web_fingerprint" "title=${title}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $1","$2","$3","$4","$6}' "$web_csv" 2>/dev/null | head -n 50)
   fi
 
   if [[ -f "$creds_csv" ]]; then
     ccdc__log "[*] Importing from: $creds_csv"
-    awk -F',' 'NR>1 {print $4","$6","$8}' "$creds_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r user target status; do
+    while IFS=',' read -r user target status; do
       [[ -n "$target" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$target" \
-        "credential" \
-        "$user" \
-        "auth" \
-        "unknown" \
-        "ph2_cred_ledger" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "status=${status}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$target" "credential" "$user" "auth" "ph2_cred_ledger" "status=${status}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $4","$6","$8}' "$creds_csv" 2>/dev/null | head -n 50)
   fi
 
   ccdc__log "[*] Imported entries: ${count}"

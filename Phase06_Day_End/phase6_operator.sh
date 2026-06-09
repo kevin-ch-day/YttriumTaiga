@@ -14,7 +14,7 @@ echo "Phase 6 Operator (Day End)"
 echo "--------------------------"
 echo "1) System cleanup"
 echo "2) Clear terminal history"
-echo "3) Clear shell history (current session)"
+echo "3) Shred shell history and system logs (root)"
 echo "0) Exit"
 
 read -r -p "Choose [1-3]: " choice || choice=""

@@ -153,7 +153,7 @@ run_quick_checks() {
   if dns_test; then
     dns_status="OK"
   else
-    rc=$NO
+    rc=$?
     if [[ "$rc" -eq 2 ]]; then dns_status="SKIP (no tool)"; else dns_status="FAIL"; fi
   fi
   append "DNS resolve example.com: $dns_status"

@@ -27,7 +27,7 @@ if [[ ! -f "${SCRIPT_DIR}/export_cli.py" ]]; then
   exit 2
 fi
 
-"${PYTHON_BIN}" - <<'PY' || {
+if ! "${PYTHON_BIN}" - <<'PY'; then
 import sys
 try:
     import openpyxl  # noqa: F401
@@ -36,6 +36,8 @@ except Exception as exc:
     print("  pip3 install openpyxl", file=sys.stderr)
     sys.exit(1)
 PY
+  exit 1
+fi
 
 for name in ops_teams ops_ledger; do
   csv_path="${DATA_DIR}/${name}.csv"

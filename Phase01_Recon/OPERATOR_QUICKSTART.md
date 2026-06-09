@@ -73,9 +73,11 @@ Example:
 
 ## If the candidate list is empty
 `phase1_web_fingerprint.sh` will fall back automatically:
-1) `targets_candidates.txt`
-2) `services_hits.txt`
-3) full public `/24` (slowest)
+1) `services.csv` from the inventory run
+2) `data/ops_known_hosts.csv`
+3) `targets_candidates.txt`
+4) `services_hits.txt`
+5) full public `/24` (slowest)
 
 If results are still empty:
 - verify the team/subnet mapping (see `lib/ccdc_net_scheme.sh`)

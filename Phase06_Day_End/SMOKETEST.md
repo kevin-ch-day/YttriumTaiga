@@ -1,7 +1,7 @@
 # Phase 06 - 3-Minute Smoke Test
 
 1) Verify scripts are executable
-   - `chmod +x Phase06_Day_End/*.sh`
+   - `chmod +x Phase06_Day_End/*.sh Phase06_Day_End/tools/*.sh`
 
 2) Dry-run checks (no system impact)
    - Run each script and abort at confirmation prompt:

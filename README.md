@@ -15,6 +15,7 @@ Versioning:
 - [Phase quick start (at a glance)](#phase-quick-start-at-a-glance)
 - [Outputs and logs](#outputs-and-logs)
 - [Network model (Phase 01 default)](#network-model-phase-01-default)
+- [Tuning](#tuning)
 - [Notes](#notes)
 
 ## Structure
@@ -26,7 +27,7 @@ Versioning:
 - `Phase04_Controlled_Disruption/` - Placeholder scaffold.
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
-- `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup).
+- `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup, event-data verification).
 
 ## Phase pattern (shared conventions)
 
@@ -49,7 +50,7 @@ Versioning:
 
 - `data/ops_teams.csv` - team metadata and subnet mapping (Team19 is not targetable)
 - `data/ops_ledger.csv` - action outcomes matrix (one row per action attempt)
-- Excel copies (view only): `data/ops_teams.xlsx`, `data/ops_ledger.xlsx`
+- Excel copies (view only): generated from CSVs with `Scripts/ops_ledger_export.sh`
 - Contract/details: `OPS_LEDGER.md`
 
 ## Useful scripts
@@ -63,6 +64,7 @@ Versioning:
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 - Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`
   - `ops_ledger_add.sh` accepts `Team#` tokens and ranges (e.g., `1-3`) and skips invalid entries.
+- Event-data safety check: `Scripts/verify_no_event_data.sh`
 
 ## Phase quick start (at a glance)
 
@@ -83,9 +85,17 @@ Versioning:
 
 ## Outputs and logs
 
-Each phase writes artifacts locally under that phase directory:
-- `logs/` - runtime logs (per script run)
-- `output/` - generated artifacts (CSVs, notes, ledgers)
+Each phase writes runtime logs locally under that phase directory:
+- `logs/` - runtime logs (per script run; gitignored)
+
+Phase 01-03 team intel is written centrally for cross-phase use:
+- `data/intel/Phase01_Recon/team_###/`
+- `data/intel/Phase02_Privilege_Exp/team_###/`
+- `data/intel/Phase03_Persistence/team_###/`
+
+Live intel, loot, proof files, credential ledgers, and generated spreadsheets are
+gitignored. Run `Scripts/verify_no_event_data.sh` before pushing from event
+systems.
 
 If you use `sudo`, Phase 01-03 runtimes now fix ownership so you can still edit/delete outputs as your user.
 
@@ -99,10 +109,16 @@ If you use `sudo`, Phase 01-03 runtimes now fix ownership so you can still edit/
 CSV override supported:
 - Set `CCDC_TEAM_MAP_CSV=/path/to/ccdc_team_map.csv`, or drop it next to the phase lib.
 
+## Tuning
+
+Common event-day knobs are documented in `OPERATOR_TUNING.md`.
+
 ## Notes
 
 - Most scripts are designed to be safe and low-noise unless explicitly configured otherwise.
-- Phase 0-2 are implemented; Phase 3-5 are scaffolds for future build-out.
+- Phase 0-3 are implemented. Phase 3 is persistence-lite continuity
+  documentation, not live persistence deployment.
+- Phase 4-5 are scaffolds for future build-out.
 - Phase 01 scripts prompt for Team Selection before showing action menus.
 - Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
 - Phase 01 operators: `phase1_operator.sh` (single entry). Advanced tools in `Phase01_Recon/tools/`.
