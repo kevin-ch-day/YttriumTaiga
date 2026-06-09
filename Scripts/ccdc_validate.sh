@@ -104,6 +104,8 @@ required_files=(
   "data/ops_teams.csv"
   "data/ops_ledger.csv"
   "data/ops_known_hosts.csv"
+  "data/schemas/manifest.csv"
+  "Scripts/ccdc_schema_check.py"
   "Scripts/verify_no_event_data.sh"
 )
 for f in "${required_files[@]}"; do
@@ -171,6 +173,12 @@ else
 fi
 
 section "Repo invariants"
+if Scripts/ccdc_schema_check.py; then
+  ok "CSV schema manifest"
+else
+  bad "CSV schema manifest"
+fi
+
 if awk -F',' 'NR==20 && $1=="Team19" && $8=="no" {found=1} END{exit found?0:1}' data/ops_teams.csv; then
   ok "Team19 targetable=no in ops_teams.csv"
 else

@@ -21,6 +21,9 @@ during a CCDC event.
 - Team 19 is baseline/reserved and must not be targeted.
 - `data/ops_teams.csv` and `data/ops_ledger.csv` are tracked source-of-truth
   CSVs.
+- CSV headers are governed by `data/schemas/`. `manifest.csv` maps tracked CSVs
+  to exact header schemas, and generated runtime artifact schemas are documented
+  there as `*.header` files.
 - Runtime intel goes under `data/intel/<Phase>/team_###/`.
 - Live event intel, credential ledgers, proof files, loot, logs, phase output,
   and generated XLSX files are local runtime artifacts and must not be pushed.
@@ -48,6 +51,7 @@ The validation harness checks:
 - core command availability
 - Bash and Python syntax
 - Team 19 and ops-ledger invariants
+- CSV schema drift
 - tracked event-data hygiene
 - optional XLSX export path
 

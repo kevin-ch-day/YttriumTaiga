@@ -7,6 +7,7 @@ Files:
 - `ops_ledger.csv` — action outcomes ledger (one row per action attempt)
 - `ops_known_hosts.csv` — known IPs by team to seed targeting
 - `ops_teams.xlsx` / `ops_ledger.xlsx` — generated view-only exports
+- `schemas/` — machine-readable CSV header contracts
 
 Rules:
 - Team19 is reserved for baseline connectivity and must not be targeted.
@@ -15,6 +16,8 @@ Rules:
 - Log times in Central Time using the format in `config/ccdc_rules.conf` (e.g., `1/21/2026 1:45 PM`).
 - Do not commit live event intel, credential ledgers, loot, proof files, or
   session cookies. Run `Scripts/verify_no_event_data.sh` before pushing.
+- Validate tracked CSV headers with `Scripts/ccdc_schema_check.py` or the full
+  preflight `Scripts/ccdc_validate.sh`.
 
 Ledger helper input:
 - `Scripts/ops_ledger_add.sh` accepts comma-separated team numbers, `Team#` tokens,
