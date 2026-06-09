@@ -464,13 +464,19 @@ generate_reentry_from_ledger() {
     return 1
   fi
 
-  {
-    echo ""
-    echo "# Auto-generated Re-entry Sections ($(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date))"
-  } >> "$REENTRY"
-
+  local generated=0
   awk -F'"' '/\"target\":/ {for(i=1;i<=NF;i++){if($i=="target"){t=$(i+2)} if($i=="service"){s=$(i+2)} if($i=="identity"){u=$(i+2)} if($i=="stability"){st=$(i+2)} if($i=="sensitive_service"){ss=$(i+2)}} if(t!=""){print t"\t"s"\t"u"\t"st"\t"ss}}' "$FOOTHOLDS" \
     | sort -u | while IFS=$'\t' read -r t s u st ss; do
+      if grep -Fq "## Re-entry: ${t}" "$REENTRY" 2>/dev/null; then
+        continue
+      fi
+      if [[ "$generated" -eq 0 ]]; then
+        {
+          echo ""
+          echo "# Auto-generated Re-entry Sections ($(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date))"
+        } >> "$REENTRY"
+        generated=1
+      fi
       {
         echo ""
         echo "## Re-entry: ${t}"
@@ -489,7 +495,7 @@ generate_reentry_from_ledger() {
       } >> "$REENTRY"
     done
 
-  ccdc__log "[*] Generated re-entry sections from ledger."
+  ccdc__log "[*] Generated re-entry sections from ledger (existing targets skipped)."
 }
 
 recovery_summary() {

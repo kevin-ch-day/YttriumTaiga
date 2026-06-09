@@ -195,31 +195,42 @@ phase2_creds_set_status() {
   csv="$(phase2_creds__csv_path)" || return 1
   tmp="${csv}.tmp.$$"
 
-  command -v awk >/dev/null 2>&1 || { _phase2_creds__warn "awk required for set_status"; return 1; }
+  command -v python3 >/dev/null 2>&1 || { _phase2_creds__warn "python3 required for safe credential updates"; return 1; }
 
   local rc=0
-  awk -v id="$id" -v st="$new_status" -v nn="$add_notes" -F',' '
-    BEGIN { OFS=","; }
-    NR==1 { print; next; }
-    {
-      # strip quotes for id compare (best effort)
-      rid=$1; gsub(/^"+|"+$/, "", rid);
-      if (rid==id) {
-        matched=1;
-        # status col = 8, notes col = 9
-        $8="\""st"\"";
-        if (nn!="") {
-          # append note (preserve existing)
-          n=$9; gsub(/^"+|"+$/, "", n);
-          if (n=="") n=nn; else n=n" | "nn;
-          gsub(/"/, "\"\"", n);
-          $9="\""n"\"";
-        }
-      }
-      print;
-    }
-    END { if (!matched) exit 42; }
-  ' "$csv" > "$tmp" || rc=$?
+  PHASE2_CRED_ID="$id" PHASE2_CRED_STATUS="$new_status" PHASE2_CRED_NOTES="$add_notes" \
+    python3 - "$csv" "$tmp" <<'PY' || rc=$?
+import csv
+import os
+import sys
+
+src, dst = sys.argv[1], sys.argv[2]
+target_id = os.environ["PHASE2_CRED_ID"]
+new_status = os.environ["PHASE2_CRED_STATUS"]
+add_notes = os.environ.get("PHASE2_CRED_NOTES", "")
+matched = False
+
+with open(src, newline="", encoding="utf-8") as handle:
+    reader = csv.DictReader(handle)
+    fieldnames = reader.fieldnames or []
+    rows = list(reader)
+
+for row in rows:
+    if row.get("id") == target_id:
+        matched = True
+        row["status"] = new_status
+        if add_notes:
+            existing = row.get("notes", "")
+            row["notes"] = add_notes if not existing else f"{existing} | {add_notes}"
+
+if not matched:
+    sys.exit(42)
+
+with open(dst, "w", newline="", encoding="utf-8") as handle:
+    writer = csv.DictWriter(handle, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows)
+PY
 
   if [[ "$rc" -ne 0 ]]; then
     rm -f "$tmp"
@@ -252,19 +263,26 @@ phase2_creds_list() {
     return 0
   fi
 
-  command -v awk >/dev/null 2>&1 || { _phase2_creds__warn "awk required for masked credential listing"; return 1; }
+  command -v python3 >/dev/null 2>&1 || { _phase2_creds__warn "python3 required for masked credential listing"; return 1; }
 
-  awk -F',' '
-    NR==1 { print; next; }
-    {
-      # mask secret column (5)
-      s=$5;
-      gsub(/^"+|"+$/, "", s);
-      if (length(s)<=4) s="****"; else s="****"substr(s,length(s)-3,4);
-      $5="\""s"\"";
-      print;
-    }
-  ' "$csv"
+  python3 - "$csv" <<'PY'
+import csv
+import sys
+
+def mask(secret: str) -> str:
+    if not secret:
+        return ""
+    return "****" if len(secret) <= 4 else f"****{secret[-4:]}"
+
+with open(sys.argv[1], newline="", encoding="utf-8") as handle:
+    reader = csv.DictReader(handle)
+    fieldnames = reader.fieldnames or []
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
+    writer.writeheader()
+    for row in reader:
+        row["secret"] = mask(row.get("secret", ""))
+        writer.writerow(row)
+PY
 }
 
 phase2_creds_best_for_target() {
@@ -276,22 +294,30 @@ phase2_creds_best_for_target() {
 
   local csv
   csv="$(phase2_creds__csv_path)" || return 1
-  command -v awk >/dev/null 2>&1 || { _phase2_creds__warn "awk required"; return 1; }
+  command -v python3 >/dev/null 2>&1 || { _phase2_creds__warn "python3 required for credential filtering"; return 1; }
 
-  awk -v t="$token" -F',' '
-    NR==1 { next; }
-    {
-      # target col = 6, status col = 8
-      tgt=$6; st=$8;
-      gsub(/^"+|"+$/, "", tgt);
-      gsub(/^"+|"+$/, "", st);
-      if (index(tgt, t)>0) {
-        s=$5;
-        gsub(/^"+|"+$/, "", s);
-        if (length(s)<=4) s="****"; else s="****"substr(s,length(s)-3,4);
-        $5="\""s"\"";
-        print $0;
-      }
-    }
-  ' "$csv"
+  PHASE2_CRED_FILTER="$token" python3 - "$csv" <<'PY'
+import csv
+import os
+import sys
+
+def mask(secret: str) -> str:
+    if not secret:
+        return ""
+    return "****" if len(secret) <= 4 else f"****{secret[-4:]}"
+
+token = os.environ["PHASE2_CRED_FILTER"]
+with open(sys.argv[1], newline="", encoding="utf-8") as handle:
+    reader = csv.DictReader(handle)
+    fieldnames = reader.fieldnames or []
+    writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, lineterminator="\n")
+    wrote_header = False
+    for row in reader:
+        if token in row.get("target", ""):
+            if not wrote_header:
+                writer.writeheader()
+                wrote_header = True
+            row["secret"] = mask(row.get("secret", ""))
+            writer.writerow(row)
+PY
 }

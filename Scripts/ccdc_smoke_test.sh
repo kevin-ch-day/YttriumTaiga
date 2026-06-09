@@ -93,6 +93,30 @@ else
   fail "Phase 2 promotes high-signal web finding"
 fi
 
+phase2_out="${intel_dir}/Phase02_Privilege_Exp/team_001"
+if CCDC_INTEL_DIR="$intel_dir" PHASE2_BATCH=1 PHASE2_BRIEF=1 bash Phase02_Privilege_Exp/tools/phase2_targets.sh 1 >/dev/null; then
+  ok "Phase 2 direct targets run"
+else
+  fail "Phase 2 direct targets run"
+fi
+assert_file "Phase 2 direct targets use intel output" "${phase2_out}/phase2_targets_team1.txt"
+
+section "Phase 2 credential CSV handling"
+cred_out="${TMP_DIR}/phase2_creds"
+mkdir -p "$cred_out"
+if PHASE2_OUT_DIR="$cred_out" bash -c '
+  source Phase02_Privilege_Exp/lib/phase2_lib_meta.sh
+  source Phase02_Privilege_Exp/lib/phase2_lib_creds.sh
+  cid="$(phase2_creds_add password admin "alpha,beta" "172.25.21.10:22" "file:/tmp/a,b" "note,with,comma" untested | tail -n1)"
+  phase2_creds_best_for_target "172.25.21.10" > "$PHASE2_OUT_DIR/matches.csv"
+  ! rg -q "alpha,beta" "$PHASE2_OUT_DIR/matches.csv"
+  phase2_creds_set_status "$cid" valid "works,with,comma"
+'; then
+  ok "Phase 2 credential CSV handles commas and masks filtered output"
+else
+  fail "Phase 2 credential CSV handles commas and masks filtered output"
+fi
+
 section "Phase 3 continuity import"
 mkdir -p "${intel_dir}/Phase01_Recon/team_002"
 cat > "${intel_dir}/Phase01_Recon/team_002/services.csv" <<'EOF'
@@ -124,6 +148,14 @@ then
   ok "Phase 3 footholds JSONL is valid"
 else
   fail "Phase 3 footholds JSONL is valid"
+fi
+
+before_count="$(grep -c '^## Re-entry:' "${p3_dir}/reentry.txt" 2>/dev/null || echo 0)"
+if CCDC_INTEL_DIR="$intel_dir" CAPTAIN_APPROVED=1 CCDC_BATCH=1 bash Phase03_Persistence/tools/phase3_continuity.sh 2 >/dev/null; then
+  after_count="$(grep -c '^## Re-entry:' "${p3_dir}/reentry.txt" 2>/dev/null || echo 0)"
+  assert_eq "Phase 3 re-entry generation is idempotent" "$before_count" "$after_count"
+else
+  fail "Phase 3 re-entry idempotency rerun"
 fi
 
 section "Event-data hygiene"

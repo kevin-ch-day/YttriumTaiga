@@ -85,16 +85,7 @@ load_rules() {
 }
 
 set_intel_out_dir() {
-  local team="$1"
-  load_rules
-  local base="${PHASE_DIR}/.."
-  local intel="${CCDC_INTEL_DIR:-data/intel}"
-  if [[ "$intel" = /* ]]; then
-    PHASE2_OUT_DIR="${intel}/Phase02_Privilege_Exp/team_$(printf "%03d" "$team")"
-  else
-    PHASE2_OUT_DIR="${base}/${intel}/Phase02_Privilege_Exp/team_$(printf "%03d" "$team")"
-  fi
-  export PHASE2_OUT_DIR
+  phase2_set_team_out_dir "$1"
 }
 
 pick_team_from_list() {
