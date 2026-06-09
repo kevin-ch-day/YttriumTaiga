@@ -134,7 +134,7 @@ main() {
 
   # Offer to view it (skip in batch/non-interactive)
   if [[ "${PHASE2_BATCH:-0}" != "1" ]] && phase2_menu__is_interactive; then
-    if phase2_menu__confirm "Open targets note nowNO" "Y"; then
+    if phase2_menu__confirm "Open targets note now?" "Y"; then
       phase2_open_viewer "$report_path" || true
     fi
   fi

@@ -179,6 +179,8 @@ phase2_remote_ssh_cmd() {
   local ts slug out_file
   ts="$(phase2_remote__now_utc)"
   slug="$(phase2_remote__safe_slug "${user}@${host}")"
+  tag="$(phase2_remote__safe_slug "$tag")"
+  [[ -n "$tag" ]] || tag="cmd"
   out_file="${proof_dir}/${slug}.${tag}.${ts}.txt"
 
   _phase2_remote__log "[*] SSH cmd -> ${user}@${host}  (tag=${tag})"
@@ -247,10 +249,12 @@ phase2_remote_scp_get() {
     local_name="$(basename "$remote_path" 2>/dev/null || echo "loot.bin")"
   fi
 
-  local ts slug dest
+  local ts slug safe_name dest
   ts="$(phase2_remote__now_utc)"
   slug="$(phase2_remote__safe_slug "${user}@${host}")"
-  dest="${loot_dir}/${slug}.${ts}.${local_name}"
+  safe_name="$(phase2_remote__safe_slug "$local_name")"
+  [[ -n "$safe_name" ]] || safe_name="loot.bin"
+  dest="${loot_dir}/${slug}.${ts}.${safe_name}"
 
   _phase2_remote__log "[*] SCP get -> ${user}@${host}:${remote_path}"
   _phase2_remote__log "[*] Loot    -> ${dest}"

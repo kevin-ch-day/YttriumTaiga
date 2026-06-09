@@ -25,8 +25,10 @@ fi
 load_rules() {
   local rules="${PHASE_DIR}/../config/ccdc_rules.conf"
   if [[ -f "$rules" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
     # shellcheck disable=SC1090
     source "$rules" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
   fi
 }
 
@@ -40,6 +42,7 @@ set_intel_out_dir() {
   else
     export CCDC_OUT_DIR="${base}/${intel}/Phase03_Persistence/team_$(printf "%03d" "$team")"
   fi
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || true
   export CCDC_OUT_DIR_BASE="${CCDC_OUT_DIR}"
 }
 
@@ -96,8 +99,8 @@ pick_scope() {
 
 run_for_team() {
   local team="$1"
-  ccdc__save_last_team "$team" || true
   set_intel_out_dir "$team"
+  ccdc__save_last_team "$team" || true
   CCDC_TEAM_LOCK=1 "$MAIN" "$team"
 }
 

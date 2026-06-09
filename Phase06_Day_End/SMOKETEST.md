@@ -5,9 +5,9 @@
 
 2) Dry-run checks (no system impact)
    - Run each script and abort at confirmation prompt:
-     - `./tools/clear_terminal_history.sh` (type anything except CLEAR)
-     - `sudo ./tools/clear_history.sh` (type anything except CLEAR)
-     - `sudo ./tools/system_cleanup.sh` (type anything except CLEAN)
+     - `Phase06_Day_End/tools/clear_terminal_history.sh` (type anything except CLEAR)
+     - `sudo Phase06_Day_End/tools/clear_history.sh` (type anything except CLEAR)
+     - `sudo Phase06_Day_End/tools/system_cleanup.sh` (type anything except CLEAN)
 
 3) Confirm warnings are shown
    - Root warning appears if `tools/clear_terminal_history.sh` is run with sudo

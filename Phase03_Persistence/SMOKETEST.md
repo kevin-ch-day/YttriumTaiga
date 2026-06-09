@@ -9,7 +9,7 @@
 
 3) Run operator (menu should render)
    - `CAPTAIN_APPROVED=1 ./Phase03_Persistence/phase3_operator.sh`
-   - If prompted, enter captain initials to create `approved_actions.md`
+   - If prompted, enter captain initials to create a live `approved_actions.md`
    - Exit after menu renders; confirm log file exists in `Phase03_Persistence/logs/`.
    - If you only see a prompt, scroll up for the menu.
 
@@ -18,6 +18,6 @@
    - `data/intel/Phase03_Persistence/team_###/footholds.csv`
    - `data/intel/Phase03_Persistence/team_###/reentry.txt`
    - `data/intel/Phase03_Persistence/team_###/rules_safety.txt`
-   - `Phase03_Persistence/approved_actions.md` (if prompted)
+   - `Phase03_Persistence/approved_actions.md` with a non-comment `time=... | initials=... | category=...` entry (if prompted)
 
 If any step fails, check the script log in `Phase03_Persistence/logs/` first.

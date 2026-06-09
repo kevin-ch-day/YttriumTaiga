@@ -197,6 +197,7 @@ phase2_creds_set_status() {
 
   command -v awk >/dev/null 2>&1 || { _phase2_creds__warn "awk required for set_status"; return 1; }
 
+  local rc=0
   awk -v id="$id" -v st="$new_status" -v nn="$add_notes" -F',' '
     BEGIN { OFS=","; }
     NR==1 { print; next; }
@@ -204,6 +205,7 @@ phase2_creds_set_status() {
       # strip quotes for id compare (best effort)
       rid=$1; gsub(/^"+|"+$/, "", rid);
       if (rid==id) {
+        matched=1;
         # status col = 8, notes col = 9
         $8="\""st"\"";
         if (nn!="") {
@@ -216,7 +218,16 @@ phase2_creds_set_status() {
       }
       print;
     }
-  ' "$csv" > "$tmp" || { rm -f "$tmp"; return 1; }
+    END { if (!matched) exit 42; }
+  ' "$csv" > "$tmp" || rc=$?
+
+  if [[ "$rc" -ne 0 ]]; then
+    rm -f "$tmp"
+    if [[ "$rc" -eq 42 ]]; then
+      _phase2_creds__warn "No credential ID found: ${id}"
+    fi
+    return 1
+  fi
 
   mv "$tmp" "$csv" || return 1
 
@@ -241,7 +252,7 @@ phase2_creds_list() {
     return 0
   fi
 
-  command -v awk >/dev/null 2>&1 || { cat "$csv"; return 0; }
+  command -v awk >/dev/null 2>&1 || { _phase2_creds__warn "awk required for masked credential listing"; return 1; }
 
   awk -F',' '
     NR==1 { print; next; }
@@ -275,6 +286,10 @@ phase2_creds_best_for_target() {
       gsub(/^"+|"+$/, "", tgt);
       gsub(/^"+|"+$/, "", st);
       if (index(tgt, t)>0) {
+        s=$5;
+        gsub(/^"+|"+$/, "", s);
+        if (length(s)<=4) s="****"; else s="****"substr(s,length(s)-3,4);
+        $5="\""s"\"";
         print $0;
       }
     }

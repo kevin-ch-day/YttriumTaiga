@@ -1,5 +1,8 @@
 # Phase 03 - Captain Approved Actions
 
+# Copy this file to `approved_actions.md` during an event and add a real
+# approval line. The live `approved_actions.md` file is gitignored.
+
 # Format:
 # time=<UTC> | initials=<CAPT> | category=<approved action category>
 

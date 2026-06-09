@@ -131,7 +131,8 @@ Common event-day knobs are documented in `OPERATOR_TUNING.md`.
   documentation, not live persistence deployment.
 - Phase 4-5 are scaffolds for future build-out.
 - Phase 01 scripts prompt for Team Selection before showing action menus.
-- Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
+- Phase 01-03 team intel is stored under `data/intel/<phase>/team_###/`.
+  Phase-local `output/` is legacy/fallback runtime state.
 - Phase 01 operators: `phase1_operator.sh` (single entry). Advanced tools in `Phase01_Recon/tools/`.
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
 - Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).

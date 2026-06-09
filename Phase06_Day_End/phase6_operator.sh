@@ -12,7 +12,7 @@ PHASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo ""
 echo "Phase 6 Operator (Day End)"
 echo "--------------------------"
-echo "1) System cleanup"
+echo "1) System cleanup (root)"
 echo "2) Clear terminal history"
 echo "3) Shred shell history and system logs (root)"
 echo "0) Exit"
@@ -23,6 +23,7 @@ case "$choice" in
   1) exec "${PHASE_DIR}/tools/system_cleanup.sh" ;;
   2) exec "${PHASE_DIR}/tools/clear_terminal_history.sh" ;;
   3) exec "${PHASE_DIR}/tools/clear_history.sh" ;;
-  0|q|Q|"") exit 0 ;;
+  0|q|Q) exit 0 ;;
+  "") echo "No selection made."; exit 1 ;;
   *) echo "Invalid selection."; exit 1 ;;
 esac

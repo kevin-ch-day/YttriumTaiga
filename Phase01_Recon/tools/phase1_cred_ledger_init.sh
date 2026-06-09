@@ -170,7 +170,7 @@ main() {
     TEAM="$TEAM_PARSED"
   fi
 
-  if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+  if [[ "${CCDC_BATCH:-0}" == "1" || "${CCDC_TEAM_LOCK:-0}" == "1" ]]; then
     if [[ -z "${TEAM:-}" ]]; then
       ccdc__warn "Team not set for batch run."
       return 1

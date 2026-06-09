@@ -27,6 +27,7 @@ data/intel/*
 **/*secret*
 **/*token*
 **/*loot*
+Phase03_Persistence/approved_actions.md
 
 # OS/editor
 .DS_Store

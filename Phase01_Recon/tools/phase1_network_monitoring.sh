@@ -123,7 +123,9 @@ run_quick_checks() {
   ccdc__section "Quick checks"
   init_outputs
 
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
+  if [[ -z "${TEAM:-}" ]]; then
+    TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
+  fi
 
   write_quick_block
   append "Network Monitoring + Health Check"

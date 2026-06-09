@@ -35,6 +35,29 @@ PHASE1_DIR=""
 PHASE2_DIR=""
 INTEL_BASE=""
 
+set_default_team_out_dir() {
+  local team="${1:-}"
+  [[ -n "$team" ]] || return 0
+
+  local rules="${PHASE_DIR}/../config/ccdc_rules.conf"
+  if [[ -f "$rules" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
+    # shellcheck disable=SC1090
+    source "$rules" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
+  fi
+
+  local base intel
+  base="$(cd "${PHASE_DIR}/.." && pwd)"
+  intel="${CCDC_INTEL_DIR:-data/intel}"
+  if [[ "$intel" = /* ]]; then
+    CCDC_OUT_DIR="${intel}/Phase03_Persistence/team_$(printf "%03d" "$team")"
+  else
+    CCDC_OUT_DIR="${base}/${intel}/Phase03_Persistence/team_$(printf "%03d" "$team")"
+  fi
+  export CCDC_OUT_DIR
+}
+
 init_outputs() {
   FOOTHOLDS="${CCDC_OUT_DIR}/footholds.jsonl"
   FOOTHOLDS_CSV="${CCDC_OUT_DIR}/footholds.csv"
@@ -43,8 +66,10 @@ init_outputs() {
   APPROVALS="${PHASE_DIR}/approved_actions.md"
   INTEL_BASE="$(cd "${PHASE_DIR}/.." && pwd)/data/intel"
   if [[ -f "${PHASE_DIR}/../config/ccdc_rules.conf" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
     # shellcheck disable=SC1090
     source "${PHASE_DIR}/../config/ccdc_rules.conf" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
   fi
   if [[ -n "${CCDC_INTEL_DIR:-}" ]]; then
     if [[ "${CCDC_INTEL_DIR}" = /* ]]; then
@@ -59,6 +84,7 @@ init_outputs() {
   fi
 
   # Ensure output dir is writable
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || true
   local testfile="${CCDC_OUT_DIR}/.phase3_write_test"
   if ! (echo "test" > "$testfile" 2>/dev/null); then
     ccdc__die "Output directory is not writable: ${CCDC_OUT_DIR}"
@@ -112,7 +138,7 @@ require_captain_approval() {
     return 0
   fi
 
-  if [[ -f "$APPROVALS" ]]; then
+  if [[ -f "$APPROVALS" ]] && grep -Eq '^time=.*initials=.*category=' "$APPROVALS"; then
     return 0
   fi
 
@@ -180,7 +206,7 @@ append_imported_foothold() {
     return 1
   fi
 
-  printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
+  printf '{"time":"%s","target":"%s","service":"%s","identity":"%s","access_type":"%s","stability":"%s","obtained":"%s","persistence_method":"%s","survives_reboot":%s,"recovery":"%s","sensitive_service":%s,"notes":"%s"}\n' \
     "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
     "$(json_escape "$target")" \
     "$(json_escape "$service")" \
@@ -225,7 +251,7 @@ add_foothold() {
   local ts
   ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)"
 
-  printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
+  printf '{"time":"%s","target":"%s","service":"%s","identity":"%s","access_type":"%s","stability":"%s","obtained":"%s","persistence_method":"%s","survives_reboot":%s,"recovery":"%s","sensitive_service":%s,"notes":"%s"}\n' \
     "$(json_escape "$ts")" \
     "$(json_escape "$target")" \
     "$(json_escape "$service")" \
@@ -300,6 +326,7 @@ add_reentry_plan() {
 rebuild_footholds_csv() {
   # Convert JSONL footholds to CSV for quick sorting.
   if command -v python3 >/dev/null 2>&1; then
+    export FOOTHOLDS FOOTHOLDS_CSV
     python3 - <<'PY' || true
 import json, csv, sys, os
 path=os.environ.get("FOOTHOLDS")
@@ -513,18 +540,22 @@ menu_loop() {
 }
 
 main() {
+  local out_dir_preset="${CCDC_OUT_DIR:-}"
   ccdc__init_run "phase3_continuity" || exit 1
   ccdc__require_cmds date cat printf awk sort uniq head wc || true
   if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
     TEAM="$TEAM_PARSED"
+  fi
+  if [[ -z "$out_dir_preset" && -n "$TEAM" ]]; then
+    set_default_team_out_dir "$TEAM"
   fi
   init_outputs
 
   # Batch mode: auto-import + generate re-entry
   if [[ "${CCDC_BATCH:-0}" == "1" && -n "$TEAM" ]]; then
     CCDC_BRIEF=1
-    auto_import_footholds || true
-    generate_reentry_from_ledger || true
+    auto_import_footholds || return 1
+    generate_reentry_from_ledger || return 1
     exit 0
   fi
 

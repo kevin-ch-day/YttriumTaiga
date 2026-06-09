@@ -80,6 +80,10 @@ select_team_single() {
   case "$(pick_mode)" in
     1)
       if [[ -n "$last" ]]; then
+        if ! ccdc__validate_team "$last"; then
+          ccdc__warn "Saved team is invalid or blocked; please enter a team."
+          return 1
+        fi
         echo "$last"
         return 0
       fi
@@ -108,7 +112,7 @@ run_all_for_team() {
   local team="$1"
   echo ""
   echo "=== Phase01: Team ${team} ==="
-  CCDC_TEAM_LOCK=1 CCDC_BATCH="${CCDC_BATCH:-0}" "${RECON}" "$team"
+  CCDC_TEAM_LOCK=1 CCDC_BATCH=1 CCDC_BRIEF="${CCDC_BRIEF:-1}" CCDC_OVERWRITE="${CCDC_OVERWRITE:-1}" "${RECON}" "$team"
 }
 
 main() {

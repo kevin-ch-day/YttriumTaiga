@@ -31,18 +31,20 @@ Optional:
 Actions that write/update these files require approval:
 - Provide one of:
   - `CAPTAIN_APPROVED=1`, or
-  - `Phase03_Persistence/approved_actions.md` with a quick approval entry.
+  - `Phase03_Persistence/approved_actions.md` with a real approval entry.
 
-If approvals file is missing and you have a TTY, the script will prompt for
-captain initials and create an entry.
+`approved_actions.md` is gitignored for event use. Start from
+`approved_actions.md.example` if you want to pre-create the file. If approvals
+file is missing and you have a TTY, the script will prompt for captain initials
+and create an entry.
 
 ## Recommended run order
 1) Operator entry point (recommended):
    - `./phase3_operator.sh`
 2) Initialize docs and safety rules:
    - `./tools/phase3_continuity.sh`
-2) Add foothold/session entries
-3) Generate a re-entry checklist per foothold
+3) Add foothold/session entries
+4) Generate a re-entry checklist per foothold
 
 ## Optional helpers (safe)
 - Auto-import footholds from Phase 1/2 outputs

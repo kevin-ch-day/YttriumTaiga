@@ -20,7 +20,8 @@ set -euo pipefail
 # - Low-noise: a handful of requests per host.
 # - No brute force, no dirbusting, no exploitation.
 # - Target selection prefers:
-#     targets_candidates.txt -> services_hits.txt -> full public /24
+#     services.csv -> ops_known_hosts.csv -> targets_candidates.txt ->
+#     services_hits.txt -> full public /24
 # ============================================================
 
 TEAM_ARG="${1:-}"
