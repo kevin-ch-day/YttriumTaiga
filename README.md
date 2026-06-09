@@ -9,6 +9,7 @@ Versioning:
 ## Table of contents
 
 - [Structure](#structure)
+- [Supported platforms](#supported-platforms)
 - [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
 - [Operator docs](#operator-docs)
 - [Ops ledger (root CSVs)](#ops-ledger-root-csvs)
@@ -28,6 +29,16 @@ Versioning:
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
 - `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup, event-data verification).
+
+## Supported platforms
+
+- **Event/operator runtime:** Kali Linux. Phase 00 setup scripts and event-day
+  workflows are built around Kali packages, tools, paths, and operator UX.
+- **Testing/runtime checks:** Ubuntu is acceptable for lightweight validation such
+  as Bash syntax checks, Python parsing, docs checks, and non-network helper
+  tests.
+- Do not treat Ubuntu as the target production environment for event use unless
+  a script explicitly documents Ubuntu support.
 
 ## Phase pattern (shared conventions)
 

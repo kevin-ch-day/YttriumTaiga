@@ -3,6 +3,12 @@
 Use these knobs to adjust speed, noise, and output locations without editing
 scripts. Defaults are conservative for CCDC-style event networks.
 
+## Platform assumption
+
+Run event operations on Kali Linux. Ubuntu is useful for lightweight testing
+only, such as syntax checks and non-network validation. Tune package installs,
+desktop tooling, and event workflows for Kali first.
+
 ## Phase 01 - Recon
 
 Presets are available from `Phase01_Recon/phase1_operator.sh`:
