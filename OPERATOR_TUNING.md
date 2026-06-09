@@ -9,6 +9,21 @@ Run event operations on Kali Linux. Ubuntu is useful for lightweight testing
 only, such as syntax checks and non-network validation. Tune package installs,
 desktop tooling, and event workflows for Kali first.
 
+## Backbone preflight
+
+Run this before event use and before pushing changes:
+
+```bash
+Scripts/ccdc_validate.sh
+```
+
+On Kali, use strict mode to fail if event tools such as `curl`, `ip`, `ssh`,
+`scp`, `nmap`, or `openssl` are missing:
+
+```bash
+Scripts/ccdc_validate.sh --strict-kali
+```
+
 ## Phase 01 - Recon
 
 Presets are available from `Phase01_Recon/phase1_operator.sh`:

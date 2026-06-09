@@ -10,6 +10,7 @@ Versioning:
 
 - [Structure](#structure)
 - [Supported platforms](#supported-platforms)
+- [Backbone validation](#backbone-validation)
 - [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
 - [Operator docs](#operator-docs)
 - [Ops ledger (root CSVs)](#ops-ledger-root-csvs)
@@ -39,6 +40,19 @@ Versioning:
   tests.
 - Do not treat Ubuntu as the target production environment for event use unless
   a script explicitly documents Ubuntu support.
+
+## Backbone validation
+
+Core repo contracts are documented in `BACKBONE.md`.
+
+Run the repo-level preflight before event use and before pushing code changes:
+
+```bash
+Scripts/ccdc_validate.sh
+```
+
+On the Kali event box, use `--strict-kali` to fail when expected event tools are
+missing. Use `--with-export` to validate the optional XLSX export dependency.
 
 ## Phase pattern (shared conventions)
 
@@ -71,6 +85,7 @@ Versioning:
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
+- Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
 - Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 - Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`
