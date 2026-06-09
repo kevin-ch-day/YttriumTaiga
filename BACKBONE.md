@@ -57,6 +57,24 @@ The validation harness checks:
 - optional non-network smoke tests for phase handoffs
 - optional XLSX export path
 
+## Error handling contract
+
+Repo-level utility scripts should use `Scripts/ccdc_common.sh` for common
+diagnostics and exit codes:
+
+- `0` - success
+- `2` - usage or invalid arguments
+- `10` - validation/check failure
+- `20` - file or I/O failure
+- `30` - missing required tool
+- `90` - unexpected internal failure
+
+Use `[WARN]` for non-blocking conditions, `[FAIL]` for validation failures, and
+`[ERROR]` for fatal script errors. Long-running or multi-check utilities should
+collect validation failures and print a final summary instead of exiting at the
+first expected failure. Unexpected shell failures should enable the shared ERR
+trap so operators see the script name, line number, and exit code.
+
 ## Phase flow
 
 ```text

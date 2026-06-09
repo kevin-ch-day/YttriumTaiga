@@ -8,6 +8,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# shellcheck disable=SC1091
+source "${ROOT_DIR}/Scripts/ccdc_common.sh"
+ccdc_enable_error_trap "$(basename "$0")"
+
 STRICT_KALI=0
 RUN_EXPORT=0
 RUN_SMOKE=0
@@ -39,7 +43,7 @@ while (( $# > 0 )); do
     --with-export) RUN_EXPORT=1 ;;
     --with-smoke) RUN_SMOKE=1 ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "Unknown arg: $1" >&2; usage; exit 1 ;;
+    *) usage >&2; ccdc_die "$CCDC_E_USAGE" "Unknown arg: $1" ;;
   esac
   shift || true
 done
@@ -109,6 +113,7 @@ required_files=(
   "data/ops_ledger.csv"
   "data/ops_known_hosts.csv"
   "data/schemas/manifest.csv"
+  "Scripts/ccdc_common.sh"
   "Scripts/ccdc_schema_check.py"
   "Scripts/ccdc_smoke_test.sh"
   "Scripts/ccdc_team_brief.py"

@@ -11,6 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "data" / "schemas" / "manifest.csv"
+E_USAGE = 2
+E_VALIDATION = 10
 
 
 @dataclass(frozen=True)
@@ -74,13 +76,13 @@ def main(argv: list[str]) -> int:
     manifest = Path(argv[1]).resolve() if len(argv) > 1 else DEFAULT_MANIFEST
     if not manifest.is_file():
         print(f"ERROR: manifest not found: {manifest}", file=sys.stderr)
-        return 2
+        return E_USAGE
 
     try:
         entries = load_manifest(manifest)
     except Exception as exc:  # noqa: BLE001 - CLI should print parse failures clearly.
         print(f"ERROR: failed to read manifest: {exc}", file=sys.stderr)
-        return 2
+        return E_USAGE
 
     errors: list[str] = []
     for entry in entries:
@@ -89,7 +91,7 @@ def main(argv: list[str]) -> int:
     if errors:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
-        return 1
+        return E_VALIDATION
 
     print(f"OK: {len(entries)} CSV schema entries validated.")
     return 0

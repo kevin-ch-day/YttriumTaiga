@@ -7,6 +7,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+# shellcheck disable=SC1091
+source "${ROOT_DIR}/Scripts/ccdc_common.sh"
+ccdc_enable_error_trap "$(basename "$0")"
+
 TMP_DIR=""
 PASS_COUNT=0
 FAIL_COUNT=0

@@ -86,6 +86,7 @@ and `--with-smoke` to run non-network phase handoff tests.
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
+- Shared utility error helpers: `Scripts/ccdc_common.sh`
 - Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
 - Non-network backbone smoke tests: `Scripts/ccdc_smoke_test.sh`
 - Cross-phase team brief: `Scripts/ccdc_team_brief.py --team <N>`

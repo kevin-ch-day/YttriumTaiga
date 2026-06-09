@@ -15,11 +15,21 @@ from typing import Iterable
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def warn(message: str) -> None:
+    print(f"WARN: {message}", file=sys.stderr)
+
+
 def read_csv(path: Path) -> list[dict[str, str]]:
     if not path.is_file():
         return []
-    with path.open(newline="", encoding="utf-8", errors="ignore") as handle:
-        return list(csv.DictReader(handle))
+    try:
+        with path.open(newline="", encoding="utf-8", errors="ignore") as handle:
+            return list(csv.DictReader(handle))
+    except csv.Error as exc:
+        warn(f"failed to parse CSV {path}: {exc}")
+    except OSError as exc:
+        warn(f"failed to read CSV {path}: {exc}")
+    return []
 
 
 def read_jsonl(path: Path) -> list[dict[str, object]]:
@@ -33,7 +43,8 @@ def read_jsonl(path: Path) -> list[dict[str, object]]:
                 continue
             try:
                 obj = json.loads(line)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as exc:
+                warn(f"skipping malformed JSONL line in {path}: {exc}")
                 continue
             if isinstance(obj, dict):
                 rows.append(obj)
@@ -209,8 +220,12 @@ def main(argv: list[str]) -> int:
 
     brief = build_brief(args.team, args.intel_dir.resolve(), args.limit)
     if args.out:
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(brief, encoding="utf-8")
+        try:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(brief, encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: failed to write brief: {exc}", file=sys.stderr)
+            return 20
     else:
         print(brief, end="")
     return 0
