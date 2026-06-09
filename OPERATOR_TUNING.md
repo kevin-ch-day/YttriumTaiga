@@ -29,6 +29,11 @@ Environment overrides:
 - `CCDC_PHASE1_FP_PORTS` - fingerprint ports, default `80,443,8080,8443`.
 - `CCDC_KNOWN_HOSTS_CSV` - override `data/ops_known_hosts.csv`.
 
+`phase1_web_fingerprint.sh` checks a small allowlist of high-signal paths:
+`/`, `/robots.txt`, `/sitemap.xml`, `/.well-known/security.txt`,
+`/crossdomain.xml`, `/clientaccesspolicy.xml`, `/admin`, `/login`,
+`/administrator`, and `/index.php`.
+
 HTTP behavior:
 
 - `CCDC_HTTP_TIMEOUT_SECS`

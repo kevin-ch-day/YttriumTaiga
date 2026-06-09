@@ -58,6 +58,10 @@ export CCDC_HTTP_MAX_REDIRS="2"
 PATHS=(
   "/"
   "/robots.txt"
+  "/sitemap.xml"
+  "/.well-known/security.txt"
+  "/crossdomain.xml"
+  "/clientaccesspolicy.xml"
   "/admin"
   "/login"
   "/administrator"
@@ -81,7 +85,7 @@ init_outputs() {
 
   : > "$TXT_OUT"
   : > "$TARGETS_USED"
-  echo "ip,scheme,port,path,status,title,server,x_powered_by,content_type,set_cookie,location,hints" > "$CSV_OUT"
+  echo "ip,scheme,port,path,status,title,server,x_powered_by,content_type,set_cookie,location,hints,security_header_gaps,meta_findings" > "$CSV_OUT"
 }
 
 write_targets_used_from_file() {
@@ -181,21 +185,20 @@ probe_url() {
   local port="$3"
   local path="$4"
 
-  local url fields status server xpb ctype loc auth
+  local url hdrs status server xpb ctype loc auth
   url="$(ccdc_http__url_for_ip_port "$scheme" "$ip" "$port" "$path")"
 
-  # status|server|xpb|ctype|loc|auth
-  fields="$(ccdc_http__fetch_fields "$url" 2>/dev/null || true)"
-  [[ -n "$fields" && "$fields" != "|||||" ]] || return 0
+  hdrs="$(ccdc_http__curl_headers "$url" 2>/dev/null || true)"
+  [[ -n "$hdrs" ]] || return 0
 
-  status="${fields%%|*}"; fields="${fields#*|}"
-  server="${fields%%|*}"; fields="${fields#*|}"
-  xpb="${fields%%|*}"; fields="${fields#*|}"
-  ctype="${fields%%|*}"; fields="${fields#*|}"
-  loc="${fields%%|*}"; fields="${fields#*|}"
-  auth="${fields}"
+  status="$(ccdc_http__extract_last_status "$hdrs" || echo "?")"
+  server="$(ccdc_http__extract_header "$hdrs" "Server" || true)"
+  xpb="$(ccdc_http__extract_header "$hdrs" "X-Powered-By" || true)"
+  ctype="$(ccdc_http__extract_header "$hdrs" "Content-Type" || true)"
+  loc="$(ccdc_http__extract_header "$hdrs" "Location" || true)"
+  auth="$(ccdc_http__extract_header "$hdrs" "WWW-Authenticate" || true)"
 
-  local body title hints cookie hdrs
+  local body title hints cookie sec_gaps meta_findings
   body="$(ccdc_http__curl_tiny_get "$url")"
 
   title=""
@@ -209,9 +212,35 @@ probe_url() {
   # Cookie: only for path "/" to keep noise down
   cookie=""
   if [[ "$path" == "/" ]]; then
-    hdrs="$(ccdc_http__curl_headers "$url" 2>/dev/null || true)"
     cookie="$(ccdc_http__extract_header "$hdrs" "Set-Cookie" 2>/dev/null || true)"
   fi
+
+  sec_gaps=""
+  if [[ "$path" == "/" ]]; then
+    sec_gaps="$(ccdc_http__security_header_gaps "$hdrs" "$scheme")"
+  fi
+
+  meta_findings=""
+  case "$path" in
+    /robots.txt)
+      if [[ "$status" =~ ^2 ]]; then
+        if echo "$body" | grep -qiE 'disallow|allow|sitemap|admin|backup|private|secret|dev'; then
+          meta_findings="robots_meta_paths"
+        else
+          meta_findings="robots_present"
+        fi
+      fi
+      ;;
+    /sitemap.xml)
+      [[ "$status" =~ ^2 ]] && meta_findings="sitemap_present"
+      ;;
+    /.well-known/security.txt)
+      [[ "$status" =~ ^2 ]] && meta_findings="security_txt_present"
+      ;;
+    /crossdomain.xml|/clientaccesspolicy.xml)
+      [[ "$status" =~ ^2 ]] && meta_findings="cross_domain_policy_present"
+      ;;
+  esac
 
   # CSV safety
   title="$(ccdc_http__csv_safe "$title")"
@@ -221,12 +250,14 @@ probe_url() {
   cookie="$(ccdc_http__csv_safe "$cookie")"
   loc="$(ccdc_http__csv_safe "$loc")"
   hints="$(ccdc_http__csv_safe "$hints")"
+  sec_gaps="$(ccdc_http__csv_safe "$sec_gaps")"
+  meta_findings="$(ccdc_http__csv_safe "$meta_findings")"
 
-  printf "%-15s %-5s %-4s %-18s status=%-3s title=%s hints=%s\n" \
-    "$ip" "$scheme" "$port" "$path" "${status:-"-"}" "${title:-"-"}" "${hints:-"-"}" \
+  printf "%-15s %-5s %-4s %-28s status=%-3s title=%s hints=%s sec=%s meta=%s\n" \
+    "$ip" "$scheme" "$port" "$path" "${status:-"-"}" "${title:-"-"}" "${hints:-"-"}" "${sec_gaps:-"-"}" "${meta_findings:-"-"}" \
     >> "$TXT_OUT"
 
-  echo "$ip,$scheme,$port,$path,${status:-},${title:-},${server:-},${xpb:-},${ctype:-},${cookie:-},${loc:-},${hints:-}" \
+  echo "$ip,$scheme,$port,$path,${status:-},${title:-},${server:-},${xpb:-},${ctype:-},${cookie:-},${loc:-},${hints:-},${sec_gaps:-},${meta_findings:-}" \
     >> "$CSV_OUT"
 }
 
@@ -297,7 +328,7 @@ run_fingerprint() {
   ccdc__log "[*] Wrote: $TARGETS_USED"
   # Optional: keep a slim "hits only" file for quick review
   if [[ -f "$CSV_OUT" ]]; then
-    awk -F',' 'NR==1 {print $0; next} $5!="" || $6!="" || $12!="" {print $0}' "$CSV_OUT" > "${CCDC_OUT_DIR}/web_fingerprint_hits.csv" 2>/dev/null || true
+    awk -F',' 'NR==1 {print $0; next} $6!="" || $10!="" || $12!="" || $13!="" || $14!="" {print $0}' "$CSV_OUT" > "${CCDC_OUT_DIR}/web_fingerprint_hits.csv" 2>/dev/null || true
   fi
 }
 
