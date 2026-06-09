@@ -24,6 +24,12 @@ On Kali, use strict mode to fail if event tools such as `curl`, `ip`, `ssh`,
 Scripts/ccdc_validate.sh --strict-kali
 ```
 
+Run non-network handoff smoke tests when changing phase output contracts:
+
+```bash
+Scripts/ccdc_validate.sh --with-smoke
+```
+
 ## Phase 01 - Recon
 
 Presets are available from `Phase01_Recon/phase1_operator.sh`:

@@ -52,7 +52,8 @@ Scripts/ccdc_validate.sh
 ```
 
 On the Kali event box, use `--strict-kali` to fail when expected event tools are
-missing. Use `--with-export` to validate the optional XLSX export dependency.
+missing. Use `--with-export` to validate the optional XLSX export dependency,
+and `--with-smoke` to run non-network phase handoff tests.
 
 ## Phase pattern (shared conventions)
 
@@ -86,6 +87,7 @@ missing. Use `--with-export` to validate the optional XLSX export dependency.
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
 - Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
+- Non-network backbone smoke tests: `Scripts/ccdc_smoke_test.sh`
 - Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 - Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`

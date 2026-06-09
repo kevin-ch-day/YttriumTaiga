@@ -10,10 +10,11 @@ cd "$ROOT_DIR"
 
 STRICT_KALI=0
 RUN_EXPORT=0
+RUN_SMOKE=0
 
 usage() {
   cat <<'EOF'
-Usage: Scripts/ccdc_validate.sh [--strict-kali] [--with-export]
+Usage: Scripts/ccdc_validate.sh [--strict-kali] [--with-export] [--with-smoke]
 
 Checks:
   - platform context and Kali-vs-Ubuntu expectations
@@ -22,11 +23,13 @@ Checks:
   - executable bits on shell entry points
   - Team 19 / ops ledger invariants
   - tracked event-data hygiene
+  - optional non-network smoke tests
   - optional XLSX export path
 
 Options:
   --strict-kali   fail if Kali/event tools are missing
   --with-export   run Scripts/ops_ledger_export.sh
+  --with-smoke    run Scripts/ccdc_smoke_test.sh
 EOF
 }
 
@@ -34,6 +37,7 @@ while (( $# > 0 )); do
   case "$1" in
     --strict-kali) STRICT_KALI=1 ;;
     --with-export) RUN_EXPORT=1 ;;
+    --with-smoke) RUN_SMOKE=1 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown arg: $1" >&2; usage; exit 1 ;;
   esac
@@ -106,6 +110,7 @@ required_files=(
   "data/ops_known_hosts.csv"
   "data/schemas/manifest.csv"
   "Scripts/ccdc_schema_check.py"
+  "Scripts/ccdc_smoke_test.sh"
   "Scripts/verify_no_event_data.sh"
 )
 for f in "${required_files[@]}"; do
@@ -217,6 +222,13 @@ if [[ "$RUN_EXPORT" == "1" ]]; then
   if Scripts/ops_ledger_export.sh; then ok "ops ledger export"; else bad "ops ledger export"; fi
 else
   note_warn "skipped XLSX export; run with --with-export to test openpyxl path"
+fi
+
+section "Optional smoke tests"
+if [[ "$RUN_SMOKE" == "1" ]]; then
+  if Scripts/ccdc_smoke_test.sh; then ok "non-network smoke tests"; else bad "non-network smoke tests"; fi
+else
+  note_warn "skipped non-network smoke tests; run with --with-smoke"
 fi
 
 section "Summary"

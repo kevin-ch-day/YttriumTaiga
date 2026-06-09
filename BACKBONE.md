@@ -41,6 +41,7 @@ Useful variants:
 ```bash
 Scripts/ccdc_validate.sh --strict-kali
 Scripts/ccdc_validate.sh --with-export
+Scripts/ccdc_validate.sh --with-smoke
 ```
 
 The validation harness checks:
@@ -53,6 +54,7 @@ The validation harness checks:
 - Team 19 and ops-ledger invariants
 - CSV schema drift
 - tracked event-data hygiene
+- optional non-network smoke tests for phase handoffs
 - optional XLSX export path
 
 ## Phase flow
@@ -75,6 +77,8 @@ Phase03_Persistence
 - Keep `phaseN_operator.sh` as the supported operator entry point.
 - Prefer adding validation to `Scripts/ccdc_validate.sh` when a new invariant is
   introduced.
+- Prefer adding temp-only behavior checks to `Scripts/ccdc_smoke_test.sh` when a
+  phase handoff or output contract changes.
 - Keep low-noise defaults for scans and probes.
 - Keep destructive behavior explicit, gated, and documented.
 - Do not add live event artifacts to git; add templates or schema docs instead.
