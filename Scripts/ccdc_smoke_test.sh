@@ -158,6 +158,24 @@ else
   fail "Phase 3 re-entry idempotency rerun"
 fi
 
+section "Cross-phase team brief"
+mkdir -p "${intel_dir}/Phase02_Privilege_Exp/team_001/loot"
+cat > "${intel_dir}/Phase02_Privilege_Exp/team_001/loot/cred_ledger.csv" <<'EOF'
+id,ts_utc,type,username,secret,target,source,status,notes
+c1,2026-01-01T00:00:00Z,password,admin,supersecret,172.25.21.10:22,manual,valid,works
+EOF
+if Scripts/ccdc_team_brief.py --team 1 --intel-dir "$intel_dir" --out "${TMP_DIR}/team001.md"; then
+  ok "team brief generated"
+else
+  fail "team brief generated"
+fi
+assert_file "team brief output exists" "${TMP_DIR}/team001.md"
+if rg -q "Jenkins Login" "${TMP_DIR}/team001.md" && ! rg -q "supersecret" "${TMP_DIR}/team001.md"; then
+  ok "team brief includes signal and omits secrets"
+else
+  fail "team brief includes signal and omits secrets"
+fi
+
 section "Event-data hygiene"
 if Scripts/verify_no_event_data.sh >/dev/null; then
   ok "tracked event-data hygiene"

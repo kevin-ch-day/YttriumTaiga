@@ -28,6 +28,9 @@ when Phase 1 saw admin/login-style app hints or metadata findings such as
 `robots_meta_paths` / cross-domain policy files. Security-header gaps are copied
 into the notes column for operator triage.
 
+For a quick cross-phase summary after Phase 1/2/3 artifacts exist:
+- `Scripts/ccdc_team_brief.py --team 1`
+
 ## Outputs
 Phase 2 writes team-scoped intel under:
 - `data/intel/Phase02_Privilege_Exp/team_###/`

@@ -111,6 +111,7 @@ required_files=(
   "data/schemas/manifest.csv"
   "Scripts/ccdc_schema_check.py"
   "Scripts/ccdc_smoke_test.sh"
+  "Scripts/ccdc_team_brief.py"
   "Scripts/verify_no_event_data.sh"
 )
 for f in "${required_files[@]}"; do

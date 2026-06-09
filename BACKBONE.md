@@ -72,6 +72,9 @@ Phase03_Persistence
   footholds.jsonl, footholds.csv, reentry.txt, rules_safety.txt
 ```
 
+Use `Scripts/ccdc_team_brief.py --team <N>` to summarize this cross-phase
+state without running network probes or printing credential secrets.
+
 ## Change guidelines
 
 - Keep `phaseN_operator.sh` as the supported operator entry point.
