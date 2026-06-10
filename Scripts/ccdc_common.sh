@@ -19,15 +19,15 @@ source "${CCDC_COMMON_ROOT}/src/taconite_core/kernel.sh"
 ccdc_common__ts() { taconite_ts "$@"; }
 
 ccdc_info() {
-  taconite_info "$@"
+  taconite_status info "$@"
 }
 
 ccdc_warn() {
-  taconite_warn "$@"
+  taconite_status warn "$@" >&2
 }
 
 ccdc_error() {
-  taconite_error "$@"
+  taconite_status fail "$@" >&2
 }
 
 ccdc_die() {

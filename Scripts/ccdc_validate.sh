@@ -62,7 +62,7 @@ ok() {
 }
 
 note_warn() {
-  echo "[WARN] $*" >&2
+  taconite_status warn "$*" >&2
   WARN_COUNT=$((WARN_COUNT+1))
 }
 

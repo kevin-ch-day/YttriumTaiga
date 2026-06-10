@@ -26,6 +26,13 @@ The TUI style is dark industrial and brutalist:
 - Borders: square, heavy, monolithic ASCII frames. No rounded edges.
 - Do not add 80s neon, scanlines, blues, or pinks.
 
+Display primitives:
+
+- `taconite_frame "TITLE" "SUBTITLE" "accent"` - active monolithic header.
+- `taconite_section "TITLE"` - inactive/metadata section frame.
+- `taconite_status ok|warn|fail|payload "message"` - role-safe status line.
+- `taconite_kv "Key" "Value"` - gray metadata key with white data value.
+
 Guidelines:
 
 - Keep modules source-safe: do not set shell options in module files.

@@ -92,6 +92,9 @@ Taconite's TUI uses a dark, industrial, brutalist palette:
 - `#444444` for timestamps, inactive borders, dividers, and metadata.
 - Square, heavy, monolithic frames. No rounded borders, retro scanlines, blues,
   pinks, or 80s neon styling.
+- Core display primitives are `taconite_frame`, `taconite_section`,
+  `taconite_status`, and `taconite_kv`. New shared UI should use those instead
+  of raw ANSI escapes.
 
 ## Phase flow
 

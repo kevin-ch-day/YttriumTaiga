@@ -3,6 +3,7 @@
 
 : "${TACONITE_COLOR:=auto}"
 : "${TACONITE_THEME:=default}"
+: "${TACONITE_FRAME_WIDTH:=80}"
 
 # Strict Taconite palette. Do not add blue, pink, retro neon, or scanline styles.
 TACONITE_HEX_BLACK="#0A0A0A"
@@ -77,12 +78,54 @@ taconite_color() {
   esac
 }
 
-taconite_section() {
-  local line="################################################################################"
+taconite_repeat() {
+  local char="${1:-#}"
+  local count="${2:-$TACONITE_FRAME_WIDTH}"
+  local out=""
+  while (( ${#out} < count )); do
+    out+="$char"
+  done
+  printf '%s' "${out:0:count}"
+}
+
+taconite_rule() {
+  local role="${1:-meta}"
+  local char="${2:-#}"
+  local width="${3:-$TACONITE_FRAME_WIDTH}"
+  taconite_style "$role" "$(taconite_repeat "$char" "$width")"
+}
+
+taconite_frame_line() {
+  local role="${1:-data}"
+  local text="${2:-}"
+  local width="${3:-$TACONITE_FRAME_WIDTH}"
+  local inner_width=$((width - 4))
+  (( inner_width > 0 )) || inner_width=76
+  taconite_style "$role" "$(printf '# %-*.*s #' "$inner_width" "$inner_width" "$text")"
+}
+
+taconite_frame() {
+  local title="${1:-Taconite}"
+  local subtitle="${2:-}"
+  local state="${3:-active}"
+  local ts
+  ts="$(taconite_ts 2>/dev/null || date)"
+
   echo ""
-  echo "$(taconite_style meta "$line")"
-  printf "%s\n" "$(taconite_style data "$*")"
-  echo "$(taconite_style meta "$line")"
+  echo "$(taconite_rule "$state" "#")"
+  echo "$(taconite_frame_line "$state" "$title")"
+  [[ -n "$subtitle" ]] && echo "$(taconite_frame_line data "$subtitle")"
+  echo "$(taconite_frame_line meta "Time: $ts")"
+  echo "$(taconite_rule "$state" "#")"
+  echo ""
+}
+
+taconite_section() {
+  local title="$*"
+  echo ""
+  echo "$(taconite_rule meta "#")"
+  printf "%s\n" "$(taconite_frame_line data "$title")"
+  echo "$(taconite_rule meta "#")"
 }
 
 taconite_header() {
@@ -91,25 +134,22 @@ taconite_header() {
   local ts
   ts="$(taconite_ts 2>/dev/null || date)"
 
-  local bar="################################################################################"
-  echo ""
   case "$TACONITE_THEME" in
     minimal)
+      local bar
+      bar="$(taconite_repeat "#")"
+      echo ""
       echo "$bar"
       printf "# %-76s #\n" "$title"
       [[ -n "$subtitle" ]] && printf "# %-76s #\n" "$subtitle"
       printf "# %-76s #\n" "Time: $ts"
       echo "$bar"
+      echo ""
       ;;
     *)
-      echo "$(taconite_style accent "$bar")"
-      printf "%s\n" "$(taconite_style accent "$(printf "# %-76s #" "$title")")"
-      [[ -n "$subtitle" ]] && printf "%s\n" "$(taconite_style data "$(printf "# %-76s #" "$subtitle")")"
-      printf "%s\n" "$(taconite_style meta "$(printf "# %-76s #" "Time: $ts")")"
-      echo "$(taconite_style accent "$bar")"
+      taconite_frame "$title" "$subtitle" "accent"
       ;;
   esac
-  echo ""
 }
 
 taconite_kv() {
@@ -119,9 +159,27 @@ taconite_kv() {
 }
 
 taconite_ok() {
-  printf '%s %s\n' "$(taconite_style meta "[ OK ]")" "$(taconite_style data "$*")"
+  taconite_status ok "$*"
+}
+
+taconite_warn_line() {
+  taconite_status warn "$*"
 }
 
 taconite_fail() {
-  printf '%s %s\n' "$(taconite_style accent "[FAIL]")" "$(taconite_style data "$*")" >&2
+  taconite_status fail "$*" >&2
+}
+
+taconite_status() {
+  local state="${1:-info}"
+  shift || true
+  local label role
+  case "$state" in
+    ok|pass|ready) label="[PASS]"; role="data" ;;
+    warn|warning) label="[WARN]"; role="meta" ;;
+    fail|error|critical) label="[FAIL]"; role="accent" ;;
+    payload|exec) label="[EXEC]"; role="payload" ;;
+    info|*) label="[DATA]"; role="meta" ;;
+  esac
+  printf '%s %s\n' "$(taconite_style "$role" "$label")" "$(taconite_style data "$*")"
 }
