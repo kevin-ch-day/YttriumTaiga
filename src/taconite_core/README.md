@@ -14,6 +14,18 @@ Modules:
 - `paths.sh` - repo root, intel root, and team directory helpers.
 - `validate.sh` - command, platform, and team validation helpers.
 
+## Visual style contract
+
+The TUI style is dark industrial and brutalist:
+
+- Background: pitch black `#0A0A0A` or matte charcoal `#121212`.
+- Accent: deep crimson `#990000` or blood red `#CC0000` only for active
+  borders, highlights, critical states, or payload execution states.
+- Data text: high-contrast white `#FFFFFF`.
+- Metadata/inactive/grid text: industrial gray `#444444`.
+- Borders: square, heavy, monolithic ASCII frames. No rounded edges.
+- Do not add 80s neon, scanlines, blues, or pinks.
+
 Guidelines:
 
 - Keep modules source-safe: do not set shell options in module files.

@@ -81,6 +81,18 @@ collect validation failures and print a final summary instead of exiting at the
 first expected failure. Unexpected shell failures should enable the shared ERR
 trap so operators see the script name, line number, and exit code.
 
+## Visual style contract
+
+Taconite's TUI uses a dark, industrial, brutalist palette:
+
+- `#0A0A0A` pitch black and `#121212` matte charcoal for background/panels.
+- `#990000` deep crimson and `#CC0000` blood red only for active borders,
+  highlights, critical states, and payload execution states.
+- `#FFFFFF` for primary data/log/command readouts.
+- `#444444` for timestamps, inactive borders, dividers, and metadata.
+- Square, heavy, monolithic frames. No rounded borders, retro scanlines, blues,
+  pinks, or 80s neon styling.
+
 ## Phase flow
 
 ```text
