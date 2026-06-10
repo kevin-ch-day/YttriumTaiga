@@ -73,6 +73,25 @@ else
   fail "Team 19 blocked by net scheme"
 fi
 
+section "Taconite launcher"
+if ./taconite.sh version | rg -q '^Taconite v'; then
+  ok "root launcher version command"
+else
+  fail "root launcher version command"
+fi
+
+if ./taconite.sh help | rg -q 'phase <0-6|name>'; then
+  ok "root launcher help command"
+else
+  fail "root launcher help command"
+fi
+
+if bash -c 'source src/taconite_core/kernel.sh; [[ "$(taconite_phase_entry 1)" == "Phase01_Recon/phase1_operator.sh" ]]'; then
+  ok "core phase registry"
+else
+  fail "core phase registry"
+fi
+
 section "Phase 2 actionable target import"
 intel_dir="${TMP_DIR}/intel"
 mkdir -p "${intel_dir}/Phase01_Recon/team_001"

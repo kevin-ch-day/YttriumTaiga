@@ -20,6 +20,9 @@ during a CCDC event.
   - `Phase06_Day_End/phase6_operator.sh`
 - All tracked shell scripts are expected to be executable. This keeps direct
   Kali/event usage simple and is enforced by `Scripts/ccdc_validate.sh`.
+- `./taconite.sh` is the preferred root application launcher. It delegates to
+  phase entry points and core utilities without replacing the phase folder
+  structure.
 
 ## Data contract
 

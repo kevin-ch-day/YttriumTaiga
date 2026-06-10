@@ -14,6 +14,8 @@ source "${TACONITE_CORE_DIR}/display.sh"
 source "${TACONITE_CORE_DIR}/paths.sh"
 # shellcheck disable=SC1091
 source "${TACONITE_CORE_DIR}/validate.sh"
+# shellcheck disable=SC1091
+source "${TACONITE_CORE_DIR}/app.sh"
 
 taconite_core_loaded() {
   return 0

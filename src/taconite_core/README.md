@@ -13,6 +13,7 @@ Modules:
 - `display.sh` - common headers, sections, key/value output, status lines.
 - `paths.sh` - repo root, intel root, and team directory helpers.
 - `validate.sh` - command, platform, and team validation helpers.
+- `app.sh` - phase registry and launcher helpers for `taconite.sh`.
 
 ## Visual style contract
 

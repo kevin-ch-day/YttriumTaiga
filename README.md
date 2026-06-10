@@ -82,6 +82,7 @@ and `--with-smoke` to run non-network phase handoff tests.
 
 ## Useful scripts
 
+- Taconite root launcher: `./taconite.sh menu`
 - Make scripts executable: `Scripts/make_executable.sh`
 - Log monitor: `Scripts/log_monitor.sh`
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
@@ -99,6 +100,13 @@ and `--with-smoke` to run non-network phase handoff tests.
 - Event-data safety check: `Scripts/verify_no_event_data.sh`
 
 ## Phase quick start (at a glance)
+
+Preferred root launcher:
+
+- `./taconite.sh menu`
+- `./taconite.sh phase 1`
+- `./taconite.sh validate --with-smoke`
+- `./taconite.sh brief --team 1`
 
 1) Phase 0 (Setup)
    - `Phase00_Setup/` scripts prepare Kali. Run once before event.
