@@ -18,6 +18,8 @@ during a CCDC event.
   - `Phase04_Controlled_Disruption/phase4_operator.sh`
   - `Phase05_Kill_Service/phase5_operator.sh`
   - `Phase06_Day_End/phase6_operator.sh`
+- All tracked shell scripts are expected to be executable. This keeps direct
+  Kali/event usage simple and is enforced by `Scripts/ccdc_validate.sh`.
 
 ## Data contract
 

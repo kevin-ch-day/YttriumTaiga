@@ -154,6 +154,11 @@ if need_cmd git; then
   while IFS= read -r script; do
     [[ -n "$script" ]] || continue
     if bash -n "$script"; then ok "bash -n: $script"; else bad "bash syntax: $script"; fi
+    if [[ -x "$script" ]]; then
+      ok "shell executable bit: $script"
+    else
+      bad "shell script is not executable: $script"
+    fi
   done < <(git ls-files '*.sh')
 else
   bad "git required for syntax file list"

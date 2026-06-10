@@ -75,12 +75,13 @@ ccdc_menu__header() {
   # Usage: ccdc_menu__header "Title" ["Subtitle"]
   local title="${1:-}"
   local subtitle="${2:-}"
-  _ccdc_menu__load_theme || exit 3
-  ccdc_theme__header "$title" "$subtitle" >&2
-  return 0
   local ts
-  ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
+  if _ccdc_menu__load_theme; then
+    ccdc_theme__header "$title" "$subtitle" >&2
+    return 0
+  fi
 
+  ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
   echo ""
   echo "################################################################################"
   printf "# %-76s #\n" "$title"
