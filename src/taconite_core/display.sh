@@ -1,48 +1,48 @@
 #!/usr/bin/env bash
-# YttriumTaiga core display helpers.
+# Taconite core display helpers.
 
-: "${YT_COLOR:=auto}"
-: "${YT_THEME:=default}"
+: "${TACONITE_COLOR:=auto}"
+: "${TACONITE_THEME:=default}"
 
-yt_is_tty() {
+taconite_is_tty() {
   [[ -t 1 ]]
 }
 
-yt_color_enabled() {
-  case "$YT_COLOR" in
+taconite_color_enabled() {
+  case "$TACONITE_COLOR" in
     1|true|yes) return 0 ;;
     0|false|no) return 1 ;;
-    auto|*) yt_is_tty ;;
+    auto|*) taconite_is_tty ;;
   esac
 }
 
-yt_color() {
+taconite_color() {
   local code="${1:-0}"
   shift || true
   local text="$*"
-  if yt_color_enabled; then
+  if taconite_color_enabled; then
     printf '\033[%sm%s\033[0m' "$code" "$text"
   else
     printf '%s' "$text"
   fi
 }
 
-yt_section() {
+taconite_section() {
   echo ""
   echo "============================================================"
   echo "$*"
   echo "============================================================"
 }
 
-yt_header() {
-  local title="${1:-YttriumTaiga}"
+taconite_header() {
+  local title="${1:-Taconite}"
   local subtitle="${2:-}"
   local ts
-  ts="$(yt_ts 2>/dev/null || date)"
+  ts="$(taconite_ts 2>/dev/null || date)"
 
   local bar="################################################################################"
   echo ""
-  case "$YT_THEME" in
+  case "$TACONITE_THEME" in
     minimal)
       echo "$bar"
       printf "# %-76s #\n" "$title"
@@ -51,26 +51,26 @@ yt_header() {
       echo "$bar"
       ;;
     *)
-      echo "$(yt_color 100 "$bar")"
-      printf "$(yt_color 104 "# %-76s #\n")" "$title"
-      [[ -n "$subtitle" ]] && printf "$(yt_color 104 "# %-76s #\n")" "$subtitle"
-      printf "$(yt_color 100 "# %-76s #\n")" "Time: $ts"
-      echo "$(yt_color 100 "$bar")"
+      echo "$(taconite_color 100 "$bar")"
+      printf "$(taconite_color 104 "# %-76s #\n")" "$title"
+      [[ -n "$subtitle" ]] && printf "$(taconite_color 104 "# %-76s #\n")" "$subtitle"
+      printf "$(taconite_color 100 "# %-76s #\n")" "Time: $ts"
+      echo "$(taconite_color 100 "$bar")"
       ;;
   esac
   echo ""
 }
 
-yt_kv() {
+taconite_kv() {
   local key="${1:-}"
   local val="${2:-}"
   printf '%-20s %s\n' "${key}:" "$val"
 }
 
-yt_ok() {
+taconite_ok() {
   echo "[ OK ] $*"
 }
 
-yt_fail() {
+taconite_fail() {
   echo "[FAIL] $*" >&2
 }

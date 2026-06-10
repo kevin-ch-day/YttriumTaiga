@@ -1,6 +1,6 @@
-# Yttrium Core
+# Taconite Core
 
-This directory is the shared kernel for YttriumTaiga.
+This directory is the shared kernel for Taconite.
 
 The phase folders remain the operator-facing structure. Shared behavior that
 should stay consistent across phases belongs here first, then phases can source

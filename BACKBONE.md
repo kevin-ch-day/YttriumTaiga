@@ -1,4 +1,4 @@
-# YttriumTaiga Backbone
+# Taconite Backbone
 
 This file documents the core contracts that keep the phase scripts predictable
 during a CCDC event.
@@ -8,7 +8,7 @@ during a CCDC event.
 - Event/operator runtime is **Kali Linux**.
 - Ubuntu is supported for lightweight validation only: syntax checks, docs
   checks, temporary-file tests, and non-network helper checks.
-- Shared app/kernel helpers live under `src/yttrium_core/`. Phase folders remain
+- Shared app/kernel helpers live under `src/taconite_core/`. Phase folders remain
   operator-facing, while `src/` is the migration target for common display,
   errors, paths, and validation behavior.
 - Phase entry points live at each phase root:
@@ -62,7 +62,7 @@ The validation harness checks:
 
 ## Error handling contract
 
-Repo-level utility scripts should use `src/yttrium_core/kernel.sh` directly or
+Repo-level utility scripts should use `src/taconite_core/kernel.sh` directly or
 `Scripts/ccdc_common.sh` as a compatibility adapter for common diagnostics and
 exit codes:
 
@@ -100,10 +100,10 @@ state without running network probes or printing credential secrets.
 ## Change guidelines
 
 - Keep `phaseN_operator.sh` as the supported operator entry point.
-- Put new cross-cutting behavior in `src/yttrium_core/` first, then wire phase
+- Put new cross-cutting behavior in `src/taconite_core/` first, then wire phase
   scripts or utilities to it.
 - Keep `Scripts/ccdc_common.sh` as a backwards-compatible adapter for scripts
-  that have not migrated to `src/yttrium_core/kernel.sh` directly.
+  that have not migrated to `src/taconite_core/kernel.sh` directly.
 - Prefer adding validation to `Scripts/ccdc_validate.sh` when a new invariant is
   introduced.
 - Prefer adding temp-only behavior checks to `Scripts/ccdc_smoke_test.sh` when a

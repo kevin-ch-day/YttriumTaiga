@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Repo-level validation harness for YttriumTaiga.
+# Repo-level validation harness for Taconite.
 # Safe on Ubuntu for CI/lightweight testing; Kali-specific tool checks warn
 # unless --strict-kali is supplied.
 
@@ -53,11 +53,11 @@ WARN_COUNT=0
 FAIL_COUNT=0
 
 section() {
-  yt_section "$*"
+  taconite_section "$*"
 }
 
 ok() {
-  yt_ok "$*"
+  taconite_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
@@ -67,7 +67,7 @@ note_warn() {
 }
 
 bad() {
-  yt_fail "$*"
+  taconite_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 
@@ -84,7 +84,7 @@ check_executable() {
 }
 
 section "Platform"
-os_id="$(yt_platform_id)"
+os_id="$(taconite_platform_id)"
 echo "Detected OS: ${os_id}"
 case "$os_id" in
   kali) ok "Kali event runtime detected" ;;
@@ -107,12 +107,12 @@ required_files=(
   "Scripts/ccdc_smoke_test.sh"
   "Scripts/ccdc_team_brief.py"
   "Scripts/verify_no_event_data.sh"
-  "src/yttrium_core/kernel.sh"
-  "src/yttrium_core/README.md"
-  "src/yttrium_core/errors.sh"
-  "src/yttrium_core/display.sh"
-  "src/yttrium_core/paths.sh"
-  "src/yttrium_core/validate.sh"
+  "src/taconite_core/kernel.sh"
+  "src/taconite_core/README.md"
+  "src/taconite_core/errors.sh"
+  "src/taconite_core/display.sh"
+  "src/taconite_core/paths.sh"
+  "src/taconite_core/validate.sh"
 )
 for f in "${required_files[@]}"; do
   check_file "$f"

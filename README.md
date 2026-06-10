@@ -1,6 +1,6 @@
-# YttriumTaiga (v1)
+# Taconite (v1)
 
-YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
+Taconite is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
 
 Versioning:
 - `config/version.conf` holds the current version and release date.
@@ -30,7 +30,7 @@ Versioning:
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
 - `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup, event-data verification).
-- `src/yttrium_core/` - shared app/kernel helpers for display, errors, paths, and validation.
+- `src/taconite_core/` - shared app/kernel helpers for display, errors, paths, and validation.
 
 ## Supported platforms
 
@@ -87,7 +87,7 @@ and `--with-smoke` to run non-network phase handoff tests.
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
-- Shared core/kernel helpers: `src/yttrium_core/kernel.sh`
+- Shared core/kernel helpers: `src/taconite_core/kernel.sh`
 - Utility compatibility adapter: `Scripts/ccdc_common.sh`
 - Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
 - Non-network backbone smoke tests: `Scripts/ccdc_smoke_test.sh`

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Non-network smoke tests for core YttriumTaiga phase handoffs.
+# Non-network smoke tests for core Taconite phase handoffs.
 # Safe on Ubuntu and Kali. Uses temporary directories only.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -21,16 +21,16 @@ cleanup() {
 trap cleanup EXIT
 
 section() {
-  yt_section "$*"
+  taconite_section "$*"
 }
 
 ok() {
-  yt_ok "$*"
+  taconite_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
 fail() {
-  yt_fail "$*"
+  taconite_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 
