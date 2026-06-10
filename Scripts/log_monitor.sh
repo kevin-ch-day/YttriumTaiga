@@ -2,6 +2,10 @@
 # filename: log_monitor.sh
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/ccdc_common.sh"
+
 # ============================================================
 # Real-Time Log Monitor (Event-Day Safe)
 # Version : 0.3.0
@@ -57,19 +61,15 @@ fi
 c() {
   local code="$1"; shift
   local text="$*"
-  if [[ "$USE_COLOR" == "1" && -t 1 ]]; then
-    printf "\033[%sm%s\033[0m" "$code" "$text"
+  if [[ "$USE_COLOR" == "1" ]]; then
+    taconite_color "$code" "$text"
   else
     printf "%s" "$text"
   fi
 }
 
 section() {
-  echo ""
-  echo "$(c "1;100" "============================================================")"
-  echo "$(c "1;104" " $* ")"
-  echo "$(c "1;100" "============================================================")"
-  echo ""
+  taconite_section "$*"
 }
 
 need_cmd() { command -v "$1" >/dev/null 2>&1; }
@@ -151,8 +151,8 @@ if need_cmd awk; then
   # -F follows renames/rotations; can still terminate if *all* files vanish
   # We'll let Ctrl+C stop it; otherwise it runs until tail exits.
   tail -F "${LOG_FILES[@]}" 2>/dev/null | awk -v IGNORECASE=1 -v are="$ALERT_RE" -v ire="$INFO_RE" '
-    $0 ~ are { printf "\033[1;91m[ALERT]\033[0m %s\n", $0; fflush(); next }
-    $0 ~ ire { printf "\033[1;92m[INFO]\033[0m  %s\n", $0; fflush(); next }
+    $0 ~ are { printf "[ALERT] %s\n", $0; fflush(); next }
+    $0 ~ ire { printf "[INFO]  %s\n", $0; fflush(); next }
     { print $0; fflush() }
   '
 else

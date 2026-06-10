@@ -74,10 +74,19 @@ _phase2_menu__color_enabled() {
 
 _phase2_menu__c() {
   # Usage: _phase2_menu__c "32" "text"
-  local code="$1"; shift
+  local code="$1"; shift || true
   local text="$*"
   if _phase2_menu__color_enabled; then
-    printf "\033[%sm%s\033[0m" "$code" "$text"
+    case "$code" in
+      31|91|100|101|104|active|accent|critical|fail|error) code="accent" ;;
+      90|2|inactive|meta|metadata|divider|grid) code="meta" ;;
+      *) code="data" ;;
+    esac
+    if declare -F ccdc_color__wrap >/dev/null 2>&1; then
+      ccdc_color__wrap "$code" "$text"
+    else
+      printf "%s" "$text"
+    fi
   else
     printf "%s" "$text"
   fi
@@ -89,12 +98,13 @@ phase2_menu__header() {
   # If Title omitted, uses Phase meta identity when available.
   local title="${1:-}"
   local subtitle="${2:-}"
-  _phase2_menu__load_theme || exit 3
-  ccdc_theme__header "$title" "$subtitle" >&2
-  return 0
   local ts
-  ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
+  if _phase2_menu__load_theme; then
+    ccdc_theme__header "$title" "$subtitle" >&2
+    return 0
+  fi
 
+  ts="$(date '+%Y-%m-%d %H:%M:%S' 2>/dev/null || date)"
   if [[ -z "$title" ]]; then
     if [[ -n "${PHASE_NAME:-}" && -n "${PHASE_VERSION:-}" ]]; then
       title="${PHASE_NAME} v${PHASE_VERSION}"

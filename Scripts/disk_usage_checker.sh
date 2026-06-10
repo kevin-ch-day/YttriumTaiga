@@ -2,6 +2,10 @@
 # filename: disk_usage_checker.sh
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/ccdc_common.sh"
+
 # ============================================================
 # Disk Usage Checker (Event-Day Safe)
 # Version : 0.3.0
@@ -53,19 +57,15 @@ done
 c() {
   local code="$1"; shift
   local text="$*"
-  if [[ "$USE_COLOR" == "1" && -t 1 ]]; then
-    printf "\033[%sm%s\033[0m" "$code" "$text"
+  if [[ "$USE_COLOR" == "1" ]]; then
+    taconite_color "$code" "$text"
   else
     printf "%s" "$text"
   fi
 }
 
 section() {
-  echo ""
-  echo "$(c "1;44" "============================================================")"
-  echo "$(c "1;42" " $* ")"
-  echo "$(c "1;44" "============================================================")"
-  echo ""
+  taconite_section "$*"
 }
 
 need_cmd() { command -v "$1" >/dev/null 2>&1; }
@@ -192,9 +192,9 @@ if need_cmd df && need_cmd awk; then
     NR>1 {
       # strip %
       gsub(/%/,"",$5);
-      if ($5+0 >= 90) printf "\033[1;91mCRITICAL:\033[0m %-20s %3s%% used on %s\n",$1,$5,$6;
-      else if ($5+0 >= 80) printf "\033[1;93mWARN:\033[0m     %-20s %3s%% used on %s\n",$1,$5,$6;
-      else printf "\033[1;92mOK:\033[0m       %-20s %3s%% used on %s\n",$1,$5,$6;
+      if ($5+0 >= 90) printf "[CRITICAL] %-20s %3s%% used on %s\n",$1,$5,$6;
+      else if ($5+0 >= 80) printf "[WARN]     %-20s %3s%% used on %s\n",$1,$5,$6;
+      else printf "[OK]       %-20s %3s%% used on %s\n",$1,$5,$6;
     }' || true
 else
   echo "$(c "1;91" "df/awk missing; cannot compute warnings.")"

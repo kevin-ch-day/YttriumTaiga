@@ -2,6 +2,10 @@
 # filename: make_executable.sh
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/ccdc_common.sh"
+
 # ============================================================
 # Make Shell Scripts Executable (Event-Day Safe)
 # Version : 0.3.0
@@ -60,19 +64,15 @@ done
 c() {
   local code="$1"; shift
   local text="$*"
-  if [[ "$USE_COLOR" == "1" && -t 1 ]]; then
-    printf "\033[%sm%s\033[0m" "$code" "$text"
+  if [[ "$USE_COLOR" == "1" ]]; then
+    taconite_color "$code" "$text"
   else
     printf "%s" "$text"
   fi
 }
 
 section() {
-  echo ""
-  echo "$(c "1;100" "============================================================")"
-  echo "$(c "1;104" " $* ")"
-  echo "$(c "1;100" "============================================================")"
-  echo ""
+  taconite_section "$*"
 }
 
 need_cmd() { command -v "$1" >/dev/null 2>&1; }

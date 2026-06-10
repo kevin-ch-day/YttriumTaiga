@@ -60,11 +60,20 @@ _ccdc_menu__color_enabled() {
 }
 
 _ccdc_menu__c() {
-  # Usage: _ccdc_menu__c "32" "text"
-  local code="$1"; shift
+  # Usage: _ccdc_menu__c "accent|data|meta" "text"
+  local code="$1"; shift || true
   local text="$*"
   if _ccdc_menu__color_enabled; then
-    printf "\033[%sm%s\033[0m" "$code" "$text"
+    case "$code" in
+      31|91|100|101|104|active|accent|critical|fail|error) code="accent" ;;
+      90|2|inactive|meta|metadata|divider|grid) code="meta" ;;
+      *) code="data" ;;
+    esac
+    if declare -F ccdc_color__wrap >/dev/null 2>&1; then
+      ccdc_color__wrap "$code" "$text"
+    else
+      printf "%s" "$text"
+    fi
   else
     printf "%s" "$text"
   fi
