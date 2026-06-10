@@ -50,6 +50,9 @@ Key files:
 ## What "good output" looks like
 - `services_hits.txt` contains IPs with meaningful headers/titles.
 - `web_fingerprint.csv` includes titles/headers for likely apps (webmail, OpenCart, Splunk, etc.).
+- `security_header_gaps` highlights missing common defensive headers on `/`.
+- `meta_findings` highlights low-noise metadata files such as `robots.txt`,
+  `sitemap.xml`, `.well-known/security.txt`, and cross-domain policy files.
 - `targets_candidates.txt` has a short list of interesting hosts for quick follow-up.
 
 ## Fast test mode (optional)
@@ -73,9 +76,11 @@ Example:
 
 ## If the candidate list is empty
 `phase1_web_fingerprint.sh` will fall back automatically:
-1) `targets_candidates.txt`
-2) `services_hits.txt`
-3) full public `/24` (slowest)
+1) `services.csv` from the inventory run
+2) `data/ops_known_hosts.csv`
+3) `targets_candidates.txt`
+4) `services_hits.txt`
+5) full public `/24` (slowest)
 
 If results are still empty:
 - verify the team/subnet mapping (see `lib/ccdc_net_scheme.sh`)
@@ -107,4 +112,6 @@ Most Phase 01 scripts expect these tools to exist:
 
 ## Notes
 - These scripts are read-only and low-noise by design.
+- Web fingerprinting follows OWASP-style information gathering: banner/header
+  review, common metadata files, and app hints without brute force or dirbusting.
 - All actions log to phase-local logs for traceability.

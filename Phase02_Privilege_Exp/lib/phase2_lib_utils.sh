@@ -85,8 +85,10 @@ phase2_load_rules() {
   fi
 
   if [[ -f "$rules_file" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
     # shellcheck disable=SC1090
     source "$rules_file" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
     # Allow shared variable name
     if [[ -n "${CCDC_BLOCKED_TEAMS:-}" ]]; then
       PHASE2_BLOCKED_TEAMS="${CCDC_BLOCKED_TEAMS}"
@@ -112,6 +114,10 @@ phase2_validate_team() {
   local team="${1:-}"
   [[ -n "$team" ]] || return 1
   [[ "$team" =~ ^[0-9]{1,3}$ ]] || return 1
+  if [[ "$team" =~ ^0[0-9]+$ ]]; then
+    _phase2_utils__warn "Team numbers must not use leading zeros: ${team}"
+    return 1
+  fi
   if phase2_is_blocked_team "$team"; then
     _phase2_utils__warn "Team ${team} is reserved for baseline connectivity; do not target."
     return 1
@@ -191,6 +197,33 @@ phase2__resolve_out_dir() {
   local this_dir
   this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   echo "$(cd "$this_dir/.." && pwd)/${out_name}"
+}
+
+phase2_set_team_out_dir() {
+  # Route team-scoped Phase 2 artifacts to the shared intel tree.
+  local team="${1:-}"
+  phase2_validate_team "$team" || return 1
+
+  local phase_dir repo_root rules intel_override intel
+  phase_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  repo_root="$(cd "${phase_dir}/.." && pwd)"
+  rules="${repo_root}/config/ccdc_rules.conf"
+  if [[ -f "$rules" ]]; then
+    intel_override="${CCDC_INTEL_DIR:-}"
+    # shellcheck disable=SC1090
+    source "$rules" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
+  fi
+
+  intel="${CCDC_INTEL_DIR:-data/intel}"
+  if [[ "$intel" = /* ]]; then
+    PHASE2_OUT_DIR="${intel}/Phase02_Privilege_Exp/team_$(printf "%03d" "$team")"
+  else
+    PHASE2_OUT_DIR="${repo_root}/${intel}/Phase02_Privilege_Exp/team_$(printf "%03d" "$team")"
+  fi
+  export PHASE2_OUT_DIR
+  mkdir -p "$PHASE2_OUT_DIR" 2>/dev/null || return 1
+  return 0
 }
 
 phase2_save_last_team() {

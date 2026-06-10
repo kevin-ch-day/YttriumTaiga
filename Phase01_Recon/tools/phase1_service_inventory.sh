@@ -206,13 +206,16 @@ write_summary() {
 rank_targets() {
   awk -F',' '
     NR>1 {
-      ip=$1; scheme=$2; status=$4; server=tolower($5); xpb=tolower($6); title=tolower($11);
+      ip=$1; scheme=$2; port=$3; status=$4; server=tolower($5); xpb=tolower($6); auth=tolower($8); loc=tolower($9); title=tolower($11);
       score=0; reason="";
       if (status=="200") {score+=2; reason=reason "200 ";}
       if (status=="301"||status=="302") {score+=1; reason=reason "redir ";}
-      if (server ~ /apache|nginx|iis/) {score+=2; reason=reason "server ";}
-      if (xpb ~ /php|asp|jsp/) {score+=2; reason=reason "xpb ";}
-      if (title ~ /login|admin|mail|webmail|splunk|opencart|dashboard/) {score+=3; reason=reason "title ";}
+      if (status=="401"||auth!="") {score+=3; reason=reason "auth ";}
+      if (port=="8080"||port=="8443") {score+=1; reason=reason "alt_port ";}
+      if (server ~ /apache|nginx|iis|tomcat|jetty/) {score+=2; reason=reason "server ";}
+      if (xpb ~ /php|asp|jsp|express|node|python/) {score+=2; reason=reason "xpb ";}
+      if (loc ~ /admin|login|dashboard/) {score+=2; reason=reason "redir_path ";}
+      if (title ~ /login|admin|mail|webmail|splunk|opencart|dashboard|jenkins|tomcat|grafana|wordpress|drupal|joomla|webmin|cockpit|proxmox|phpmyadmin/) {score+=4; reason=reason "title ";}
       if (score>0) print score "," ip "," reason;
     }
   ' "$CSV_OUT" | sort -t',' -k1,1nr -k2,2 | awk -F',' 'BEGIN{rank=0}{rank++; printf("%d,%s,%s,%s\n",rank,$1,$2,$3)}' >> "$RANKED_OUT"

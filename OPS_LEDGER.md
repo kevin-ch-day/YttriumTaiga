@@ -4,7 +4,7 @@ This repo uses two CSV files under the project `data/` directory as the canonica
 - `data/ops_teams.csv` (team metadata, stable)
 - `data/ops_ledger.csv` (action outcomes, updated during event)
 
-Excel copies are provided for convenience (view only):
+Excel copies can be generated for convenience (view only):
 - `data/ops_teams.xlsx`
 - `data/ops_ledger.xlsx`
 

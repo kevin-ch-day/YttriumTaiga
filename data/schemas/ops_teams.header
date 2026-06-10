@@ -1,0 +1,1 @@
+team_id,team_number,team_octet,public_subnet_cidr,core_transit_cidr,core_router_ip,team_router_ip,targetable,notes

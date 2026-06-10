@@ -110,8 +110,8 @@ phase2_rp__run_proof_basic() {
   cmd=$'set -e\nwhoami\nid\nhostname\nuname -a\n( cat /etc/os-release 2>/dev/null | head -n 50 ) || true\n'
 
   local proof
-  proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "proof_basic" || true)"
-  if [[ -n "$proof" && -f "$proof" ]]; then
+  if proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "proof_basic")" \
+    && [[ -n "$proof" && -f "$proof" ]]; then
     phase2_log "[*] Saved proof: $proof"
     return 0
   fi
@@ -127,8 +127,11 @@ phase2_rp__run_proof_sudo() {
   cmd=$'set -e\ncommand -v sudo >/dev/null 2>&1 || { echo "sudo not present"; exit 0; }\n(sudo -n -l 2>/dev/null || sudo -l 2>/dev/null || true)\n'
 
   local proof
-  proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "proof_sudo" || true)"
-  [[ -n "$proof" && -f "$proof" ]] && { phase2_log "[*] Saved proof: $proof"; return 0; }
+  if proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "proof_sudo")" \
+    && [[ -n "$proof" && -f "$proof" ]]; then
+    phase2_log "[*] Saved proof: $proof"
+    return 0
+  fi
   phase2_warn "Failed to produce sudo proof."
   return 1
 }
@@ -163,8 +166,8 @@ echo "=== readable sensitive configs (light) ==="\n\
 for f in /etc/passwd /etc/shadow /etc/sudoers /etc/ssh/sshd_config /etc/mysql/my.cnf /var/www/html/config.php; do [ -e "$f" ] || continue; [ -r "$f" ] && echo "readable: $f" || echo "not readable: $f"; done\n'
 
   local proof
-  proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "privesc_triage_${PHASE2_RP_TAG:-remote}" || true)"
-  if [[ -n "$proof" && -f "$proof" ]]; then
+  if proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "privesc_triage_${PHASE2_RP_TAG:-remote}")" \
+    && [[ -n "$proof" && -f "$proof" ]]; then
     phase2_log "[*] Saved triage proof: $proof"
     return 0
   fi
@@ -182,8 +185,11 @@ phase2_rp__run_custom_cmd() {
   [[ -n "$cmd" ]] || { phase2_warn "No command provided"; return 1; }
 
   local proof
-  proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "$tag" || true)"
-  [[ -n "$proof" && -f "$proof" ]] && { phase2_log "[*] Saved proof: $proof"; return 0; }
+  if proof="$(phase2_remote_ssh_cmd "$PHASE2_RP_USER" "$PHASE2_RP_HOST" "$cmd" --tag "$tag")" \
+    && [[ -n "$proof" && -f "$proof" ]]; then
+    phase2_log "[*] Saved proof: $proof"
+    return 0
+  fi
   return 1
 }
 
@@ -195,7 +201,7 @@ phase2_rp__scp_get() {
   remote_path="$(phase2_menu__ask "Remote path to fetch" "/etc/passwd")"
   local_name="$(phase2_menu__ask "Local name (optional)" "")"
   rec="0"
-  if phase2_menu__confirm "Recursive (-r)NO" "N"; then
+  if phase2_menu__confirm "Recursive (-r)?" "N"; then
     rec="1"
   fi
 

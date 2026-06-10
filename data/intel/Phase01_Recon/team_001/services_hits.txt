@@ -1,3 +1,0 @@
-172.25.21.11 http:80 status=200 server=Apache/2.4.58 (Ubuntu) title=Your Store loc=- auth=-
-172.25.21.140 http:80 status=200 server=Microsoft-IIS/10.0 title=CyberShield — Home loc=- auth=-
-172.25.21.162 http:80 status=200 server=Microsoft-IIS/10.0 title=IIS Windows Server loc=- auth=-

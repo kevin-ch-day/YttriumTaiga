@@ -1,0 +1,4 @@
+name,path,schema,required
+ops_teams,data/ops_teams.csv,data/schemas/ops_teams.header,yes
+ops_ledger,data/ops_ledger.csv,data/schemas/ops_ledger.header,yes
+ops_known_hosts,data/ops_known_hosts.csv,data/schemas/ops_known_hosts.header,yes

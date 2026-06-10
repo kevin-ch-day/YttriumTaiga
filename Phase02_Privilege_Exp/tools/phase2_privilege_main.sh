@@ -260,7 +260,10 @@ phase2_main__menu() {
         local csv
         csv="$(phase2_creds__csv_path 2>/dev/null || true)"
         if [[ -n "$csv" && -f "$csv" ]]; then
-          phase2_open_viewer "$csv" || true
+          phase2_warn "Credential ledger contains secrets."
+          if phase2_menu__confirm "Open raw credential CSV now?" "N"; then
+            phase2_open_viewer "$csv" || true
+          fi
         else
           phase2_warn "cred_ledger.csv not found yet. Run creds init/add first."
         fi

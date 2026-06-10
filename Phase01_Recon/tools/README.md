@@ -8,7 +8,7 @@ Tools (direct use):
 - `phase1_operator_recon.sh` — primary recon workflow (advanced/legacy)
 - `phase1_operator_monitor.sh` — local health snapshot
 - `phase1_cred_ledger_init.sh` — initialize docs (cred ledger, service map, watchlist)
-- `phase1_service_inventory.sh` — HTTP/HTTPS inventory (80/443)
+- `phase1_service_inventory.sh` — HTTP/HTTPS inventory (80/443/8080/8443 by default; tunable)
 - `phase1_web_fingerprint.sh` — low-noise fingerprinting
 - `phase1_network_monitoring.sh` — local health snapshot
 - `phase1_nmap_script.sh` — nmap worksheet generator (no scans)

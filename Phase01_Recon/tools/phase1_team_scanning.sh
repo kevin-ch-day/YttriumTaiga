@@ -244,6 +244,11 @@ main() {
   require_child "${SCRIPT_DIR}/tools/phase1_web_fingerprint.sh" || exit 3
 
   if [[ "${CCDC_BATCH:-0}" == "1" ]]; then
+    if [[ -z "${TEAM:-}" ]] || ! ccdc__validate_team "$TEAM"; then
+      ccdc__warn "Batch run requires a valid, targetable team."
+      usage
+      return 1
+    fi
     export CCDC_BATCH=1
     export CCDC_TEAM_LOCK=1
     export CCDC_BRIEF="${CCDC_BRIEF:-1}"

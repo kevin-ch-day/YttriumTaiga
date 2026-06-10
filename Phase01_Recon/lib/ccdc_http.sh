@@ -244,7 +244,7 @@ ccdc_http__fingerprint_hints() {
   local tags
   tags="$(
     tr '\r\n' ' ' 2>/dev/null \
-      | grep -Eoi 'opencart|splunk|roundcube|squirrelmail|zimbra|owa|grafana|prometheus|jenkins|phpmyadmin|cpanel|webmail|login|admin' \
+      | grep -Eoi 'opencart|wordpress|drupal|joomla|splunk|roundcube|squirrelmail|zimbra|owa|grafana|prometheus|jenkins|tomcat|phpmyadmin|webmin|cockpit|proxmox|cpanel|webmail|login|admin|dashboard' \
       | head -n 25 2>/dev/null \
       | tr '\n' ' ' 2>/dev/null
   )"
@@ -255,6 +255,29 @@ ccdc_http__fingerprint_hints() {
   else
     echo "$tags"
   fi
+}
+
+ccdc_http__security_header_gaps() {
+  # Report common defensive headers that are absent. This is triage-only, not a
+  # vulnerability verdict; operators should verify context before scoring.
+  local hdrs="${1:-}"
+  local scheme="${2:-}"
+  [[ -n "$hdrs" ]] || { echo ""; return 0; }
+
+  local gaps=()
+  [[ -n "$(ccdc_http__extract_header "$hdrs" "Content-Security-Policy" 2>/dev/null || true)" ]] || gaps+=("missing_csp")
+  [[ -n "$(ccdc_http__extract_header "$hdrs" "X-Frame-Options" 2>/dev/null || true)" ]] || gaps+=("missing_x_frame_options")
+  [[ -n "$(ccdc_http__extract_header "$hdrs" "X-Content-Type-Options" 2>/dev/null || true)" ]] || gaps+=("missing_x_content_type_options")
+  [[ -n "$(ccdc_http__extract_header "$hdrs" "Referrer-Policy" 2>/dev/null || true)" ]] || gaps+=("missing_referrer_policy")
+
+  # HSTS is meaningful for HTTPS responses only.
+  if [[ "$scheme" == "https" ]]; then
+    [[ -n "$(ccdc_http__extract_header "$hdrs" "Strict-Transport-Security" 2>/dev/null || true)" ]] || gaps+=("missing_hsts")
+  fi
+
+  local out
+  out="${gaps[*]}"
+  ccdc_http__csv_safe "$out"
 }
 
 ccdc_http__tls_cn() {

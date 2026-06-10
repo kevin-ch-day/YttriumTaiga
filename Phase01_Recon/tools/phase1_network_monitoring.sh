@@ -123,7 +123,9 @@ run_quick_checks() {
   ccdc__section "Quick checks"
   init_outputs
 
-  TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
+  if [[ -z "${TEAM:-}" ]]; then
+    TEAM="$(ccdc__parse_team_or_last "$TEAM_ARG")" || TEAM=""
+  fi
 
   write_quick_block
   append "Network Monitoring + Health Check"
@@ -153,7 +155,7 @@ run_quick_checks() {
   if dns_test; then
     dns_status="OK"
   else
-    rc=$NO
+    rc=$?
     if [[ "$rc" -eq 2 ]]; then dns_status="SKIP (no tool)"; else dns_status="FAIL"; fi
   fi
   append "DNS resolve example.com: $dns_status"

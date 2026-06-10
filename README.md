@@ -9,12 +9,15 @@ Versioning:
 ## Table of contents
 
 - [Structure](#structure)
+- [Supported platforms](#supported-platforms)
+- [Backbone validation](#backbone-validation)
 - [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
 - [Operator docs](#operator-docs)
 - [Ops ledger (root CSVs)](#ops-ledger-root-csvs)
 - [Phase quick start (at a glance)](#phase-quick-start-at-a-glance)
 - [Outputs and logs](#outputs-and-logs)
 - [Network model (Phase 01 default)](#network-model-phase-01-default)
+- [Tuning](#tuning)
 - [Notes](#notes)
 
 ## Structure
@@ -26,7 +29,31 @@ Versioning:
 - `Phase04_Controlled_Disruption/` - Placeholder scaffold.
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
-- `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup).
+- `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup, event-data verification).
+
+## Supported platforms
+
+- **Event/operator runtime:** Kali Linux. Phase 00 setup scripts and event-day
+  workflows are built around Kali packages, tools, paths, and operator UX.
+- **Testing/runtime checks:** Ubuntu is acceptable for lightweight validation such
+  as Bash syntax checks, Python parsing, docs checks, and non-network helper
+  tests.
+- Do not treat Ubuntu as the target production environment for event use unless
+  a script explicitly documents Ubuntu support.
+
+## Backbone validation
+
+Core repo contracts are documented in `BACKBONE.md`.
+
+Run the repo-level preflight before event use and before pushing code changes:
+
+```bash
+Scripts/ccdc_validate.sh
+```
+
+On the Kali event box, use `--strict-kali` to fail when expected event tools are
+missing. Use `--with-export` to validate the optional XLSX export dependency,
+and `--with-smoke` to run non-network phase handoff tests.
 
 ## Phase pattern (shared conventions)
 
@@ -49,7 +76,7 @@ Versioning:
 
 - `data/ops_teams.csv` - team metadata and subnet mapping (Team19 is not targetable)
 - `data/ops_ledger.csv` - action outcomes matrix (one row per action attempt)
-- Excel copies (view only): `data/ops_teams.xlsx`, `data/ops_ledger.xlsx`
+- Excel copies (view only): generated from CSVs with `Scripts/ops_ledger_export.sh`
 - Contract/details: `OPS_LEDGER.md`
 
 ## Useful scripts
@@ -59,10 +86,15 @@ Versioning:
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
+- Shared utility error helpers: `Scripts/ccdc_common.sh`
+- Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
+- Non-network backbone smoke tests: `Scripts/ccdc_smoke_test.sh`
+- Cross-phase team brief: `Scripts/ccdc_team_brief.py --team <N>`
 - Ops ledger add (interactive): `Scripts/ops_ledger_add.sh`
 - Ops ledger export (CSV -> XLSX): `Scripts/ops_ledger_export.sh`
 - Export helpers (CSV/XLSX/JSONL): `Scripts/export_cli.py`, `Scripts/export_utils.py`
   - `ops_ledger_add.sh` accepts `Team#` tokens and ranges (e.g., `1-3`) and skips invalid entries.
+- Event-data safety check: `Scripts/verify_no_event_data.sh`
 
 ## Phase quick start (at a glance)
 
@@ -83,9 +115,17 @@ Versioning:
 
 ## Outputs and logs
 
-Each phase writes artifacts locally under that phase directory:
-- `logs/` - runtime logs (per script run)
-- `output/` - generated artifacts (CSVs, notes, ledgers)
+Each phase writes runtime logs locally under that phase directory:
+- `logs/` - runtime logs (per script run; gitignored)
+
+Phase 01-03 team intel is written centrally for cross-phase use:
+- `data/intel/Phase01_Recon/team_###/`
+- `data/intel/Phase02_Privilege_Exp/team_###/`
+- `data/intel/Phase03_Persistence/team_###/`
+
+Live intel, loot, proof files, credential ledgers, and generated spreadsheets are
+gitignored. Run `Scripts/verify_no_event_data.sh` before pushing from event
+systems.
 
 If you use `sudo`, Phase 01-03 runtimes now fix ownership so you can still edit/delete outputs as your user.
 
@@ -99,12 +139,19 @@ If you use `sudo`, Phase 01-03 runtimes now fix ownership so you can still edit/
 CSV override supported:
 - Set `CCDC_TEAM_MAP_CSV=/path/to/ccdc_team_map.csv`, or drop it next to the phase lib.
 
+## Tuning
+
+Common event-day knobs are documented in `OPERATOR_TUNING.md`.
+
 ## Notes
 
 - Most scripts are designed to be safe and low-noise unless explicitly configured otherwise.
-- Phase 0-2 are implemented; Phase 3-5 are scaffolds for future build-out.
+- Phase 0-3 are implemented. Phase 3 is persistence-lite continuity
+  documentation, not live persistence deployment.
+- Phase 4-5 are scaffolds for future build-out.
 - Phase 01 scripts prompt for Team Selection before showing action menus.
-- Phase 01 outputs are stored under `Phase01_Recon/output/team_###/` (team-scoped).
+- Phase 01-03 team intel is stored under `data/intel/<phase>/team_###/`.
+  Phase-local `output/` is legacy/fallback runtime state.
 - Phase 01 operators: `phase1_operator.sh` (single entry). Advanced tools in `Phase01_Recon/tools/`.
 - Team 19 is reserved as a baseline network and is blocked by validation in all phases.
 - Repo rules live in `config/ccdc_rules.conf` (blocked teams, future constraints).

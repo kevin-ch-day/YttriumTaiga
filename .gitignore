@@ -1,6 +1,33 @@
 **/workspace/
 **/*.tmp
 **/*.bak
+__pycache__/
+**/__pycache__/
+*.py[cod]
+
+# Runtime/event artifacts
+**/logs/
+**/output/
+**/tmp/
+**/loot/
+**/proof/
+**/enum/
+**/notes/
+
+# Cross-phase event intel. Keep docs/templates only.
+data/intel/*
+!data/intel/.gitkeep
+!data/intel/README.md
+
+# Generated spreadsheet views
+*.xlsx
+
+# Sensitive live-event ledgers/artifacts
+**/cred_ledger.csv
+**/*secret*
+**/*token*
+**/*loot*
+Phase03_Persistence/approved_actions.md
 
 # OS/editor
 .DS_Store

@@ -35,6 +35,29 @@ PHASE1_DIR=""
 PHASE2_DIR=""
 INTEL_BASE=""
 
+set_default_team_out_dir() {
+  local team="${1:-}"
+  [[ -n "$team" ]] || return 0
+
+  local rules="${PHASE_DIR}/../config/ccdc_rules.conf"
+  if [[ -f "$rules" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
+    # shellcheck disable=SC1090
+    source "$rules" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
+  fi
+
+  local base intel
+  base="$(cd "${PHASE_DIR}/.." && pwd)"
+  intel="${CCDC_INTEL_DIR:-data/intel}"
+  if [[ "$intel" = /* ]]; then
+    CCDC_OUT_DIR="${intel}/Phase03_Persistence/team_$(printf "%03d" "$team")"
+  else
+    CCDC_OUT_DIR="${base}/${intel}/Phase03_Persistence/team_$(printf "%03d" "$team")"
+  fi
+  export CCDC_OUT_DIR
+}
+
 init_outputs() {
   FOOTHOLDS="${CCDC_OUT_DIR}/footholds.jsonl"
   FOOTHOLDS_CSV="${CCDC_OUT_DIR}/footholds.csv"
@@ -43,8 +66,10 @@ init_outputs() {
   APPROVALS="${PHASE_DIR}/approved_actions.md"
   INTEL_BASE="$(cd "${PHASE_DIR}/.." && pwd)/data/intel"
   if [[ -f "${PHASE_DIR}/../config/ccdc_rules.conf" ]]; then
+    local intel_override="${CCDC_INTEL_DIR:-}"
     # shellcheck disable=SC1090
     source "${PHASE_DIR}/../config/ccdc_rules.conf" || true
+    [[ -n "$intel_override" ]] && CCDC_INTEL_DIR="$intel_override"
   fi
   if [[ -n "${CCDC_INTEL_DIR:-}" ]]; then
     if [[ "${CCDC_INTEL_DIR}" = /* ]]; then
@@ -59,6 +84,7 @@ init_outputs() {
   fi
 
   # Ensure output dir is writable
+  mkdir -p "$CCDC_OUT_DIR" 2>/dev/null || true
   local testfile="${CCDC_OUT_DIR}/.phase3_write_test"
   if ! (echo "test" > "$testfile" 2>/dev/null); then
     ccdc__die "Output directory is not writable: ${CCDC_OUT_DIR}"
@@ -112,7 +138,7 @@ require_captain_approval() {
     return 0
   fi
 
-  if [[ -f "$APPROVALS" ]]; then
+  if [[ -f "$APPROVALS" ]] && grep -Eq '^time=.*initials=.*category=' "$APPROVALS"; then
     return 0
   fi
 
@@ -150,6 +176,52 @@ json_escape() {
   echo "$s"
 }
 
+foothold_import_exists() {
+  # Import sources can be rerun during an event; keep generated entries idempotent
+  # by matching the stable fields instead of the timestamp.
+  local target="${1:-}"
+  local service="${2:-}"
+  local obtained="${3:-}"
+  local et es eo
+  et="$(json_escape "$target")"
+  es="$(json_escape "$service")"
+  eo="$(json_escape "$obtained")"
+
+  [[ -f "$FOOTHOLDS" ]] || return 1
+  grep -F "\"target\":\"${et}\"" "$FOOTHOLDS" 2>/dev/null \
+    | grep -F "\"service\":\"${es}\"" \
+    | grep -F "\"obtained\":\"${eo}\"" >/dev/null 2>&1
+}
+
+append_imported_foothold() {
+  local target="${1:-}"
+  local service="${2:-}"
+  local identity="${3:-}"
+  local access_type="${4:-}"
+  local obtained="${5:-}"
+  local notes="${6:-}"
+
+  [[ -n "$target" ]] || return 1
+  if foothold_import_exists "$target" "$service" "$obtained"; then
+    return 1
+  fi
+
+  printf '{"time":"%s","target":"%s","service":"%s","identity":"%s","access_type":"%s","stability":"%s","obtained":"%s","persistence_method":"%s","survives_reboot":%s,"recovery":"%s","sensitive_service":%s,"notes":"%s"}\n' \
+    "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
+    "$(json_escape "$target")" \
+    "$(json_escape "$service")" \
+    "$(json_escape "$identity")" \
+    "$(json_escape "$access_type")" \
+    "unknown" \
+    "$(json_escape "$obtained")" \
+    "none" \
+    "false" \
+    "" \
+    "false" \
+    "$(json_escape "$notes")" \
+    >> "$FOOTHOLDS"
+}
+
 add_foothold() {
   require_captain_approval || return 1
 
@@ -179,7 +251,7 @@ add_foothold() {
   local ts
   ts="$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)"
 
-  printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
+  printf '{"time":"%s","target":"%s","service":"%s","identity":"%s","access_type":"%s","stability":"%s","obtained":"%s","persistence_method":"%s","survives_reboot":%s,"recovery":"%s","sensitive_service":%s,"notes":"%s"}\n' \
     "$(json_escape "$ts")" \
     "$(json_escape "$target")" \
     "$(json_escape "$service")" \
@@ -254,6 +326,7 @@ add_reentry_plan() {
 rebuild_footholds_csv() {
   # Convert JSONL footholds to CSV for quick sorting.
   if command -v python3 >/dev/null 2>&1; then
+    export FOOTHOLDS FOOTHOLDS_CSV
     python3 - <<'PY' || true
 import json, csv, sys, os
 path=os.environ.get("FOOTHOLDS")
@@ -350,68 +423,32 @@ auto_import_footholds() {
 
   if [[ -f "$svc_csv" ]]; then
     ccdc__log "[*] Importing from: $svc_csv"
-    awk -F',' 'NR>1 {print $1","$2","$3","$5}' "$svc_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r ip scheme port server; do
+    while IFS=',' read -r ip scheme port server; do
       [[ -n "$ip" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$ip" \
-        "${scheme}:${port}" \
-        "" \
-        "web" \
-        "unknown" \
-        "ph1_service_inventory" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "server=${server}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$ip" "${scheme}:${port}" "" "web" "ph1_service_inventory" "server=${server}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $1","$2","$3","$5}' "$svc_csv" 2>/dev/null | head -n 50)
   fi
 
   if [[ -f "$web_csv" ]]; then
     ccdc__log "[*] Importing from: $web_csv"
-    awk -F',' 'NR>1 {print $1","$2","$3","$4","$6}' "$web_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r ip scheme port path title; do
+    while IFS=',' read -r ip scheme port path title; do
       [[ -n "$ip" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$ip" \
-        "${scheme}:${port}${path}" \
-        "" \
-        "web" \
-        "unknown" \
-        "ph1_web_fingerprint" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "title=${title}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$ip" "${scheme}:${port}${path}" "" "web" "ph1_web_fingerprint" "title=${title}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $1","$2","$3","$4","$6}' "$web_csv" 2>/dev/null | head -n 50)
   fi
 
   if [[ -f "$creds_csv" ]]; then
     ccdc__log "[*] Importing from: $creds_csv"
-    awk -F',' 'NR>1 {print $4","$6","$8}' "$creds_csv" 2>/dev/null | head -n 50 | while IFS=',' read -r user target status; do
+    while IFS=',' read -r user target status; do
       [[ -n "$target" ]] || continue
-      printf '{\"time\":\"%s\",\"target\":\"%s\",\"service\":\"%s\",\"identity\":\"%s\",\"access_type\":\"%s\",\"stability\":\"%s\",\"obtained\":\"%s\",\"persistence_method\":\"%s\",\"survives_reboot\":%s,\"recovery\":\"%s\",\"sensitive_service\":%s,\"notes\":\"%s\"}\n' \
-        "$(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date)" \
-        "$target" \
-        "credential" \
-        "$user" \
-        "auth" \
-        "unknown" \
-        "ph2_cred_ledger" \
-        "none" \
-        "false" \
-        "" \
-        "false" \
-        "status=${status}" \
-        >> "$FOOTHOLDS"
-      count=$((count+1))
-    done
+      if append_imported_foothold "$target" "credential" "$user" "auth" "ph2_cred_ledger" "status=${status}"; then
+        count=$((count+1))
+      fi
+    done < <(awk -F',' 'NR>1 {print $4","$6","$8}' "$creds_csv" 2>/dev/null | head -n 50)
   fi
 
   ccdc__log "[*] Imported entries: ${count}"
@@ -427,13 +464,19 @@ generate_reentry_from_ledger() {
     return 1
   fi
 
-  {
-    echo ""
-    echo "# Auto-generated Re-entry Sections ($(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date))"
-  } >> "$REENTRY"
-
+  local generated=0
   awk -F'"' '/\"target\":/ {for(i=1;i<=NF;i++){if($i=="target"){t=$(i+2)} if($i=="service"){s=$(i+2)} if($i=="identity"){u=$(i+2)} if($i=="stability"){st=$(i+2)} if($i=="sensitive_service"){ss=$(i+2)}} if(t!=""){print t"\t"s"\t"u"\t"st"\t"ss}}' "$FOOTHOLDS" \
     | sort -u | while IFS=$'\t' read -r t s u st ss; do
+      if grep -Fq "## Re-entry: ${t}" "$REENTRY" 2>/dev/null; then
+        continue
+      fi
+      if [[ "$generated" -eq 0 ]]; then
+        {
+          echo ""
+          echo "# Auto-generated Re-entry Sections ($(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date))"
+        } >> "$REENTRY"
+        generated=1
+      fi
       {
         echo ""
         echo "## Re-entry: ${t}"
@@ -452,7 +495,7 @@ generate_reentry_from_ledger() {
       } >> "$REENTRY"
     done
 
-  ccdc__log "[*] Generated re-entry sections from ledger."
+  ccdc__log "[*] Generated re-entry sections from ledger (existing targets skipped)."
 }
 
 recovery_summary() {
@@ -503,18 +546,22 @@ menu_loop() {
 }
 
 main() {
+  local out_dir_preset="${CCDC_OUT_DIR:-}"
   ccdc__init_run "phase3_continuity" || exit 1
   ccdc__require_cmds date cat printf awk sort uniq head wc || true
   if TEAM_PARSED="$(ccdc__parse_team_or_last "$TEAM_ARG" 2>/dev/null)"; then
     TEAM="$TEAM_PARSED"
+  fi
+  if [[ -z "$out_dir_preset" && -n "$TEAM" ]]; then
+    set_default_team_out_dir "$TEAM"
   fi
   init_outputs
 
   # Batch mode: auto-import + generate re-entry
   if [[ "${CCDC_BATCH:-0}" == "1" && -n "$TEAM" ]]; then
     CCDC_BRIEF=1
-    auto_import_footholds || true
-    generate_reentry_from_ledger || true
+    auto_import_footholds || return 1
+    generate_reentry_from_ledger || return 1
     exit 0
   fi
 
