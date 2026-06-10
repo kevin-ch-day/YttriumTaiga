@@ -1,53 +1,45 @@
 #!/usr/bin/env bash
-# Common helpers for repo-level utility scripts.
+# Compatibility adapter for repo-level utility scripts.
 
 # Keep this file source-safe. It should not set shell options for callers.
 
-: "${CCDC_E_OK:=0}"
-: "${CCDC_E_USAGE:=2}"
-: "${CCDC_E_VALIDATION:=10}"
-: "${CCDC_E_IO:=20}"
-: "${CCDC_E_MISSING_TOOL:=30}"
-: "${CCDC_E_INTERNAL:=90}"
+CCDC_COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CCDC_COMMON_ROOT="$(cd "${CCDC_COMMON_DIR}/.." && pwd)"
 
-ccdc_common__ts() {
-  date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date
-}
+# shellcheck disable=SC1091
+source "${CCDC_COMMON_ROOT}/src/yttrium_core/kernel.sh"
+
+: "${CCDC_E_OK:=$YT_E_OK}"
+: "${CCDC_E_USAGE:=$YT_E_USAGE}"
+: "${CCDC_E_VALIDATION:=$YT_E_VALIDATION}"
+: "${CCDC_E_IO:=$YT_E_IO}"
+: "${CCDC_E_MISSING_TOOL:=$YT_E_MISSING_TOOL}"
+: "${CCDC_E_INTERNAL:=$YT_E_INTERNAL}"
+
+ccdc_common__ts() { yt_ts "$@"; }
 
 ccdc_info() {
-  printf '[INFO] %s\n' "$*"
+  yt_info "$@"
 }
 
 ccdc_warn() {
-  printf '[WARN] %s\n' "$*" >&2
+  yt_warn "$@"
 }
 
 ccdc_error() {
-  printf '[ERROR] %s\n' "$*" >&2
+  yt_error "$@"
 }
 
 ccdc_die() {
   local code="${1:-$CCDC_E_INTERNAL}"
   shift || true
-  ccdc_error "$*"
-  exit "$code"
+  yt_die "$code" "$@"
 }
 
 ccdc_require_cmds() {
-  local missing=0 cmd
-  for cmd in "$@"; do
-    if ! command -v "$cmd" >/dev/null 2>&1; then
-      ccdc_warn "Missing required command: $cmd"
-      missing=1
-    fi
-  done
-  [[ "$missing" -eq 0 ]] || return "$CCDC_E_MISSING_TOOL"
-  return "$CCDC_E_OK"
+  yt_require_cmds "$@"
 }
 
 ccdc_enable_error_trap() {
-  local script_name="${1:-script}"
-  # Print the location of unexpected failures while allowing expected failures
-  # inside if/while conditionals to be handled by the caller.
-  trap 'rc=$?; line=${LINENO:-unknown}; if [[ "$rc" -ne 0 ]]; then ccdc_error "Unhandled failure in '"${script_name}"' at line ${line} (exit=${rc})"; fi' ERR
+  yt_enable_error_trap "$@"
 }

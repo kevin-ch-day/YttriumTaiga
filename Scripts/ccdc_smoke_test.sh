@@ -21,19 +21,16 @@ cleanup() {
 trap cleanup EXIT
 
 section() {
-  echo ""
-  echo "============================================================"
-  echo "$*"
-  echo "============================================================"
+  yt_section "$*"
 }
 
 ok() {
-  echo "[ OK ] $*"
+  yt_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
 fail() {
-  echo "[FAIL] $*" >&2
+  yt_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 

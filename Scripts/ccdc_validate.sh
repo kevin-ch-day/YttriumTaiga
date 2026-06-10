@@ -53,14 +53,11 @@ WARN_COUNT=0
 FAIL_COUNT=0
 
 section() {
-  echo ""
-  echo "============================================================"
-  echo "$*"
-  echo "============================================================"
+  yt_section "$*"
 }
 
 ok() {
-  echo "[ OK ] $*"
+  yt_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
@@ -70,7 +67,7 @@ note_warn() {
 }
 
 bad() {
-  echo "[FAIL] $*" >&2
+  yt_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 
@@ -86,16 +83,8 @@ check_executable() {
   if [[ -x "$path" ]]; then ok "executable: $path"; else bad "not executable: $path"; fi
 }
 
-platform_id() {
-  if [[ -r /etc/os-release ]]; then
-    awk -F= '$1=="ID" {gsub(/"/,"",$2); print $2}' /etc/os-release
-  else
-    echo "unknown"
-  fi
-}
-
 section "Platform"
-os_id="$(platform_id)"
+os_id="$(yt_platform_id)"
 echo "Detected OS: ${os_id}"
 case "$os_id" in
   kali) ok "Kali event runtime detected" ;;
@@ -118,6 +107,12 @@ required_files=(
   "Scripts/ccdc_smoke_test.sh"
   "Scripts/ccdc_team_brief.py"
   "Scripts/verify_no_event_data.sh"
+  "src/yttrium_core/kernel.sh"
+  "src/yttrium_core/README.md"
+  "src/yttrium_core/errors.sh"
+  "src/yttrium_core/display.sh"
+  "src/yttrium_core/paths.sh"
+  "src/yttrium_core/validate.sh"
 )
 for f in "${required_files[@]}"; do
   check_file "$f"

@@ -8,6 +8,9 @@ during a CCDC event.
 - Event/operator runtime is **Kali Linux**.
 - Ubuntu is supported for lightweight validation only: syntax checks, docs
   checks, temporary-file tests, and non-network helper checks.
+- Shared app/kernel helpers live under `src/yttrium_core/`. Phase folders remain
+  operator-facing, while `src/` is the migration target for common display,
+  errors, paths, and validation behavior.
 - Phase entry points live at each phase root:
   - `Phase01_Recon/phase1_operator.sh`
   - `Phase02_Privilege_Exp/phase2_operator.sh`
@@ -59,8 +62,9 @@ The validation harness checks:
 
 ## Error handling contract
 
-Repo-level utility scripts should use `Scripts/ccdc_common.sh` for common
-diagnostics and exit codes:
+Repo-level utility scripts should use `src/yttrium_core/kernel.sh` directly or
+`Scripts/ccdc_common.sh` as a compatibility adapter for common diagnostics and
+exit codes:
 
 - `0` - success
 - `2` - usage or invalid arguments
@@ -96,6 +100,10 @@ state without running network probes or printing credential secrets.
 ## Change guidelines
 
 - Keep `phaseN_operator.sh` as the supported operator entry point.
+- Put new cross-cutting behavior in `src/yttrium_core/` first, then wire phase
+  scripts or utilities to it.
+- Keep `Scripts/ccdc_common.sh` as a backwards-compatible adapter for scripts
+  that have not migrated to `src/yttrium_core/kernel.sh` directly.
 - Prefer adding validation to `Scripts/ccdc_validate.sh` when a new invariant is
   introduced.
 - Prefer adding temp-only behavior checks to `Scripts/ccdc_smoke_test.sh` when a
