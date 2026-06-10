@@ -36,6 +36,19 @@ run_script() {
   exec "${ROOT_DIR}/${script}" "$@"
 }
 
+call_script() {
+  local script="${1:-}"
+  shift || true
+  [[ -n "$script" ]] || taconite_die "$TACONITE_E_USAGE" "missing script"
+  [[ -x "${ROOT_DIR}/${script}" ]] || taconite_die "$TACONITE_E_IO" "script not executable: $script"
+  "${ROOT_DIR}/${script}" "$@"
+}
+
+pause_menu() {
+  local _ans=""
+  read -r -p "Press ENTER to return to TACONITE> " _ans || true
+}
+
 menu() {
   while true; do
     taconite_frame "Taconite" "Red Team Operating Core" "accent"
@@ -55,8 +68,8 @@ menu() {
       4|04|disruption) taconite_run_phase 4 ;;
       5|05|kill) taconite_run_phase 5 ;;
       6|06|dayend|cleanup) taconite_run_phase 6 ;;
-      v|V|validate) run_script "Scripts/ccdc_validate.sh" ;;
-      s|S|smoke) run_script "Scripts/ccdc_smoke_test.sh" ;;
+      v|V|validate) call_script "Scripts/ccdc_validate.sh"; pause_menu ;;
+      s|S|smoke) call_script "Scripts/ccdc_smoke_test.sh"; pause_menu ;;
       b|B|brief)
         local team
         read -r -p "Team number: " team || team=""
@@ -64,7 +77,8 @@ menu() {
           taconite_fail "Invalid or blocked team: $team"
           continue
         }
-        run_script "Scripts/ccdc_team_brief.py" --team "$team"
+        call_script "Scripts/ccdc_team_brief.py" --team "$team"
+        pause_menu
         ;;
       q|Q|quit|exit) exit 0 ;;
       "") taconite_warn "No selection made." ;;

@@ -23,6 +23,7 @@ during a CCDC event.
 - `./taconite.sh` is the preferred root application launcher. It delegates to
   phase entry points and core utilities without replacing the phase folder
   structure.
+- The launcher/core/phase/data wiring is mapped in `docs/WIRING.md`.
 
 ## Data contract
 

@@ -86,6 +86,12 @@ else
   fail "root launcher help command"
 fi
 
+if [[ "$(printf 'b\n1\n\nq\n' | ./taconite.sh menu | rg -c 'Red Team Operating Core')" -ge 2 ]]; then
+  ok "root launcher menu returns after brief utility"
+else
+  fail "root launcher menu returns after brief utility"
+fi
+
 if bash -c 'source src/taconite_core/kernel.sh; [[ "$(taconite_phase_entry 1)" == "Phase01_Recon/phase1_operator.sh" ]]'; then
   ok "core phase registry"
 else

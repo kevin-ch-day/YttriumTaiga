@@ -11,6 +11,7 @@ Versioning:
 - [Structure](#structure)
 - [Supported platforms](#supported-platforms)
 - [Backbone validation](#backbone-validation)
+- [Wiring map](#wiring-map)
 - [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
 - [Operator docs](#operator-docs)
 - [Ops ledger (root CSVs)](#ops-ledger-root-csvs)
@@ -55,6 +56,11 @@ Scripts/ccdc_validate.sh
 On the Kali event box, use `--strict-kali` to fail when expected event tools are
 missing. Use `--with-export` to validate the optional XLSX export dependency,
 and `--with-smoke` to run non-network phase handoff tests.
+
+## Wiring map
+
+The root launcher, core modules, phase dispatch, validation, and data flow are
+documented in `docs/WIRING.md`.
 
 ## Phase pattern (shared conventions)
 
