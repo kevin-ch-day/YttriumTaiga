@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Repo-level validation harness for YttriumTaiga.
+# Repo-level validation harness for Taconite.
 # Safe on Ubuntu for CI/lightweight testing; Kali-specific tool checks warn
 # unless --strict-kali is supplied.
 
@@ -53,24 +53,21 @@ WARN_COUNT=0
 FAIL_COUNT=0
 
 section() {
-  echo ""
-  echo "============================================================"
-  echo "$*"
-  echo "============================================================"
+  taconite_section "$*"
 }
 
 ok() {
-  echo "[ OK ] $*"
+  taconite_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
 note_warn() {
-  echo "[WARN] $*" >&2
+  taconite_status warn "$*" >&2
   WARN_COUNT=$((WARN_COUNT+1))
 }
 
 bad() {
-  echo "[FAIL] $*" >&2
+  taconite_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 
@@ -86,16 +83,8 @@ check_executable() {
   if [[ -x "$path" ]]; then ok "executable: $path"; else bad "not executable: $path"; fi
 }
 
-platform_id() {
-  if [[ -r /etc/os-release ]]; then
-    awk -F= '$1=="ID" {gsub(/"/,"",$2); print $2}' /etc/os-release
-  else
-    echo "unknown"
-  fi
-}
-
 section "Platform"
-os_id="$(platform_id)"
+os_id="$(taconite_platform_id)"
 echo "Detected OS: ${os_id}"
 case "$os_id" in
   kali) ok "Kali event runtime detected" ;;
@@ -108,6 +97,7 @@ required_files=(
   "README.md"
   "OPERATOR_TUNING.md"
   "OPS_LEDGER.md"
+  "taconite.sh"
   "config/ccdc_rules.conf"
   "data/ops_teams.csv"
   "data/ops_ledger.csv"
@@ -118,6 +108,13 @@ required_files=(
   "Scripts/ccdc_smoke_test.sh"
   "Scripts/ccdc_team_brief.py"
   "Scripts/verify_no_event_data.sh"
+  "src/taconite_core/kernel.sh"
+  "src/taconite_core/README.md"
+  "src/taconite_core/app.sh"
+  "src/taconite_core/errors.sh"
+  "src/taconite_core/display.sh"
+  "src/taconite_core/paths.sh"
+  "src/taconite_core/validate.sh"
 )
 for f in "${required_files[@]}"; do
   check_file "$f"
@@ -159,6 +156,11 @@ if need_cmd git; then
   while IFS= read -r script; do
     [[ -n "$script" ]] || continue
     if bash -n "$script"; then ok "bash -n: $script"; else bad "bash syntax: $script"; fi
+    if [[ -x "$script" ]]; then
+      ok "shell executable bit: $script"
+    else
+      bad "shell script is not executable: $script"
+    fi
   done < <(git ls-files '*.sh')
 else
   bad "git required for syntax file list"

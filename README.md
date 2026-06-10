@@ -1,6 +1,6 @@
-# YttriumTaiga (v1)
+# Taconite (v1)
 
-YttriumTaiga is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
+Taconite is a phase-based CCDC Red Team operations toolkit: scripts grouped by competition lifecycle phases (setup -> recon -> privilege expansion -> persistence -> end-of-day), with shared libraries that enforce consistent logging, outputs, and operator UX.
 
 Versioning:
 - `config/version.conf` holds the current version and release date.
@@ -11,6 +11,7 @@ Versioning:
 - [Structure](#structure)
 - [Supported platforms](#supported-platforms)
 - [Backbone validation](#backbone-validation)
+- [Wiring map](#wiring-map)
 - [Phase pattern (shared conventions)](#phase-pattern-shared-conventions)
 - [Operator docs](#operator-docs)
 - [Ops ledger (root CSVs)](#ops-ledger-root-csvs)
@@ -30,6 +31,7 @@ Versioning:
 - `Phase05_Kill_Service/` - Placeholder scaffold.
 - `Phase06_Day_End/` - Cleanup and end-of-day scripts.
 - `Scripts/` - Utility helpers (log monitor, disk usage, service checker, git setup, event-data verification).
+- `src/taconite_core/` - shared app/kernel helpers for display, errors, paths, and validation.
 
 ## Supported platforms
 
@@ -54,6 +56,11 @@ Scripts/ccdc_validate.sh
 On the Kali event box, use `--strict-kali` to fail when expected event tools are
 missing. Use `--with-export` to validate the optional XLSX export dependency,
 and `--with-smoke` to run non-network phase handoff tests.
+
+## Wiring map
+
+The root launcher, core modules, phase dispatch, validation, and data flow are
+documented in `docs/WIRING.md`.
 
 ## Phase pattern (shared conventions)
 
@@ -81,12 +88,14 @@ and `--with-smoke` to run non-network phase handoff tests.
 
 ## Useful scripts
 
+- Taconite root launcher: `./taconite.sh menu`
 - Make scripts executable: `Scripts/make_executable.sh`
 - Log monitor: `Scripts/log_monitor.sh`
 - Disk usage checker: `Scripts/disk_usage_checker.sh`
 - Service checker: `Scripts/service_checker.sh`
 - Git setup/verify: `Scripts/setup_git.sh`, `Scripts/verify_git.sh`
-- Shared utility error helpers: `Scripts/ccdc_common.sh`
+- Shared core/kernel helpers: `src/taconite_core/kernel.sh`
+- Utility compatibility adapter: `Scripts/ccdc_common.sh`
 - Repo preflight/backbone validation: `Scripts/ccdc_validate.sh`
 - Non-network backbone smoke tests: `Scripts/ccdc_smoke_test.sh`
 - Cross-phase team brief: `Scripts/ccdc_team_brief.py --team <N>`
@@ -97,6 +106,13 @@ and `--with-smoke` to run non-network phase handoff tests.
 - Event-data safety check: `Scripts/verify_no_event_data.sh`
 
 ## Phase quick start (at a glance)
+
+Preferred root launcher:
+
+- `./taconite.sh menu`
+- `./taconite.sh phase 1`
+- `./taconite.sh validate --with-smoke`
+- `./taconite.sh brief --team 1`
 
 1) Phase 0 (Setup)
    - `Phase00_Setup/` scripts prepare Kali. Run once before event.

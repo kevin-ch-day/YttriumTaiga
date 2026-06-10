@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # ============================================================
-# Shared Theme (uses ccdc_colors.sh if sourced)
+# Shared Theme (Taconite brutalist TUI)
 # Version : 0.1.0
 #
 # Usage:
@@ -29,10 +29,10 @@ ccdc_theme__c() {
 }
 
 ccdc_theme__divider() {
-  local line="------------------------------------------------------------"
+  local line="################################################################################"
   case "${CCDC_THEME}" in
     minimal) echo "$line" ;;
-    *) echo "$(ccdc_theme__c "90" "$line")" ;;
+    *) echo "$(ccdc_theme__c "meta" "$line")" ;;
   esac
 }
 
@@ -59,11 +59,11 @@ ccdc_theme__header() {
       ;;
     *)
       echo ""
-      echo "$(ccdc_theme__c "100" "$bar")"
-      printf "$(ccdc_theme__c "104" "# %-76s #\n")" "$title"
-      [[ -n "$subtitle" ]] && printf "$(ccdc_theme__c "104" "# %-76s #\n")" "$subtitle"
-      printf "$(ccdc_theme__c "100" "# %-76s #\n")" "Time: $ts"
-      echo "$(ccdc_theme__c "100" "$bar")"
+      echo "$(ccdc_theme__c "accent" "$bar")"
+      printf "%s\n" "$(ccdc_theme__c "accent" "$(printf "# %-76s #" "$title")")"
+      [[ -n "$subtitle" ]] && printf "%s\n" "$(ccdc_theme__c "data" "$(printf "# %-76s #" "$subtitle")")"
+      printf "%s\n" "$(ccdc_theme__c "meta" "$(printf "# %-76s #" "Time: $ts")")"
+      echo "$(ccdc_theme__c "accent" "$bar")"
       echo ""
       ;;
   esac
@@ -73,6 +73,6 @@ ccdc_theme__status_kv() {
   # Usage: ccdc_theme__status_kv "Status" "OK"
   local k="${1:-}"
   local v="${2:-}"
-  local color="${3:-32}"
+  local color="${3:-data}"
   printf "%-18s %s\n" "${k}:" "$(ccdc_theme__c "$color" "$v")"
 }

@@ -1,4 +1,4 @@
-# YttriumTaiga Backbone
+# Taconite Backbone
 
 This file documents the core contracts that keep the phase scripts predictable
 during a CCDC event.
@@ -8,6 +8,9 @@ during a CCDC event.
 - Event/operator runtime is **Kali Linux**.
 - Ubuntu is supported for lightweight validation only: syntax checks, docs
   checks, temporary-file tests, and non-network helper checks.
+- Shared app/kernel helpers live under `src/taconite_core/`. Phase folders remain
+  operator-facing, while `src/` is the migration target for common display,
+  errors, paths, and validation behavior.
 - Phase entry points live at each phase root:
   - `Phase01_Recon/phase1_operator.sh`
   - `Phase02_Privilege_Exp/phase2_operator.sh`
@@ -15,6 +18,12 @@ during a CCDC event.
   - `Phase04_Controlled_Disruption/phase4_operator.sh`
   - `Phase05_Kill_Service/phase5_operator.sh`
   - `Phase06_Day_End/phase6_operator.sh`
+- All tracked shell scripts are expected to be executable. This keeps direct
+  Kali/event usage simple and is enforced by `Scripts/ccdc_validate.sh`.
+- `./taconite.sh` is the preferred root application launcher. It delegates to
+  phase entry points and core utilities without replacing the phase folder
+  structure.
+- The launcher/core/phase/data wiring is mapped in `docs/WIRING.md`.
 
 ## Data contract
 
@@ -59,8 +68,9 @@ The validation harness checks:
 
 ## Error handling contract
 
-Repo-level utility scripts should use `Scripts/ccdc_common.sh` for common
-diagnostics and exit codes:
+Repo-level utility scripts should use `src/taconite_core/kernel.sh` directly or
+`Scripts/ccdc_common.sh` as a compatibility adapter for common diagnostics and
+exit codes:
 
 - `0` - success
 - `2` - usage or invalid arguments
@@ -74,6 +84,21 @@ Use `[WARN]` for non-blocking conditions, `[FAIL]` for validation failures, and
 collect validation failures and print a final summary instead of exiting at the
 first expected failure. Unexpected shell failures should enable the shared ERR
 trap so operators see the script name, line number, and exit code.
+
+## Visual style contract
+
+Taconite's TUI uses a dark, industrial, brutalist palette:
+
+- `#0A0A0A` pitch black and `#121212` matte charcoal for background/panels.
+- `#990000` deep crimson and `#CC0000` blood red only for active borders,
+  highlights, critical states, and payload execution states.
+- `#FFFFFF` for primary data/log/command readouts.
+- `#444444` for timestamps, inactive borders, dividers, and metadata.
+- Square, heavy, monolithic frames. No rounded borders, retro scanlines, blues,
+  pinks, or 80s neon styling.
+- Core display primitives are `taconite_frame`, `taconite_section`,
+  `taconite_status`, and `taconite_kv`. New shared UI should use those instead
+  of raw ANSI escapes.
 
 ## Phase flow
 
@@ -96,6 +121,10 @@ state without running network probes or printing credential secrets.
 ## Change guidelines
 
 - Keep `phaseN_operator.sh` as the supported operator entry point.
+- Put new cross-cutting behavior in `src/taconite_core/` first, then wire phase
+  scripts or utilities to it.
+- Keep `Scripts/ccdc_common.sh` as a backwards-compatible adapter for scripts
+  that have not migrated to `src/taconite_core/kernel.sh` directly.
 - Prefer adding validation to `Scripts/ccdc_validate.sh` when a new invariant is
   introduced.
 - Prefer adding temp-only behavior checks to `Scripts/ccdc_smoke_test.sh` when a

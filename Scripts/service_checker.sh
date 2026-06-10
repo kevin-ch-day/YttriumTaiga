@@ -1,66 +1,46 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-################################################################################
-#              Kali Linux Service Checker and Monitor Script                  #
-#   A professional script to list and display all active and inactive         #
-#   services, helping you monitor and manage your system efficiently.         #
-################################################################################
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/ccdc_common.sh"
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+need_cmd() { command -v "$1" >/dev/null 2>&1; }
 
-# Function to display messages with enhanced formatting
-echo_step() {
-  echo -e "\n\e[1;100m\e[1;97m==============================================\e[0m"
-  echo -e "\e[1;104m\e[1;97m$1\e[0m"
-  echo -e "\e[1;100m\e[1;97m==============================================\e[0m\n"
+need_cmd systemctl || ccdc_die "$CCDC_E_MISSING_TOOL" "systemctl is required for service checks"
+need_cmd awk || ccdc_die "$CCDC_E_MISSING_TOOL" "awk is required for service checks"
+
+print_table_header() {
+  printf "%s\n" "$(taconite_style meta "$(printf '%-40s %-10s' 'SERVICE NAME' 'STATUS')")"
+  printf "%s\n" "$(taconite_style meta "$(printf '%-40s %-10s' '########################################' '##########')")"
 }
 
-# Function to display table headers
-echo_table_header() {
-  echo -e "\e[1;96m%-40s %-10s\e[0m" "SERVICE NAME" "STATUS"
-  echo -e "\e[1;94m---------------------------------------- ----------\e[0m"
-}
+taconite_header "Taconite Service Monitor" "Kali service posture"
 
-# Display header
-echo -e "\e[1;100m################################################################################\e[0m"
-echo -e "\e[1;104m           KALI LINUX SERVICE CHECKER AND MONITOR SCRIPT\e[0m"
-echo -e "\e[1;100m################################################################################\e[0m\n"
+taconite_section "Active services"
+print_table_header
+active_services="$(systemctl list-units --type=service --state=running --no-pager --no-legend 2>/dev/null | awk '{printf "%-40s %-10s\n", $1, $4}')"
+printf "%s\n" "${active_services:-"(none)"}"
 
-# Display all currently running services
-echo_step "Step 1: Listing All Active Services..."
-echo_table_header
-active_services=$(systemctl list-units --type=service --state=running | awk '{printf "%-40s %-10s\n", $1, $4}')
-echo -e "$active_services"
+taconite_section "Inactive services"
+print_table_header
+inactive_services="$(systemctl list-units --type=service --state=inactive --no-pager --no-legend 2>/dev/null | awk '{printf "%-40s %-10s\n", $1, $4}')"
+printf "%s\n" "${inactive_services:-"(none)"}"
 
-# Display all inactive services
-echo_step "Step 2: Listing All Inactive Services..."
-echo_table_header
-inactive_services=$(systemctl list-units --type=service --state=inactive | awk '{printf "%-40s %-10s\n", $1, $4}')
-echo -e "$inactive_services"
+taconite_section "Service summary"
+active_count="$(printf "%s\n" "$active_services" | grep -c ".service" || true)"
+inactive_count="$(printf "%s\n" "$inactive_services" | grep -c ".service" || true)"
+taconite_kv "Active services" "$active_count"
+taconite_kv "Inactive services" "$inactive_count"
 
-# Provide summary of service counts
-echo_step "Step 3: Service Summary..."
-active_count=$(echo "$active_services" | grep -c ".service")
-inactive_count=$(echo "$inactive_services" | grep -c ".service")
-
-echo -e "\e[1;106m\e[1;30m==============================================\e[0m"
-echo -e "\e[1;102m\e[1;30mTotal Active Services: $active_count\e[0m"
-echo -e "\e[1;101m\e[1;30mTotal Inactive Services: $inactive_count\e[0m"
-echo -e "\e[1;106m\e[1;30m==============================================\e[0m\n"
-
-# Highlight critical inactive services (if any)
-echo_step "Step 4: Highlighting Critical Inactive Services..."
+taconite_section "Critical service posture"
 critical_services=("ssh.service" "nginx.service" "mysql.service")
 for service in "${critical_services[@]}"; do
-  if systemctl is-enabled "$service" &> /dev/null && ! systemctl is-active "$service" &> /dev/null; then
-    echo -e "\e[1;101m\e[1;97mCRITICAL: $service is inactive!\e[0m"
+  if systemctl is-enabled "$service" >/dev/null 2>&1 && ! systemctl is-active "$service" >/dev/null 2>&1; then
+    printf "%s %s\n" "$(taconite_style accent "[CRITICAL]")" "$(taconite_style data "$service inactive")"
   else
-    echo -e "\e[1;102m\e[1;30mOK: $service is active\e[0m"
+    printf "%s %s\n" "$(taconite_style meta "[ OK ]")" "$(taconite_style data "$service active or not enabled")"
   fi
 done
 
-# Final message
-echo -e "\e[1;100m################################################################################\e[0m"
-echo -e "\e[1;102m  Service Check Complete: Stay in Control of Your System!\e[0m"
-echo -e "\e[1;100m################################################################################\e[0m"
+taconite_section "Service check complete"

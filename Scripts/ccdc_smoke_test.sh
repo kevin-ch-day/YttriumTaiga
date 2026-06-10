@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Non-network smoke tests for core YttriumTaiga phase handoffs.
+# Non-network smoke tests for core Taconite phase handoffs.
 # Safe on Ubuntu and Kali. Uses temporary directories only.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -21,19 +21,16 @@ cleanup() {
 trap cleanup EXIT
 
 section() {
-  echo ""
-  echo "============================================================"
-  echo "$*"
-  echo "============================================================"
+  taconite_section "$*"
 }
 
 ok() {
-  echo "[ OK ] $*"
+  taconite_ok "$*"
   PASS_COUNT=$((PASS_COUNT+1))
 }
 
 fail() {
-  echo "[FAIL] $*" >&2
+  taconite_fail "$*"
   FAIL_COUNT=$((FAIL_COUNT+1))
 }
 
@@ -74,6 +71,31 @@ if bash -c 'source Phase01_Recon/lib/ccdc_net_scheme.sh; ! ccdc_net__validate_te
   ok "Team 19 blocked by net scheme"
 else
   fail "Team 19 blocked by net scheme"
+fi
+
+section "Taconite launcher"
+if ./taconite.sh version | rg -q '^Taconite v'; then
+  ok "root launcher version command"
+else
+  fail "root launcher version command"
+fi
+
+if ./taconite.sh help | rg -q 'phase <0-6|name>'; then
+  ok "root launcher help command"
+else
+  fail "root launcher help command"
+fi
+
+if [[ "$(printf 'b\n1\n\nq\n' | ./taconite.sh menu | rg -c 'Red Team Operating Core')" -ge 2 ]]; then
+  ok "root launcher menu returns after brief utility"
+else
+  fail "root launcher menu returns after brief utility"
+fi
+
+if bash -c 'source src/taconite_core/kernel.sh; [[ "$(taconite_phase_entry 1)" == "Phase01_Recon/phase1_operator.sh" ]]'; then
+  ok "core phase registry"
+else
+  fail "core phase registry"
 fi
 
 section "Phase 2 actionable target import"
